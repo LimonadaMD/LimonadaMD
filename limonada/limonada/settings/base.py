@@ -36,19 +36,24 @@ PREREQ_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
 ]
 
 PROJECT_APPS = [
     'homepage',
-    'users'
+    'users',
+    'lipids',
+    'membranes',
 ]
 
 INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS
 
 # Middleware stuff
 MIDDLEWARE_CLASSES = [
+'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -135,3 +140,7 @@ STATICFILES_FINDERS = [
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
+
+# CORS settings
+
+CORS_ORIGIN_ALLOW_ALL = True
