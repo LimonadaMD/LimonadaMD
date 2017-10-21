@@ -22,7 +22,7 @@ from django.conf import settings
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('homepage.urls')),
-    url(r'^lipids/', include('lipids.urls')),
-    url(r'^membranes/', include('membranes.urls')),
+    #url(r'^lipids/', include('lipids.urls')),
+    #url(r'^membranes/', include('membranes.urls')),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

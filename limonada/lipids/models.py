@@ -21,12 +21,12 @@ class PoCReference(object):
         self.doi = doi
 
 
-ref_example = PoCReference("Jämbeck, J. P. M. and Lyubartsev, A. P.",
+ref_example = PoCReference("Jambeck, J. P. M. and Lyubartsev, A. P.",
                            "An Extension and Further Validation of an All-Atomistic Force Field "
                            "for Biological Membranes",
                            "J. Chem. Theory Comput.",
                            "8",
-                           "2938–2948",
+                           "2938 2948",
                            "2012",
                            "10.1021/ct300342n")
 
