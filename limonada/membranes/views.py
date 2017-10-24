@@ -1,9 +1,17 @@
 from django.shortcuts import render
+from .forms import MembraneForm
 
-from lipids.models import membrane_example
+def membranes(request):
+    return render(request, 'membranes/membranes.html')
+
+def membrane_edit(request):
+    if request.method == 'POST':
+        form = MembraneForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return render(request, 'membranes/membranes.html')
+    else:
+        form = MembraneForm()
+    return render(request, 'membranes/membrane_edit.html', {'form': form})
 
 
-# Create your views here.
-def membrane_poc(request):
-    context = {"membrane": membrane_example}
-    return render(request, "membranes/poc.html", context=context)

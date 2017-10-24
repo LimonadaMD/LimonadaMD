@@ -1,0 +1,52 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Topologies{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-11">
+            <h1>Topologies</h1>
+        </div>
+        <div class="col">
+            <a href={% url 'topcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <ol>
+            {% for topology in object_list %}
+                <div class="row">
+                    <div class="col">
+                        <li>{{ topology.id }}</li>
+                    </div>
+                    <div class="col-10">
+                        <p> {{ topology.lipid.name }} </p>
+                        <p> {{ topology.forcefield }} </p>
+                        <p><strong>Description:</strong> {{ topology.description }}</p>
+                        <div class="row">
+                            <div class="col-1">
+                                <p><strong>Reference:</strong>
+                            </div>
+                            <div class="col-9">
+                                <ul>
+                                {% for reference in topology.reference.all %}
+                                    <p>{{ reference.authors|truncatewords:"2" }} {{ reference.year }}
+                                    Doi:<a href="http://dx.doi.org/{{ reference.doi }}" target="blank">{{ reference.doi }}</a></p>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+                    <div class="col">
+                        <p><a href={% url 'topdetail' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>
+                        <p><a href={% url 'topupdate' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
+                        <p><a href={% url 'topdelete' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                    </div>
+                </div>
+            {% endfor %}
+        </ol>
+    </div>
+{% endblock %}
+
+

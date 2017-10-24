@@ -1,97 +1,104 @@
-from __future__ import unicode_literals
-
+import os
 from django.db import models
+from django.core.urlresolvers import reverse
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
+from django.utils.text import slugify
 
 
-# Create your models here.
+def img_path(instance, filename):
+    ext = os.path.splitext(filename)[1]    
+    return 'lipids/{0}/{0}{1}'.format(instance.lmid,ext)			
+																	 
+def directory_path(instance, filename):
+    ext = os.path.splitext(filename)[1]    
+    #ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro,map,png} (we assume gromacs for now)
+    return 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software,instance.forcefield,instance.lipid.name,instance.version,ext)	
+																	# write a procedure to check the well functioning of the topology 
+																	# itp AA and UA must contain REST_ON on chiral and db, and CG Z retraint
+class Lipid(models.Model):
+
+    name = models.CharField(max_length=4,							# helt_text to set guidelines to format the name => [0-9A-Z]{4} (=> 1679616 possibilities)
+                            unique=True)
+    lmid = models.CharField(max_length=20, 							# if not in LipidMaps, create a new ID by using LI (for limonada) + subclass + id (increment) 
+                            unique=True)							
+    com_name = models.CharField(max_length=200, 
+                                unique=True)						# name, lmid and com_name are unique because they can be used indifferently in the builder  
+    sys_name = models.CharField(max_length=200, 
+                                null=True)   					 
+    iupac_name = models.CharField(max_length=200, 					
+                                  null=True)   					 
+    formula = models.CharField(max_length=30, 
+                               null=True)   					 
+    main_class = models.CharField(max_length=200,  
+                                  null=True)   					 
+    sub_class = models.CharField(max_length=200,   
+                                 null=True)   					 	# sys_name, iupac_name, formula, main_class, sub_class will be used in case of the implementation of a search fct
+    img = models.FileField(upload_to=img_path,          			# add a button to download the mol file from LipidMaps and be able to draw the lipid image
+                           null=True)
+    date = models.DateField(auto_now=True)
+    #curator = models.ManyToManyField('users.User',						 
+    #                                 on_delete=models.SET_NULL)
+    slug = models.SlugField()							
+
+    def __unicode__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('liplist')
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.slug = slugify(self.lmid)
+        super(Lipid, self).save(*args, **kwargs)
+    
+
+class Topology(models.Model):                                       # must be in CG before adding (specify the version) else recommend use of CGtools  
+
+    GROMACS = "GR"
+    SFTYPE_CHOICES = (
+        (GROMACS, 'Gromacs'),
+    )
+
+    software = models.CharField(max_length=2,
+                                choices=SFTYPE_CHOICES,
+                                default=GROMACS)
+    forcefield = models.ForeignKey('forcefields.Forcefield', 
+                                   on_delete=models.CASCADE)
+    lipid = models.ForeignKey(Lipid,                                 
+                              on_delete=models.CASCADE)
+    itp_file = models.FileField(upload_to=directory_path)			# itp (in forms.py) 
+    gro_file = models.FileField(upload_to=directory_path)  			# gro (in forms.py) 
+    map_file = models.FileField(upload_to=directory_path)  			# map (in forms.py) 
+    version = models.CharField(max_length=30)  						# help_text to set guidelines to format the version name => YearAuthor
+    description = models.TextField(blank=True)
+    reference = models.ManyToManyField('homepage.Reference') 
+    date = models.DateField(auto_now=True)
+    #curator = models.ManyToManyField('users.User',						 
+    #                                 on_delete=models.SET_NULL)
+
+    def __unicode__(self):
+        return "%s_%s" % (self.lipid.name,self.version)
+
+    def get_absolute_url(self):
+        return reverse('toplist')
 
 
-# class Lipid(models.Model):
-#    name = models.CharField()
-#    lmid = models.CharField
+def _delete_file(path):
+    if os.path.isfile(path):
+        os.remove(path)
 
-class PoCReference(object):
-    def __init__(self, authors, title, journal, num, pages, year, doi):
-        self.authors = authors
-        self.title = title
-        self.journal = journal
-        self.num = num
-        self.pages = pages
-        self.year = year
-        self.doi = doi
-
-
-ref_example = PoCReference("Jambeck, J. P. M. and Lyubartsev, A. P.",
-                           "An Extension and Further Validation of an All-Atomistic Force Field "
-                           "for Biological Membranes",
-                           "J. Chem. Theory Comput.",
-                           "8",
-                           "2938 2948",
-                           "2012",
-                           "10.1021/ct300342n")
+@receiver(pre_delete, sender=Lipid)
+def delete_file_pre_delete_lip(sender, instance, *args, **kwargs):
+    if instance.img:
+         _delete_file(instance.img.path)
+    if instance.itp_file:
+         _delete_file(instance.itp_file.path)
+    if instance.gro_file:
+         _delete_file(instance.gro_file.path)
+    if instance.map_file:
+         _delete_file(instance.map_file.path)
 
 
-class PoCGMXTopology(object):
-    format = "GROMACS"
-
-    def __init__(self, parent, forcefield, itp_file, gro_file, version="1", references=[], idnum=1,
-                 name="unknown"):
-        self.parent = parent
-        self.forcefield = forcefield
-        self.itp_file = itp_file
-        self.gro_file = gro_file
-        self.version = version
-        self.references = references
-        self.idnum = idnum
-        self.name = name
 
 
-top_example = PoCGMXTopology(None, "Slipids", "popc.itp", "popc.gro",
-                             references=[ref_example])
-
-
-class PoCMembrane(object):
-    def __init__(self, name, lipids, forcefield, idnum=1, equilibration="Not done"):
-        self.name = name
-        self.lipids = lipids
-        if type(lipids) == int:
-            self.nlipids = lipids
-        else:
-            nlipids = 0
-            for lipid in lipids:
-                nlipids += lipid[0]
-            self.nlipids = nlipids
-        self.forcefield = forcefield
-        self.idnum = idnum
-        self.equilibration = equilibration
-
-
-membrane_example = PoCMembrane("PLPC/POPC Membrane",
-                               [
-                                   (64, PoCGMXTopology(None, "Slipids", "dummy.itp",
-                                                       "dummy.gro", name="POPC")),
-                                   (64, PoCGMXTopology(None, "Slipids", "dummy.itp",
-                                                       "dummy.gro", name="PLPC"))
-                               ],
-                               "Slipids",
-                               idnum=1,
-                               equilibration="250 ns")
-
-
-class PoCLipid(object):
-    def __init__(self):
-        self.name = "POPC"
-        self.lmid = "LMGP01010005"
-
-        top_example.parent = self
-        self.topologies = [
-            top_example,
-            PoCGMXTopology(self, "Gromos 54a7", "popc.itp", "popc.gro"),
-            PoCGMXTopology(self, "Martini", "popc.itp", "popc.gro"),
-        ]
-
-        self.membranes = [
-            PoCMembrane("Pure POPC Membrane", 128, "Slipids"),
-            membrane_example,
-            PoCMembrane("Plasma Membrane", 19280, "Martini"),
-        ]

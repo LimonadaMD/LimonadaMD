@@ -1,0 +1,23 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}References{% endblock %}
+
+{% block content %}
+    <h1>Articles</h1>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-10">
+                <p>{{ object.authors }}</p>
+                <p>{{ object.title }}</p>
+                <p>{{ object.journal }}, {{ object.year }}, {{ object.num }}, {{ object.pages }}. Doi:<a href="http://dx.doi.org/{{ object.doi }}" target="blank">{{ object.doi }}</a></p>
+                <br>
+            </div>
+            <div class="col">
+                <p><a href={% url 'refupdate' object.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
+                <p><a href={% url 'refdelete' object.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

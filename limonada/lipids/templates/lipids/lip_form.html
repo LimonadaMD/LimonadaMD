@@ -1,0 +1,13 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Lipids{% endblock %}
+
+{% block content %}
+<h1>Lipids</h1>
+{{ lmid }}
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit">
+</form>
+{% endblock %}

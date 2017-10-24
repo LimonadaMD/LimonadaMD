@@ -6,3 +6,4 @@ register = template.Library()
 @register.simple_tag
 def version():
     return __version__
+

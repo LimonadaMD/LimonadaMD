@@ -1,0 +1,42 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Lipids{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-11">
+            <h1>Lipids</h1>
+        </div>
+        <div class="col">
+            <a href={% url 'lipsearch' %} class="btn btn-primary active" role="button" aria-pressed="true">Search</a>
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <ol>
+            {% for lipid in object_list %}
+                <div class="row">
+                    <div class="col-10">
+                        <p>Name: {{ lipid.name }}</p> 
+                        <p>LMID: {{ lipid.lmid }}</p>
+                        <p>Common name: {{ lipid.com_name }}</p>
+                        <p>Systematic name: {{ lipid.sys_name }}</p>
+                        <p>IUPAC name: {{ lipid.iupac_name }}</p>
+                        <p>Formula: {{ lipid.formula }}</p>
+                        <p>Main class: {{ lipid.main_class }}</p>
+                        <p>Sub class: {{ lipid.sub_class }}</p>
+                        <img src="../media/{{ lipid.img }}" />
+                        <br>
+                    </div>
+                    <div class="col">
+                        <p><a href={% url 'lipdetail' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>
+                        <p><a href={% url 'lipupdate' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
+                        <p><a href={% url 'lipdelete' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                    </div>
+                </div>
+            {% endfor %}
+        </ol>
+    </div>
+{% endblock %}
+
+

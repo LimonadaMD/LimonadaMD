@@ -1,0 +1,38 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}References{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-11">
+            <h1>Articles</h1>
+        </div>
+        <div class="col">
+            <a href={% url 'refcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <ol>
+            {% for ref in object_list %}
+                <div class="row">
+                    <div class="col">
+                        <li></li>
+                    </div>
+                    <div class="col-10">
+                        <p>{{ ref.authors }}</p>
+                        <p>{{ ref.title }}</p>
+                        <p>{{ ref.journal }}, {{ ref.year }}, {{ ref.num }}, {{ ref.pages }}. Doi:<a href="http://dx.doi.org/{{ ref.doi }}" target="blank">{{ ref.doi }}</a></p>
+                        <br>
+                    </div>
+                    <div class="col">
+                        <!--<p><a href={% url 'refdetail' ref.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>-->
+                        <p><a href={% url 'refupdate' ref.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
+                        <p><a href={% url 'refdelete' ref.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                    </div>
+                </div>
+            {% endfor %}
+        </ol>
+    </div>
+{% endblock %}
+

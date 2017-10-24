@@ -1,0 +1,25 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Lipids{% endblock %}
+
+{% block content %}
+    <h1>Lipids</h1>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <li>{{ lipid.id }}</li>
+            </div>
+            <div class="col-10">
+                <p>{{ lipid.name }} {{lipid.lmid}}</p>
+                <br>
+            </div>
+            <div class="col">
+                <p><a href={% url 'lipupdate' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
+                <p><a href={% url 'lipdelete' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+

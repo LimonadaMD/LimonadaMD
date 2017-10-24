@@ -1,0 +1,14 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}References{% endblock %}
+
+{% block content %}
+<h1>Articles</h1>
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit">
+</form>
+
+{% endblock %}

@@ -1,7 +1,7 @@
 """limonada URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/1.9/topics/http/urls/
+    https://docs.djangoproject.com/en/1.11/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -22,7 +22,10 @@ from django.conf import settings
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('homepage.urls')),
-    #url(r'^lipids/', include('lipids.urls')),
-    #url(r'^membranes/', include('membranes.urls')),
-
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    url(r'^', include('lipids.urls')),
+    url(r'^', include('forcefields.urls')),
+    url(r'^', include('membranes.urls')),
+    url(r'^', include('builder.urls')),
+    url(r'^', include('jobs.urls')),
+    url(r'^', include('users.urls')),
+]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

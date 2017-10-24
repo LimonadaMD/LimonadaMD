@@ -1,0 +1,11 @@
+{% extends "homepage/layout.html" %}
+{% block title %}Topology form{% endblock %}
+{% block content %}
+<p>Hey! Welcome to the membrane edit page! </p>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}     
+    <button type="submit">Upload</button>
+</form>
+{% endblock %}
+

@@ -1,0 +1,11 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Lipids{% endblock %}
+
+{% block content %}
+<h1>Lipids</h1>
+<form action="/lipids/create/?lmid=" method="get">
+    {{ form }}
+    <input type="submit" value="Search">
+</form>
+{% endblock %}

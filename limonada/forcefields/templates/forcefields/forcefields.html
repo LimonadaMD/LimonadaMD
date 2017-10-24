@@ -1,0 +1,58 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Forcefields{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-11">
+            <h1>Forcefields</h1>
+        </div>
+        <div class="col">
+            <a href={% url 'ffcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <ol>
+            {% for forcefield in object_list %}
+                <div class="row">
+                    <div class="col">
+                        <li>{{ forcefield.forcefield_type }}</li>
+                    </div>
+                    <div class="col-10">
+                        <p>
+                            {{ forcefield.name }} (
+                            <a href="{{ forcefield.ff_file.url }}" target="blank">FF files</a>,
+                            <a href="{{ forcefield.mdp_file.url }}" target="blank">mdp files</a>)
+                        </p>
+                        <p><strong>Description:</strong> {{ forcefield.description }}</p>
+                        <div class="row">
+                            <div class="col-1">
+                                <p><strong>Reference:</strong>
+                            </div>
+                            <div class="col-9">
+                                <ul>
+                                {% for reference in forcefield.reference.all %}
+                                    <p>{{ reference.authors|truncatewords:"2" }} {{ reference.year }}
+                                    Doi:<a href="http://dx.doi.org/{{ reference.doi }}" target="blank">{{ reference.doi }}</a></p>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+                    <div class="col">
+                        <!--<p><a href={% url 'ffdetail' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>-->
+                        <p><a href={% url 'ffupdate' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
+                        <p><a href={% url 'ffdelete' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                    </div>
+                </div>
+            {% endfor %}
+        </ol>
+    </div>
+    {% if ff_file_url %}
+        <p>File uploaded at: <a href="{{ ff_file_url }}">{{ ff_file_url }}</a></p>  
+    {% endif %}
+{% endblock %}
+
+
