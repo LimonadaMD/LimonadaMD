@@ -1,2 +1,5 @@
 Django>=1.9.7
 django-registration-redux>=1.4
+django-cors-headers
+netifaces
+requests
