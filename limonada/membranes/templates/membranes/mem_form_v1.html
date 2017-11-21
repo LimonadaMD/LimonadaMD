@@ -1,0 +1,52 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Membranes{% endblock %}
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+{% block content %}
+<h1>Membranes</h1>
+
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label>Name</label>
+    {{ form.name }}
+    {% if form.name.errors %}
+        {% for error in form.name.errors %}
+            {{ error|escape }}
+        {% endfor %}
+    {% endif %}
+
+    <br>
+    <label>File</label>
+    {{ form.mem_file }}
+
+    {{ formset.management_form }}
+
+    {% for lip in formset %}
+        <div class="link-formset">
+            {{ lip.topology }}
+            {{ lip.number }}
+            {{ lip.side }}
+        </div>
+    {% endfor %}
+
+    <br>
+    <label>Equilibration</label>
+    {{ form.equilibration }}
+    <br>
+    <label>Description</label>
+    {{ form.description }}
+    <br>
+    <label>Reference</label>
+    {{ form.reference }}
+
+    <br>
+    <input type="submit">
+</form>
+{% endblock %}

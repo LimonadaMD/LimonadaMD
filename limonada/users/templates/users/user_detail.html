@@ -1,0 +1,16 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% block content %}
+    <h1>Users</h1>
+    <br>
+    <h2>{{ user.get_full_name }}</h2>
+    <ul>
+        <li>Username: {{ user.username }}</li>
+        <li>Institute: {{ user.profile.institute }}</li>
+    </ul>
+{% endblock %}
+
+
+

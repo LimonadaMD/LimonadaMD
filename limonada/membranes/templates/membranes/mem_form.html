@@ -1,0 +1,94 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Membranes{% endblock %}
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+{% block content %}
+<h1>Membranes</h1>
+
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label>Name</label>
+    {{ form.name }}
+    {% if form.name.errors %}
+        {% for error in form.name.errors %}
+            {{ error|escape }}
+        {% endfor %}
+    {% endif %}
+
+    <br>
+    <label>File</label>
+    {{ form.mem_file }}
+    {% if form.mem_file.errors %}
+        {% for error in form.mem_file.errors %}
+            {{ error|escape }}
+        {% endfor %}
+    {% endif %}
+
+    {{ formset.management_form }}
+
+    {% for lip in formset.forms %}
+        <div class="link-formset" >
+            {% for fld in lip.hidden_fields %}{{ fld }}{% endfor %}
+            {{ lip.topology }}
+            {% if lip.topology.errors %}
+                {% for error in lip.topology.errors %}
+                    {{ error|escape }}
+                {% endfor %}
+            {% endif %}
+            {{ lip.number }}
+            {% if lip.number.errors %}
+                {% for error in lip.number.errors %}
+                    {{ error|escape }}
+                {% endfor %}
+            {% endif %}
+            {{ lip.side }}
+            {% if lip.side.errors %}
+                {% for error in lip.side.errors %}
+                    {{ error|escape }}
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    {% if formset.non_form_errors %}
+        {% for error in formset.non_form_errors %}
+            {{ error|escape }}
+        {% endfor %}
+    {% endif %}
+
+    <br>
+    <label>Equilibration</label>
+    {{ form.equilibration }}
+    {% if form.equilibration.errors %}
+        {% for error in form.equilibration.errors %}
+            {{ error|escape }}
+        {% endfor %}
+    {% endif %}
+    <br>
+    <label>Description</label>
+    {{ form.description }}
+    {% if form.description.errors %}
+        {% for error in form.description.errors %}
+            {{ error|escape }}
+        {% endfor %}
+    {% endif %}
+    <br>
+    <label>Reference</label>
+    {{ form.reference }}
+    {% if form.reference.errors %}
+        {% for error in form.reference.errors %}
+            {{ error|escape }}
+        {% endfor %}
+    {% endif %}
+
+    <br>
+    <input type="submit">
+</form>
+{% endblock %}

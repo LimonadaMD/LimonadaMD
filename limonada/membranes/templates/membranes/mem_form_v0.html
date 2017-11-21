@@ -1,0 +1,16 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Membranes{% endblock %}
+
+{% block content %}
+<h1>Membranes</h1>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {{ formset.management_form }}
+    {% for test in formset %}
+        {{ test.as_p }}
+    {% endfor %}
+    <input type="submit">
+</form>
+{% endblock %}
