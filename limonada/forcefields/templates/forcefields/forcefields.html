@@ -7,9 +7,11 @@
         <div class="col-11">
             <h1>Forcefields</h1>
         </div>
-        <div class="col">
-            <a href={% url 'ffcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
-        </div>
+        {% if user.is_authenticated %}
+            <div class="col">
+                <a href={% url 'ffcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
+            </div>
+        {% endif %}
     </div>
     <br>
     <div class="container">
@@ -43,8 +45,10 @@
                     </div>
                     <div class="col">
                         <!--<p><a href={% url 'ffdetail' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>-->
-                        <p><a href={% url 'ffupdate' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
-                        <p><a href={% url 'ffdelete' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                        {% if user.is_authenticated %}
+                            <p><a href={% url 'ffupdate' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
+                            <p><a href={% url 'ffdelete' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

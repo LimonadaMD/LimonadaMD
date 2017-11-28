@@ -68,7 +68,7 @@ ROOT_URLCONF = 'limonada.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,10 +76,12 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'users.context_processors.include_login_form'
             ],
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'limonada.wsgi.application'
 
@@ -113,6 +115,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_REDIRECT_URL = 'homepage'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
@@ -145,6 +148,8 @@ STATICFILES_FINDERS = [
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 # Allow Django from all hosts. This snippet is installed from
