@@ -30,8 +30,10 @@
                 <br>
             </div>
             <div class="col">
-                <p><a href={% url 'topupdate' object.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
-                <p><a href={% url 'topdelete' object.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                {% if user.is_authenticated %}
+                    <p><a href={% url 'topupdate' object.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Update</a><p>
+                    <p><a href={% url 'topdelete' object.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Delete</a><p>
+                {% endif %}
             </div>
         </div>
     </div>

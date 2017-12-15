@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
@@ -35,16 +36,6 @@ class RefCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(RefCreate, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
-        return context_data
-
-
-class RefDetail(DetailView):
-    model = Reference
-    template_name = 'homepage/ref_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context_data = super(RefDetail, self).get_context_data(**kwargs)
         context_data['lipids'] = True
         return context_data
 

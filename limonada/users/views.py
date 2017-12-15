@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import render, redirect
-from .forms import SignUpForm 
+from .forms import SignUpForm, UpdateForm 
 
 
 def signup(request):
@@ -24,15 +24,35 @@ def signup(request):
         else:
             messages.error(request, _('Please correct the error below.'))
     else:
+        form = SignUpForm()
+    return render(request, 'users/signup.html', {'form': form, 'homepage': True})
+
+
+@login_required
+def update(request):
+    if request.method == 'POST':
+        form = UpdateForm(request.POST)
+        if form.is_valid():
+            user = request.user
+            user.first_name = form.cleaned_data.get('first_name')
+            user.last_name = form.cleaned_data.get('last_name')
+            user.email = form.cleaned_data.get('email')
+            user.profile.utype = form.cleaned_data.get('utype')
+            user.profile.institute = form.cleaned_data.get('institute') 
+            user.profile.position = form.cleaned_data.get('position')
+            user.save()
+            messages.success(request, _('Your profile was successfully updated!'))
+            return redirect('homepage')
+        else:
+            messages.error(request, _('Please correct the error below.'))
+    else:
         if request.user.is_authenticated(): 
             instance = request.user
-            instance.last_name = "test" 
-            instance.institute = "test" 
-            form = SignUpForm(instance=instance)
-            #form = SignUpForm(instance=request.user)
-        else:
-            form = SignUpForm()
-    return render(request, 'users/signup.html', {'form': form, 'homepage': True})
+            utype = request.user.profile.utype 
+            institute = request.user.profile.institute 
+            position = request.user.profile.position 
+            form = UpdateForm(instance=instance, initial={'utype': utype, 'institute': institute, 'position': position})
+    return render(request, 'users/update.html', {'form': form, 'homepage': True})
 
 
 @login_required

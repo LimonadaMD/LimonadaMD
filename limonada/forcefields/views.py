@@ -1,9 +1,24 @@
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
+from dal import autocomplete
 from .models import Forcefield 
 from .forms import ForcefieldForm
+from homepage.models import Reference
+
+
+class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        #if not self.request.user.is_authenticated():
+        #    return Country.objects.none()
+        qs = Reference.objects.all()
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+        return qs
 
 
 class FfList(ListView):
@@ -31,16 +46,6 @@ class FfCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(FfCreate, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
-        return context_data
-
-
-class FfDetail(DetailView):
-    model = Forcefield
-    template_name = 'forcefields/ff_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context_data = super(FfDetail, self).get_context_data(**kwargs)
         context_data['lipids'] = True
         return context_data
 

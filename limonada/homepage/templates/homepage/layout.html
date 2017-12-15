@@ -4,107 +4,103 @@
 <head>
 	{% load staticfiles %}
 	{% load homepage_extras %}
-    <title>Limonada - {% block title %}{% endblock %}</title>
+	<title>Limonada - {% block title %}{% endblock %}</title>
 	<link rel="icon" href="{% static 'img/favicon.ico' %}">
-    <link rel="stylesheet" href="{% static 'css/limonada.css' %}" type = "text/css"/>
-	<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type = "text/css"/>
-    <link rel="stylesheet" href="{% static 'css/justified-nav.css' %}" type = "text/css"/>
-	<meta charset="utf-8" />
-	<meta name="viewport" content = "width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+	<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css"/>
+	<link rel="stylesheet" href="{% static 'css/limonada.css' %}" type="text/css"/>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+	<meta name="description" content="">
+	<meta name="author" content="">
 </head>
 
-<body class="body" style="background-color:#f6f6f6">
-	<div class="container" style="min-height:95%; ">
-        <div class="masthead">
-			<div class="row bgimg" style="background-image: url('{% static "img/banner.png"%}')";>
-				<div class="col-3" style="background-color:#f6f6f6">
-					<h3>Limonada {% version %}</h3><br>
-					<h5>LIpid Membranes Open Network And DAtabase</h5> 
-				</div>
-				<div class="col bggrad">
-					<br>
-				</div>
-				<div class="col-3" style="background-color:#f6f6f6" align="left">
-                    {% include 'users/login.html' %}
-				</div>
+<body class="container bg-light p-3">
+	<header class="container p-3">
+		<div class="row bgimg" style="background-image: url('{% static "img/banner.png"%}')";>
+			<div class="col-3 bg-light">
+				<h3>Limonada {% version %}</h3>
+				<br>
+				<h5>LIpid Membranes Open Network And DAtabase</h5> 
 			</div>
-			<div class="row">
-				<div class="col align-self-end">
-					<br>
-					<nav class="navbar navbar-expand-md navbar-light bg-light rounded mb-3">
-						<div class="collapse navbar-collapse" id="navbarCollapse">
-							<ul class="navbar-nav text-md-center nav-justified w-100">
-								<li class="nav-item{% if homepage %} active {% endif %}">
-									<a class="nav-link" href="{% url 'homepage' %}">Home<span class="sr-only">(current)</span></a>
-								</li>
-								<li class="nav-item{% if builder %} active {% endif %}">
-									<a class="nav-link" href="{% url 'builder' %}">Builder</a>
-								</li>
-								<li class="nav-item dropdown{% if lipids %} active {% endif %} ">
-									<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Libraries</a>
-									<div class="dropdown-menu" aria-labelledby="dropdown01">
-										<a class="dropdown-item" href="{% url 'liplist' %}">Lipids</a>
-										<a class="dropdown-item" href="{% url 'toplist' %}">Topologies</a>
-										<a class="dropdown-item" href="{% url 'memlist' %}">Membranes</a>
-                                        <a class="dropdown-item" href="{% url 'fflist'  %}">Forcefields</a>
-										<a class="dropdown-item" href="{% url 'reflist' %}">References</a>
-									</div>
-								</li>
-								<li class="nav-item{% if jobs %} active {% endif %}">
-									<a class="nav-link" href="{% url 'jobs' %}">Jobs</a>
-								</li>
-							</ul>
-						</div>
-					</nav>
-				</div>
+			<div class="col bggrad">
 			</div>
-			<div class="row">
-				<div class='container'>
-					<br><br>
-					{% block content %}
-					{% endblock %}	
-				</div>
-			</div> 
-			<footer>
-				<div class="container" style='margin-left:15px'>
-					<!--<br><p><a href="#" target="blank">Contact</a></p>-->
-				</div>
-			</footer>
+			<div class="col-3 bg-light" align="left">
+				{% include 'users/login.html' %}
+			</div>
 		</div>
-	</div>
+	</header>
+	<nav class="container p-3">
+				<ul class="nav nav-pills bg-secondary nav-justified rounded">
+					<li class="nav-item {% if homepage %} bg-success rounded {% endif %} ">
+						<a class="nav-link text-light" href="{% url 'homepage' %}">Home</a>
+					</li>
+					<li class="nav-item {% if builder %} bg-success rounded {% endif %}">
+						<a class="nav-link text-light" href="{% url 'builder' %}">Builder</a>
+					</li>
+					<li class="nav-item dropdown {% if lipids %} bg-success rounded {% endif %} ">
+						<a class="nav-link text-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Libraries</a>
+						<div class="dropdown-menu" aria-labelledby="dropdown">
+							<a class="dropdown-item" href="{% url 'liplist' %}">Lipids</a>
+							<a class="dropdown-item" href="{% url 'toplist' %}">Topologies</a>
+							<a class="dropdown-item" href="{% url 'memlist' %}">Membranes</a>
+							<a class="dropdown-item" href="{% url 'fflist' %}">Forcefields</a>
+							<a class="dropdown-item" href="{% url 'reflist' %}">References</a>
+						</div>
+					</li>
+					<li class="nav-item {% if jobs %} bg-success rounded {% endif %}">
+						<a class="nav-link text-light" href="{% url 'jobs' %}">Jobs</a>
+					</li>
+				</ul>
+	</nav>
+	<section class="container p-3">
+		{% block content %}
+		{% endblock %}	
+	</section> 
+	<footer class="container bg-secondary text-light p-3">
+		<div class="row"> 
+			<div class="col-6"> 
+				<h2>Contact</h2>
+				<p> Dr. Jean-Marc Crowet (<a href="mailto:jean-marc.crowet@univ-reims.fr" class="text-warning">jean-marc.crowet@univ-reims.fr</a>)</p> 
+				<br>
+				<h2>Contributors</h2> 
+				<ul> 
+					<li><a href="http://www.gembloux.ulg.ac.be/biophysique-moleculaire-aux-interfaces/team/jean-marc-crowet/" class="text-warning">Dr. Jean-Marc Crowet</a></li> 
+					<li><a href="http://seb-buch.github.io/" class="text-warning">Dr. Sébastien Buchoux</a></li> 
+				</ul> 
+			</div> 
+			<div class="col-6"> 
+				<h2>Financial support</h2> 
+				<a href="http://www.univ-reims.fr/"><img src="{% static "img/URCA.png" %}" alt="URCA" style="height:75px;" class="p-1"/></a> 
+				<a href="https://www.u-picardie.fr/"><img src="{% static "img/logoupjv-bleu.png" %}" alt="UPJV" style="height:75px;" class="p-1"/></a> 
+				<a href="https://www.uliege.be/"><img src="{% static "img/uliege_logo-retina.png" %}" alt="ULiège" style="height:75px;" class="p-1"/></a> 
+				<a href="http://www.univ-reims.fr/minisite_64/"><img src="{% static "img/MEDyC.png" %}" alt="MEDyC" style="height:75px;" class="p-1"/></a> 
+				<a href="https://p3m.univ-reims.fr/"><img src="{% static "img/plateau_modelisation.png" %}" alt="Maison_Simulation" style="height:75px;" class="p-1"/></a> 
+				<a href="http://www.gembloux.ulg.ac.be/biophysique-moleculaire-aux-interfaces/"><img src="{% static "img/logo_LBMI-300x224.png" %}" alt="LBMI" style="height:75px;" class="p-1"/></a> 
+				<a href="http://sfr-condorcet.fr/"><img src="{% static "img/SFR_condorcet.jpg" %}" alt="SFR_Condorcet" style="height:75px;" class="p-1"/></a> 
+				<a href="http://www.wbi.be/"><img src="{% static "img/wbi.png" %}" alt="WBI" style="height:75px;" class="p-1"/></a> 
+			</div> 
+		</div> 
+	</footer>
 
-	<!-- Placed at the end of the document so the pages load faster 
-	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-	<script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery.min.js"><\/script>')</script>-->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 	<script src="{% static 'js/popper.min.js' %}"></script>
 	<script src="{% static 'js/bootstrap.min.js' %}"></script>
 	<script src="{% static 'js/jquery.formset.js' %}"></script>
 	<script type="text/javascript">
-	    $(function() {
-	        $('.link-formset').formset({
-                addText: 'add link',
-                deleteText: 'remove'
-            });
-	    })
+		 $(function() {
+			$('.link-formset').formset({
+				addText: 'add link',
+				deleteText: 'remove'
+				});
+			})
 	</script>
-	<!--<script type="text/javascript">
-        $(function() {
-            $('#myForm tbody tr').formset({
-                addText: 'add link',
-                deleteText: 'remove'
-            });
-        })
-	</script>-->
 	<script type="text/javascript">
-        $(function() {
-            $('#id_contact_info_table tbody tr').formset({
-                extraClasses: ['row1', 'row2', 'row3']
-            })
-        })
-    </script>
+		$(function() {
+			$('#id_contact_info_table tbody tr').formset({
+				extraClasses: ['row1', 'row2', 'row3']
+				})
+			})
+	</script>
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 	<script src="{% static 'js/ie10-viewport-bug-workaround.js' %}"></script>
 	<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
@@ -124,7 +120,6 @@
 		ga('create', 'UA-XXXXX-X', 'auto');
 		ga('send', 'pageview');
 	</script>
-	{% block additional_scripts %}{% endblock %}
 </body>
 
 </html>

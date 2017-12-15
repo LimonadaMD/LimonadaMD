@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
@@ -33,6 +34,7 @@ def LipSearch(request):
     return render(request, 'lipids/lip_search.html', {'form': form, 'lipids': True})
 
 
+@login_required
 def LipCreate(request):
     lmid = ""
     if request.method == 'POST' and request.FILES:

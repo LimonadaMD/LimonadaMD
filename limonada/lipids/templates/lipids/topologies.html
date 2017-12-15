@@ -3,15 +3,19 @@
 {% block title %}Topologies{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-11">
-            <h1>Topologies</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-11">
+                <h1>Topologies</h1>
+            </div>
+            <div class="col-1 align-self-center" align="right">
+                {% if user.is_authenticated %}
+                    <a href={% url 'topcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
+                {% endif %}
+            </div>
         </div>
-        <div class="col">
-            <a href={% url 'topcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
-        </div>
+        <br>
     </div>
-    <br>
     <div class="container">
         <ol>
             {% for topology in object_list %}
@@ -38,10 +42,12 @@
                         </div>
                         <br>
                     </div>
-                    <div class="col">
-                        <p><a href={% url 'topdetail' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>
-                        <p><a href={% url 'topupdate' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
-                        <p><a href={% url 'topdelete' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                    <div class="col" align="right">
+                        <p><a href={% url 'topdetail' topology.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Details</a><p>
+                        {% if user.is_authenticated %}
+                            <p><a href={% url 'topupdate' topology.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Update</a><p>
+                            <p><a href={% url 'topdelete' topology.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Delete</a><p>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

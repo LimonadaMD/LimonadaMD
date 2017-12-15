@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError, transaction
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
 from .models import Membrane, Composition
@@ -23,7 +24,7 @@ class MemList(ListView):
         return context_data
 
 
-#@login_required
+@login_required
 #@transaction.atomic
 def MemCreate(request, formset_class, template):
     if request.method == 'POST':
@@ -49,14 +50,14 @@ def MemCreate(request, formset_class, template):
             except IntegrityError: #If the transaction failed
                 messages.error(request, 'There was an error saving your composition.')
             #return display_data(request, data)
-            return render(request, 'membranes/membranes.html', {'lipids', True})
+            return render(request, 'membranes/membranes.html') #, {'lipids', True})
     else:
         form = MembraneForm()
         formset = formset_class()
     return render(request, template, {
         'form': form, 
         'formset': formset,
-        'lipids': True
+#        'lipids': True
     })
 
 
@@ -70,6 +71,8 @@ class MemDetail(DetailView):
         return context_data
 
 
+@login_required
+@transaction.atomic
 def MemUpdate(request, pk=None):
     m = Membrane.objects.get(pk=pk)
     if request.method == 'POST':

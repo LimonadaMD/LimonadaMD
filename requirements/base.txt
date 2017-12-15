@@ -3,3 +3,4 @@ django-registration-redux>=1.4
 django-cors-headers
 netifaces
 requests
+django-autocomplete-light
