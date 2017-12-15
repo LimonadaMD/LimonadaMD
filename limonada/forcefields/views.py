@@ -10,6 +10,11 @@ class FfList(ListView):
     model = Forcefield
     template_name = 'forcefields/forcefields.html'
 
+    def get_context_data(self, **kwargs):
+        context_data = super(FfList, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
+
 
 class FfCreate(CreateView):
     model = Forcefield
@@ -24,10 +29,20 @@ class FfCreate(CreateView):
         self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
 
+    def get_context_data(self, **kwargs):
+        context_data = super(FfCreate, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
+
 
 class FfDetail(DetailView):
     model = Forcefield
     template_name = 'forcefields/ff_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super(FfDetail, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
 
 
 class FfUpdate(UpdateView):
@@ -41,6 +56,11 @@ class FfUpdate(UpdateView):
         return HttpResponseRedirect(self.object.get_absolute_url())
         #return reverse('ffdetail', kwargs={'pk': self.object.pk,})
 
+    def get_context_data(self, **kwargs):
+        context_data = super(FfUpdate, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
+
 
 class FfDelete(DeleteView):
     model = Forcefield
@@ -48,5 +68,10 @@ class FfDelete(DeleteView):
 
     def get_success_url(self):
         return reverse('fflist')
+
+    def get_context_data(self, **kwargs):
+        context_data = super(FfDelete, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
 
 

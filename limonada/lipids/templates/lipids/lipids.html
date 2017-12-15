@@ -7,9 +7,11 @@
         <div class="col-11">
             <h1>Lipids</h1>
         </div>
-        <div class="col">
-            <a href={% url 'lipsearch' %} class="btn btn-primary active" role="button" aria-pressed="true">Search</a>
-        </div>
+        {% if user.is_authenticated %}
+            <div class="col">
+                <a href={% url 'lipsearch' %} class="btn btn-primary active" role="button" aria-pressed="true">Search</a>
+            </div>
+        {% endif %}
     </div>
     <br>
     <div class="container">
@@ -30,8 +32,10 @@
                     </div>
                     <div class="col">
                         <p><a href={% url 'lipdetail' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>
-                        <p><a href={% url 'lipupdate' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
-                        <p><a href={% url 'lipdelete' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                        {% if user.is_authenticated %}
+                            <p><a href={% url 'lipupdate' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
+                            <p><a href={% url 'lipdelete' lipid.slug %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

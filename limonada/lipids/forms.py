@@ -6,7 +6,8 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class LmidForm(forms.Form):
-    lmid = forms.CharField(label="LMID") 
+    #lmid = forms.CharField(label="LMID") 
+    lmid = forms.CharField(label="LMID", widget=forms.TextInput(attrs={'size':10}))
 
     def clean_lmid(self):
         data = self.cleaned_data['lmid']

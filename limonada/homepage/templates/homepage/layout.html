@@ -6,6 +6,7 @@
 	{% load homepage_extras %}
     <title>Limonada - {% block title %}{% endblock %}</title>
 	<link rel="icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/limonada.css' %}" type = "text/css"/>
 	<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type = "text/css"/>
     <link rel="stylesheet" href="{% static 'css/justified-nav.css' %}" type = "text/css"/>
 	<meta charset="utf-8" />
@@ -17,49 +18,45 @@
 <body class="body" style="background-color:#f6f6f6">
 	<div class="container" style="min-height:95%; ">
         <div class="masthead">
-			<div class="row">
-				<div class="col">
+			<div class="row bgimg" style="background-image: url('{% static "img/banner.png"%}')";>
+				<div class="col-3" style="background-color:#f6f6f6">
 					<h3>Limonada {% version %}</h3><br>
 					<h5>LIpid Membranes Open Network And DAtabase</h5> 
 				</div>
-				<div class="col-6">
+				<div class="col bggrad">
 					<br>
-					<center>
-						<img src="{% static 'img/banner.jpg' %}" class="img-responsive" style='max-height:110px;' alt="banner">
-					</center>
 				</div>
-				<div class="col">
-					{% include 'users/userspace.html' %}
+				<div class="col-3" style="background-color:#f6f6f6" align="left">
+                    {% include 'users/login.html' %}
 				</div>
 			</div>
-            <hr>
 			<div class="row">
-				<nav class="navbar navbar-expand-md navbar-light bg-light rounded mb-3">
-					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-						<span class="navbar-toggler-icon"></span>
-					</button>
-					<div class="collapse navbar-collapse" id="navbarCollapse">
-						<ul class="navbar-nav text-md-center nav-justified w-100">
-							<li class="nav-item active">
-								<a class="nav-link" href="{% url 'homepage' %}">Home<span class="sr-only">(current)</span></a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="{% url 'builder' %}">Builder</a>
-							</li>
-							<li class="nav-item dropdown">
-								<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Libraries</a>
-								<div class="dropdown-menu" aria-labelledby="dropdown01">
-									<a class="dropdown-item" href="{% url 'liplist' %}">Lipids</a>
-									<a class="dropdown-item" href="{% url 'toplist' %}">Topologies</a>
-									<a class="dropdown-item" href="{% url 'membranes' %}">Membranes</a>
-                                    <a class="dropdown-item" href="{% url 'fflist' %}">Forcefields</a>
-									<a class="dropdown-item" href="{% url 'reflist' %}">References</a>
-								</div>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="{% url 'jobs' %}">Jobs</a>
-							</li>
-						</ul>
+				<div class="col align-self-end">
+					<br>
+					<nav class="navbar navbar-expand-md navbar-light bg-light rounded mb-3">
+						<div class="collapse navbar-collapse" id="navbarCollapse">
+							<ul class="navbar-nav text-md-center nav-justified w-100">
+								<li class="nav-item{% if homepage %} active {% endif %}">
+									<a class="nav-link" href="{% url 'homepage' %}">Home<span class="sr-only">(current)</span></a>
+								</li>
+								<li class="nav-item{% if builder %} active {% endif %}">
+									<a class="nav-link" href="{% url 'builder' %}">Builder</a>
+								</li>
+								<li class="nav-item dropdown{% if lipids %} active {% endif %} ">
+									<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Libraries</a>
+									<div class="dropdown-menu" aria-labelledby="dropdown01">
+										<a class="dropdown-item" href="{% url 'liplist' %}">Lipids</a>
+										<a class="dropdown-item" href="{% url 'toplist' %}">Topologies</a>
+										<a class="dropdown-item" href="{% url 'memlist' %}">Membranes</a>
+                                        <a class="dropdown-item" href="{% url 'fflist'  %}">Forcefields</a>
+										<a class="dropdown-item" href="{% url 'reflist' %}">References</a>
+									</div>
+								</li>
+								<li class="nav-item{% if jobs %} active {% endif %}">
+									<a class="nav-link" href="{% url 'jobs' %}">Jobs</a>
+								</li>
+							</ul>
+						</div>
 					</nav>
 				</div>
 			</div>
@@ -78,11 +75,36 @@
 		</div>
 	</div>
 
-	<!-- Placed at the end of the document so the pages load faster -->
+	<!-- Placed at the end of the document so the pages load faster 
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-	<script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+	<script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery.min.js"><\/script>')</script>-->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 	<script src="{% static 'js/popper.min.js' %}"></script>
 	<script src="{% static 'js/bootstrap.min.js' %}"></script>
+	<script src="{% static 'js/jquery.formset.js' %}"></script>
+	<script type="text/javascript">
+	    $(function() {
+	        $('.link-formset').formset({
+                addText: 'add link',
+                deleteText: 'remove'
+            });
+	    })
+	</script>
+	<!--<script type="text/javascript">
+        $(function() {
+            $('#myForm tbody tr').formset({
+                addText: 'add link',
+                deleteText: 'remove'
+            });
+        })
+	</script>-->
+	<script type="text/javascript">
+        $(function() {
+            $('#id_contact_info_table tbody tr').formset({
+                extraClasses: ['row1', 'row2', 'row3']
+            })
+        })
+    </script>
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 	<script src="{% static 'js/ie10-viewport-bug-workaround.js' %}"></script>
 	<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->

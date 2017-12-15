@@ -4,6 +4,15 @@ from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.utils.text import slugify
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+
+
+def validate_file_extension(value):
+  ext = os.path.splitext(value.name)[1]
+  valid_extensions = ['.png','.jpg']
+  if not ext in valid_extensions:
+    raise ValidationError(u'File not supported!')
 
 
 def img_path(instance, filename):
@@ -35,10 +44,9 @@ class Lipid(models.Model):
     sub_class = models.CharField(max_length=200,   
                                  null=True)   					 	# sys_name, iupac_name, formula, main_class, sub_class will be used in case of the implementation of a search fct
     img = models.FileField(upload_to=img_path,          			# add a button to download the mol file from LipidMaps and be able to draw the lipid image
+                           validators=[validate_file_extension],
                            null=True)
     date = models.DateField(auto_now=True)
-    #curator = models.ManyToManyField('users.User',						 
-    #                                 on_delete=models.SET_NULL)
     slug = models.SlugField()							
 
     def __unicode__(self):
@@ -74,8 +82,7 @@ class Topology(models.Model):                                       # must be in
     description = models.TextField(blank=True)
     reference = models.ManyToManyField('homepage.Reference') 
     date = models.DateField(auto_now=True)
-    #curator = models.ManyToManyField('users.User',						 
-    #                                 on_delete=models.SET_NULL)
+    curator = models.ManyToManyField(User)						 
 
     def __unicode__(self):
         return "%s_%s" % (self.lipid.name,self.version)

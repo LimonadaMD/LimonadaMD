@@ -3,16 +3,25 @@ from django.db import models
 from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
+from django.core.exceptions import ValidationError
+
+
+def validate_file_extension(value):
+  ext = os.path.splitext(value.name)[1]
+  valid_extensions = ['.zip']
+  if not ext in valid_extensions:
+    raise ValidationError(u'File not supported!')
 
 
 def ff_path(instance, filename):
     return 'forcefields/Gromacs/{0}.ff.zip'.format(instance.name)						
 
+
 def mdp_path(instance, filename):
     return 'forcefields/Gromacs/{0}.mdp.zip'.format(instance.name)						
 
 
-class Forcefield(models.Model):										# Write a procedure to test the well functioning of the ff		
+class Forcefield(models.Model):									
 
     ALLATOM = "AA"
     UNITEDATOM = "UA"
@@ -33,18 +42,18 @@ class Forcefield(models.Model):										# Write a procedure to test the well fu
     forcefield_type = models.CharField(max_length=2,
                                        choices=FFTYPE_CHOICES,
                                        default=ALLATOM) 
-    ff_file = models.FileField(upload_to=ff_path,			  
+    ff_file = models.FileField(upload_to=ff_path,
+                               validators=[validate_file_extension],			  
                                help_text="Use a zip file containing the forcefield directory as in <link>") 
     mdp_file = models.FileField(upload_to=mdp_path,
+                               validators=[validate_file_extension],			  
                                help_text="Use a zip file containing the mdps for the version X of Gromacs as in <link>")
     software = models.CharField(max_length=2,     					
                                 choices=SFTYPE_CHOICES,
                                 default=GROMACS) 
-    description = models.TextField(blank=True)						# add a "date-user:" before each modification (in forms.py)? or use versions of ff?
+    description = models.TextField(blank=True)					
     reference = models.ManyToManyField('homepage.Reference') 
     date = models.DateField(auto_now=True)
-    #curator = models.ManyToManyField('users.User', 			
-    #                                 on_delete=models.SET_NULL)
 
     def __unicode__(self):
         return self.name

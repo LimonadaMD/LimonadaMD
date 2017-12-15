@@ -15,6 +15,11 @@ class LipList(ListView):
     model = Lipid
     template_name = 'lipids/lipids.html'
 
+    def get_context_data(self, **kwargs):
+        context_data = super(LipList, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
+
 
 def LipSearch(request):
     if request.method == 'POST':
@@ -25,7 +30,7 @@ def LipSearch(request):
             return HttpResponseRedirect(url)
     else:
         form = LmidForm()
-    return render(request, 'lipids/lip_search.html', {'form': form})
+    return render(request, 'lipids/lip_search.html', {'form': form, 'lipids': True})
 
 
 def LipCreate(request):
@@ -66,12 +71,17 @@ def LipCreate(request):
                 except KeyError:
                     pass
             form = LipidForm(initial=lm_data)
-    return render(request, 'lipids/lip_form.html', {'form': form})
+    return render(request, 'lipids/lip_form.html', {'form': form, 'lipids': True })
 
 
 class LipDetail(DetailView):
     model = Lipid
     template_name = 'lipids/lip_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super(LipDetail, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
 
 
 class LipUpdate(UpdateView):
@@ -84,6 +94,11 @@ class LipUpdate(UpdateView):
         self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
 
+    def get_context_data(self, **kwargs):
+        context_data = super(LipUpdate, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
+
 
 class LipDelete(DeleteView):
     model = Lipid
@@ -92,10 +107,20 @@ class LipDelete(DeleteView):
     def get_success_url(self):
         return reverse('liplist')
 
+    def get_context_data(self, **kwargs):
+        context_data = super(LipDelete, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
+
 
 class TopList(ListView):
     model = Topology
     template_name = 'lipids/topologies.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super(TopList, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
 
 
 class TopCreate(CreateView):
@@ -108,10 +133,20 @@ class TopCreate(CreateView):
         self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
 
+    def get_context_data(self, **kwargs):
+        context_data = super(TopCreate, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
+
 
 class TopDetail(DetailView):
     model = Topology
     template_name = 'lipids/top_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super(TopDetail, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
 
 
 class TopUpdate(UpdateView):
@@ -124,6 +159,11 @@ class TopUpdate(UpdateView):
         self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
 
+    def get_context_data(self, **kwargs):
+        context_data = super(TopUpdate, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
+
 
 class TopDelete(DeleteView):
     model = Topology
@@ -132,6 +172,10 @@ class TopDelete(DeleteView):
     def get_success_url(self):
         return reverse('toplist')
 
+    def get_context_data(self, **kwargs):
+        context_data = super(TopDelete, self).get_context_data(**kwargs)
+        context_data['lipids'] = True
+        return context_data
 
 
 
