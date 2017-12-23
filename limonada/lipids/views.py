@@ -73,7 +73,7 @@ def LipCreate(request):
                 except KeyError:
                     pass
             form = LipidForm(initial=lm_data)
-    return render(request, 'lipids/lip_form.html', {'form': form, 'lipids': True })
+    return render(request, 'lipids/lip_form.html', {'form': form, 'lipids': True, 'lipcreate': True })
 
 
 class LipDetail(DetailView):
@@ -81,8 +81,10 @@ class LipDetail(DetailView):
     template_name = 'lipids/lip_detail.html'
 
     def get_context_data(self, **kwargs):
+        slug = self.kwargs['slug']
         context_data = super(LipDetail, self).get_context_data(**kwargs)
         context_data['lipids'] = True
+        context_data['tops'] = Topology.objects.filter(lipid=Lipid.objects.get(slug=slug))
         return context_data
 
 
@@ -99,6 +101,7 @@ class LipUpdate(UpdateView):
     def get_context_data(self, **kwargs):
         context_data = super(LipUpdate, self).get_context_data(**kwargs)
         context_data['lipids'] = True
+        context_data['lipcreate'] = False
         return context_data
 
 

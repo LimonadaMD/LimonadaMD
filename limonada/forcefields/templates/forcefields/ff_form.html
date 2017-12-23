@@ -4,12 +4,38 @@
 
 {% block content %}
 <h1>Forcefields</h1>
-
-<form action="" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit">
-</form>
+    <br>
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="row p-1">
+                <div class="col-1">
+                </div>
+                <div class="col-2">
+                    {{ field.label_tag }}<br>
+                </div>
+                <div class="col">
+                    {{ field }}
+                    {% if field.help_text %}
+                        <br>
+                        <small style="color: grey">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <br>
+                        <p style="color: red">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+        <div class="row p-1">
+            <div class="col-1">
+            </div>
+            <div class="col-2">
+                <button type="submit" class="btn btn-primary"> {% if ffcreate %} Add {% else %} Update {% endif %}</button>
+            </div>
+        </div>
+    </form>
+    <br>
 {% endblock %}
 
 

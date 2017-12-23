@@ -3,15 +3,17 @@
 {% block title %}Forcefields{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-11">
-            <h1>Forcefields</h1>
-        </div>
-        {% if user.is_authenticated %}
-            <div class="col">
-                <a href={% url 'ffcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
+    <div class="container">
+        <div class="row">
+            <div class="col-11">
+                <h1>Forcefields</h1>
             </div>
-        {% endif %}
+            {% if user.is_authenticated %}
+                <div class="col" align="right">
+                    <a href={% url 'ffcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
+                </div>
+            {% endif %}
+        </div>
     </div>
     <br>
     <div class="container">
@@ -43,7 +45,7 @@
                         </div>
                         <br>
                     </div>
-                    <div class="col">
+                    <div class="col" align="right">
                         {% if user.is_authenticated %}
                             <p><a href={% url 'ffupdate' forcefield.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Update</a><p>
                             <p><a href={% url 'ffdelete' forcefield.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Delete</a><p>
@@ -56,6 +58,14 @@
     {% if ff_file_url %}
         <p>File uploaded at: <a href="{{ ff_file_url }}">{{ ff_file_url }}</a></p>  
     {% endif %}
+
+<div id="accordion">
+    <a data-toggle="collapse" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Collapsible Group Item #1</a>
+    <div id="collapseOne" class="collapse show" data-parent="#accordion">
+        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 
+    </div>
+</div>
+
 {% endblock %}
 
 

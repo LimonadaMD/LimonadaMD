@@ -20,7 +20,7 @@ class MemList(ListView):
 
     def get_context_data(self, **kwargs):
         context_data = super(MemList, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['membranes'] = True
         return context_data
 
 
@@ -57,7 +57,7 @@ def MemCreate(request, formset_class, template):
     return render(request, template, {
         'form': form, 
         'formset': formset,
-#        'lipids': True
+        'membranes': True
     })
 
 
@@ -67,7 +67,7 @@ class MemDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context_data = super(MemDetail, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['membranes'] = True
         return context_data
 
 
@@ -117,7 +117,7 @@ def MemUpdate(request, pk=None):
     return render(request, 'membranes/mem_form.html', {
         'form': form,
         'formset': formset,
-        'lipids' : True
+        'membranes' : True
     })
 
 
@@ -130,6 +130,6 @@ class MemDelete(DeleteView):
 
     def get_context_data(self, **kwargs):
         context_data = super(MemDelete, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['membranes'] = True
         return context_data
 

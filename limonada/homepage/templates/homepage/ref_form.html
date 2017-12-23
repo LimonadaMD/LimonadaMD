@@ -3,12 +3,73 @@
 {% block title %}References{% endblock %}
 
 {% block content %}
-<h1>Articles</h1>
-
-<form action="" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit">
-</form>
-
+    <h1>Articles</h1>
+    <br>
+    {% if search %}
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row p-1">
+                {% for field in form_search %}
+                    <div class="col-1">
+                    </div>
+                    <div class="col-2">
+                        {{ field.label_tag }}<br>
+                    </div>
+                    <div class="col-3">
+                        {{ field }}
+                        {% if field.help_text %}
+                            <br>
+                            <small style="color: grey">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <br>
+                            <p style="color: red">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                <div class="col-1">
+                    <button type="submit" class="btn btn-primary btn-sm" name="search">Search</button>
+                </div>
+            </div>
+        </form>
+        <div class="row p-1">
+            <br>
+            <div class="col-1">
+            </div>
+            <div class="col-6 border border-top-0 border-right-0 border-left-0 border-success">
+            </div>
+        </div>
+    {% endif %}
+    <br>
+    <form action="" method="post">
+        {% csrf_token %}
+        {% for field in form_add %}
+            <div class="row p-1">
+                <div class="col-1">
+                </div>
+                <div class="col-2">
+                    {{ field.label_tag }}<br>
+                </div>
+                <div class="col">
+                    {{ field }}
+                    {% if field.help_text %}
+                        <br>
+                        <small style="color: grey">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <br>
+                        <p style="color: red">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+        <div class="row p-1">
+            <div class="col-1">
+            </div>
+            <div class="col-2">
+                <button type="submit" class="btn btn-primary" name="add">{% if search %}Add{% else %}Update{% endif %}</button>
+            </div>
+        </div>
+    </form>
+    <br>
 {% endblock %}

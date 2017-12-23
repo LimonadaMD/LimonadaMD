@@ -15,3 +15,11 @@
 }
 
 
+.table>thead>tr>th {
+    border-top: 0 none transparent;
+}
+.table>tbody>tr>td {
+    border-bottom: 0 none transparent;
+}
+
+

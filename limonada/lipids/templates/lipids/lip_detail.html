@@ -8,16 +8,54 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <li>{{ lipid.id }}</li>
             </div>
             <div class="col-10">
-                <p>{{ lipid.name }} {{lipid.lmid}}</p>
+                <p>Name: {{ lipid.name }}</p>
+                <p>LMID: {{ lipid.lmid }}</p>
+                <p>Common name: {{ lipid.com_name }}</p>
+                <p>Systematic name: {{ lipid.sys_name }}</p>
+                <p>IUPAC name: {{ lipid.iupac_name }}</p>
+                <p>Formula: {{ lipid.formula }}</p>
+                <p>Main class: {{ lipid.main_class }}</p>
+                <p>Sub class: {{ lipid.sub_class }}</p>
+                <img src="{{ lipid.img.url }}"/>
                 <br>
             </div>
             <div class="col">
                 {% if user.is_authenticated %}
                     <p><a href={% url 'lipupdate' lipid.slug %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Update</a><p>
                     <p><a href={% url 'lipdelete' lipid.slug %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Delete</a><p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-11">
+                <br>
+                <h2>Available MD Topologies</h2>
+            </div>
+            <div class="col-1 align-self-center" align="right">
+                {% if user.is_authenticated %}
+                    <a href={% url 'topcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-10">
+                <ul>
+                    {% for top in tops %}
+                        <li>{{ top.software }} topology for {{ top.forcefield }} forcefield. See <a href={% url 'topdetail' top.pk %}>details</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-11">
+                <br>
+                <h2>Related Membranes</h2>
+            </div>
+            <div class="col-1 align-self-center" align="right">
+                {% if user.is_authenticated %}
+                    <a href={% url 'memcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
                 {% endif %}
             </div>
         </div>

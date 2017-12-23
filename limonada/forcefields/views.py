@@ -27,7 +27,7 @@ class FfList(ListView):
 
     def get_context_data(self, **kwargs):
         context_data = super(FfList, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['forcefields'] = True
         return context_data
 
 
@@ -46,7 +46,8 @@ class FfCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(FfCreate, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['forcefields'] = True
+        context_data['ffcreate'] = True
         return context_data
 
 
@@ -63,7 +64,7 @@ class FfUpdate(UpdateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(FfUpdate, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['forcefields'] = True
         return context_data
 
 
@@ -76,7 +77,7 @@ class FfDelete(DeleteView):
 
     def get_context_data(self, **kwargs):
         context_data = super(FfDelete, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['forcefields'] = True
         return context_data
 
 

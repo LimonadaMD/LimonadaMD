@@ -1,0 +1,53 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Basic Formset (Table layout){% endblock %}
+
+{% block content %}
+<div>
+    <div class="entry">
+        <form method="post" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label>Name</label>
+            {{ form.name }}
+            <br>
+            <label>File</label>
+            {{ form.mem_file }}
+            <br>
+            <table id="id_contact_info_table" border="0" cellpadding="0" cellspacing="5">
+                <thead>
+                    <tr>
+                        <th scope="col">Lipid</th>
+                        <th scope="col">Number</th>
+                        <th scope="col">Side</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lip in formset.forms %}
+                    <tr id="{{ lip.prefix }}-row">
+                        <td style="text-align:center;">{{ lip.topology }}</td>
+                        <td>{{ lip.number }}</td>
+                        <td>{{ lip.side }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <br>
+            <label>Equilibration</label>
+            {{ form.equilibration }}
+            <br>
+            <label>Description</label>
+            {{ form.description }}
+            <br>
+            <label>Reference</label>
+            {{ form.reference }}
+            <br>
+            <label>Reference</label>
+            {{ form.curator }}
+            <p>
+                {{ formset.management_form }}
+                <input type="submit" value="Submit" />
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock %}

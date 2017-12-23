@@ -6,7 +6,9 @@
 	{% load homepage_extras %}
 	<title>Limonada - {% block title %}{% endblock %}</title>
 	<link rel="icon" href="{% static 'img/favicon.ico' %}">
-	<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css"/>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet"/>
+     <!--<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css"/>-->
+	<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" type="text/css"/>
 	<link rel="stylesheet" href="{% static 'css/limonada.css' %}" type="text/css"/>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
@@ -30,29 +32,33 @@
 		</div>
 	</header>
 	<nav class="container p-3">
-				<ul class="nav nav-pills bg-secondary nav-justified rounded">
-					<li class="nav-item {% if homepage %} bg-success rounded {% endif %} ">
-						<a class="nav-link text-light" href="{% url 'homepage' %}">Home</a>
-					</li>
-					<li class="nav-item {% if builder %} bg-success rounded {% endif %}">
-						<a class="nav-link text-light" href="{% url 'builder' %}">Builder</a>
-					</li>
-					<li class="nav-item dropdown {% if lipids %} bg-success rounded {% endif %} ">
-						<a class="nav-link text-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Libraries</a>
-						<div class="dropdown-menu" aria-labelledby="dropdown">
-							<a class="dropdown-item" href="{% url 'liplist' %}">Lipids</a>
-							<a class="dropdown-item" href="{% url 'toplist' %}">Topologies</a>
-							<a class="dropdown-item" href="{% url 'memlist' %}">Membranes</a>
-							<a class="dropdown-item" href="{% url 'fflist' %}">Forcefields</a>
-							<a class="dropdown-item" href="{% url 'reflist' %}">References</a>
-						</div>
-					</li>
-					<li class="nav-item {% if jobs %} bg-success rounded {% endif %}">
-						<a class="nav-link text-light" href="{% url 'jobs' %}">Jobs</a>
-					</li>
-				</ul>
+		<ul class="nav nav-pills bg-secondary nav-justified rounded">
+			<li class="nav-item {% if homepage %} bg-success rounded {% endif %} ">
+				<a class="nav-link text-light" href="{% url 'homepage' %}">Home</a>
+			</li>
+			<li class="nav-item {% if lipids %} bg-success rounded {% endif %}">
+				<a class="nav-link text-light" href="{% url 'liplist' %}">Lipids</a>
+			</li>
+			<li class="nav-item {% if forcefields %} bg-success rounded {% endif %}">
+				<a class="nav-link text-light" href="{% url 'fflist' %}">Forcefields</a>
+			</li>
+			<li class="nav-item {% if membranes %} bg-success rounded {% endif %}">
+				<a class="nav-link text-light" href="{% url 'memlist' %}">Membranes</a>
+			</li>
+			<li class="nav-item {% if builder %} bg-success rounded {% endif %}">
+				<a class="nav-link text-light" href="{% url 'builder' %}">Builder</a>
+			</li>
+			<li class="nav-item {% if references %} bg-success rounded {% endif %}">
+				<a class="nav-link text-light" href="{% url 'reflist' %}">References</a>
+			</li>
+<!--
+			<li class="nav-item {% if jobs %} bg-success rounded {% endif %}">
+				<a class="nav-link text-light" href="{% url 'jobs' %}">Jobs</a>
+			</li>
+-->
+		</ul>
 	</nav>
-	<section class="container p-3">
+	<section class="p-3">
 		{% block content %}
 		{% endblock %}	
 	</section> 
@@ -82,10 +88,12 @@
 		</div> 
 	</footer>
 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<script src="{% static 'js/popper.min.js' %}"></script>
 	<script src="{% static 'js/bootstrap.min.js' %}"></script>
 	<script src="{% static 'js/jquery.formset.js' %}"></script>
+    {% block script %}
+    {% endblock %}
 	<script type="text/javascript">
 		 $(function() {
 			$('.link-formset').formset({
