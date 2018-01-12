@@ -1,0 +1,15 @@
+{% load homepage_extras %}
+
+<div class="col-0 p-1" align="right">
+    Show
+</div>
+<div class="col-0" align="center">
+    <select name="per_page" class="custom-select" onchange="document.location.href=this.value">
+        <option {% if per_page == 4 %}selected{% endif %} value="?{% url_replace per_page=4 %}">4</option>
+        <option {% if per_page == 10 %}selected{% endif %} value="?{% url_replace per_page=10 %}">10</option>
+        <option {% if per_page == 25 %}selected{% endif %} value="?{% url_replace per_page=25 %}">25</option>
+    </select>
+</div>
+<div class="col-0 p-1" align="left">
+    entries
+</div>

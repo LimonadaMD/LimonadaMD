@@ -1,7 +1,9 @@
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import DetailView
 from django.shortcuts import render, redirect
 from .forms import SignUpForm, UpdateForm 
 
@@ -57,6 +59,18 @@ def update(request):
 
 @login_required
 def userinfo(request):
-    return render(request, 'users/user_detail.html', {'homepage': True})
+    return render(request, 'users/user_infos.html', {'homepage': True})
+
+
+class UserDetail(DetailView):
+    model = User
+    template_name = 'users/user_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super(UserDetail, self).get_context_data(**kwargs)
+        context_data['homepage'] = True
+        return context_data
+
+
 
 

@@ -1,79 +1,225 @@
-from django.shortcuts import render
+from django.contrib.auth.models import User
+from django.shortcuts import render, render_to_response
+from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
 from django.conf import settings
-#from django.core.files.storage import FileSystemStorage
+from django.utils.text import slugify
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Lipid, Topology   
 from .forms import LmidForm, LipidForm, TopologyForm
-import json
+from membranes.models import Membrane
+from homepage.models import Reference
+from dal import autocomplete
+import json, os, os.path, time, shutil
 import requests
+import shlex, subprocess
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 
-class LipList(ListView):
-    model = Lipid
-    template_name = 'lipids/lipids.html'
+def molsize(filename):
+    mol = open("%s.mol" % filename).readlines()
+    X = []
+    Y = []
+    nb = int(mol[3][0:3])
+    for j in range(4,nb+4):
+        X.append(float(mol[j].split()[0]))
+        Y.append(float(mol[j].split()[1]))
+    R = (max(Y)-min(Y)) / (max(X)-min(X))
+    return R
 
-    def get_context_data(self, **kwargs):
-        context_data = super(LipList, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
-        return context_data
+
+def LM_class():
+    LM_class = {'mainclass':[]}
+    for line in open("media/Lipid_Classification").readlines():
+        name = line.split("[")[1].split("]")[0]
+        l = len(name) 
+        if l == 2:
+            LM_class['mainclass'].append(name) 
+        elif l == 4: 
+            if name in LM_class.keys(): 
+                LM_class[name[0:2]].append(name) 
+            else:
+                LM_class[name[0:2]] = [ name ]
+        elif l == 6: 
+            if name in LM_class.keys(): 
+                LM_class[name[0:4]].append(name) 
+            else:
+                LM_class[name[0:4]] = [ name ]
+    return LM_class
 
 
-def LipSearch(request):
-    if request.method == 'POST':
-        form = LmidForm(request.POST)
-        if form.is_valid():
-            lmid = form.cleaned_data['lmid']
-            url = reverse('lipcreate', kwargs={'lmid': lmid})
-            return HttpResponseRedirect(url)
-    else:
-        form = LmidForm()
-    return render(request, 'lipids/lip_search.html', {'form': form, 'lipids': True})
+lipheaders = {'name': 'asc',
+              'lmid': 'asc',
+              'com_name': 'asc',
+              'sys_name':  'asc',}
+
+
+def LipList(request):
+
+    lipid_list = Lipid.objects.all()
+
+    params = request.GET.copy()
+
+    #form_select = SelectForm()
+    #if 'main_class' in request.GET.keys():
+    #    main_class = request.GET['main_class']
+    #    if main_class != "":
+    #        form_select = SelectForm({'main_class': main_class})
+    #        if form_select.is_valid():
+    #            lip_list = Lipid.objects.filter(main_class=main_class)
+
+    sort = request.GET.get('sort')
+    if sort is not None:
+        lipid_list = lipid_list.order_by(sort)
+        if lipheaders[sort] == "des":
+            lipid_list = lipid_list.reverse()
+            lipheaders[sort] = "asc"
+        else:
+            lipheaders[sort] = "des"
+
+    per_page = 4
+    if 'per_page' in request.GET.keys():
+        try:
+            per_page = int(request.GET['per_page'])
+        except:
+            per_page = 4
+    if per_page not in [4,10,25]:
+        per_page = 4
+    paginator = Paginator(lipid_list, per_page)
+
+    page = request.GET.get('page')
+    try:
+        lipids = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        lipids = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        lipids = paginator.page(paginator.num_pages)
+
+    data = {}
+    #data['form_select'] = form_select
+    data['page_objects'] = lipids
+    data['per_page'] = per_page
+    data['sort'] = sort
+    if sort is not None:
+        data['dir'] = lipheaders[sort]
+    data['lipids'] = True
+    data['params'] = params
+
+    return render_to_response('lipids/lipids.html', data, context_instance=RequestContext(request))
 
 
 @login_required
 def LipCreate(request):
-    lmid = ""
-    if request.method == 'POST' and request.FILES:
-        form = LipidForm(request.POST, request.FILES)
-        if form.is_valid():
-            name = form.cleaned_data['name']
-            lmid = form.cleaned_data['lmid']
-            com_name = form.cleaned_data['com_name']
-            sys_name = form.cleaned_data['sys_name']
-            iupac_name = form.cleaned_data['iupac_name']
-            formula = form.cleaned_data['formula']
-            main_class = form.cleaned_data['main_class']
-            sub_class = form.cleaned_data['sub_class']
-            img = form.cleaned_data['img']
-            lipid = Lipid(name=name,lmid=lmid,com_name=com_name,sys_name=sys_name,iupac_name=iupac_name,formula=formula,main_class=main_class,sub_class=sub_class,img=img)
-            lipid.save()
-            return HttpResponseRedirect(reverse('liplist'))
-    else:
-        if 'lmid' in request.GET.keys():
+    if request.method == 'POST' and 'search' in request.POST:
+        form_search = LmidForm(request.POST)
+        form_add = LipidForm()
+        if form_search.is_valid():
             lm_data = {}
-            lm_data['lmid'] = request.GET['lmid']
+            lm_data['lmid'] = form_search.cleaned_data['lmidsearch']
             lm_response = requests.get("http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json" % lm_data['lmid'])
             lm_data_raw = lm_response.json()
             if lm_data_raw != []:
                 for key in ["pubchem_cid", "name", "sys_name", "main_class", "sub_class", "core","formula","abbrev_chains"]:
-                    if key == "name":
+                    if key == "name" and 'name' in lm_data_raw.keys():
                         lm_data['com_name'] = lm_data_raw[key]
-                    else:
+                    elif key in lm_data_raw.keys():
                         lm_data[key] = lm_data_raw[key]
+            filename = "media/tmp/%s" % lm_data['lmid']
+            url = "http://www.lipidmaps.org/data/LMSDRecord.php?Mode=File&LMID=%s" % lm_data['lmid']
+            response = requests.get(url)
+            with open("%s.mol" % filename, 'wb') as f:
+                f.write(response.content)
+            f.close()
+            R = molsize(filename)
+            if R < 1:
+                script = open("media/tmp/%s_rotate.pml" % lm_data['lmid'],"w")
+                script.write("load %s.mol\nrotate z, 90\nsave %s.mol\nquit" % (filename, filename))
+                script.close()
+                args = shlex.split("pymol -c media/tmp/%s_rotate.pml" % lm_data['lmid'])
+                process = subprocess.Popen(args, stdout=subprocess.PIPE)
+            args = shlex.split("molconvert jpeg:Q95,#ffffff,H_off,wireframe,scale100,bondl42.0 %s.mol -o %s.jpg" % (filename,filename))
+            process = subprocess.Popen(args, stdout=subprocess.PIPE)
+            process.communicate()
+            lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name=lm_data['com_name'], img="tmp/%s.jpg" % lm_data['lmid'])
+            file_data = { 'img': lipid.img }
+            os.remove("media/tmp/%s.mol" % lm_data['lmid'])
+            if os.path.isfile("media/tmp/%s_rotate.pml" % lm_data['lmid']):
+                os.remove("media/tmp/%s_rotate.pml" % lm_data['lmid'])
             if lm_data["pubchem_cid"] != "":
                 try:
                     pubchem_response = requests.get("https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/%s/JSON/" % lm_data["pubchem_cid"])
                     pubchem_data_raw = pubchem_response.json()["Record"]
                     if pubchem_data_raw != []:
-                        lm_data["iupac_name"] = pubchem_data_raw["Section"][2]["Section"][1]["Section"][0]["Information"][0]['StringValue']
+                        for s1 in pubchem_data_raw["Section"]: 
+                            if s1["TOCHeading"] == "Names and Identifiers":
+                                for s2 in s1["Section"]: 
+                                    if s2["TOCHeading"] == "Computed Descriptors":
+                                        for s3 in s2["Section"]: 
+                                            if s3["TOCHeading"] == "IUPAC Name":
+                                                lm_data["iupac_name"] = s3["Information"][0]['StringValue']
+                                    if s2["TOCHeading"] == "Synonyms":
+                                        for s3 in s2["Section"]: 
+                                            if s3["TOCHeading"] == "Depositor-Supplied Synonyms":
+                                                nb = len(s3["Information"][0]['StringValueList'])
+                                                for i in range(nb):
+                                                    if len(s3["Information"][0]['StringValueList'][nb-1-i]) == 4:
+                                                        lm_data["name"] = s3["Information"][0]['StringValueList'][nb-1-i]   
                 except KeyError:
                     pass
-            form = LipidForm(initial=lm_data)
-    return render(request, 'lipids/lip_form.html', {'form': form, 'lipids': True, 'lipcreate': True })
+            form_add = LipidForm(lm_data, file_data)
+            return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'imgpath': "tmp/%s.jpg" % lm_data['lmid'] })
+    elif request.method == 'POST' and 'add' in request.POST:
+        form_search = LmidForm()
+        form_add = LipidForm(request.POST, request.FILES)
+        if form_add.is_valid():
+            lipid = form_add.save(commit=False)
+            name = form_add.cleaned_data['name']
+            lmid = form_add.cleaned_data['lmid']
+            com_name = form_add.cleaned_data['com_name']
+            lipid.search_name = '%s - %s - %s' % (name,lmid,com_name)
+            imgpath = "media/tmp/%s.jpg" % lmid 
+            if not request.FILES and os.path.isfile(imgpath):
+                shutil.copy(imgpath, "media/lipids/%s.jpg" % lmid) 
+                lipid.img = "lipids/%s.jpg" % lmid 
+            if os.path.isfile(imgpath):
+                os.remove(imgpath)
+            lipid.slug = slugify('%s' % (lmid), allow_unicode=True)
+            lipid.curator = request.user
+            lipid.save()
+            return HttpResponseRedirect(reverse('liplist'))
+    else:
+        form_search = LmidForm()
+        form_add = LipidForm()
+    return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True })
+
+
+@login_required
+def LipUpdate(request, slug=None):
+    if Lipid.objects.filter(slug=slug).exists():
+        lipid = Lipid.objects.get(slug=slug)
+        if request.method == 'POST':
+            form_add = LipidForm(request.POST, request.FILES, instance=lipid)
+            if form_add.is_valid():
+                lipid = form_add.save(commit=False)
+                name = form_add.cleaned_data['name']
+                lmid = form_add.cleaned_data['lmid']
+                com_name = form_add.cleaned_data['com_name']
+                lipid.search_name = '%s - %s - %s' % (name,lmid,com_name)
+                lipid.slug = slugify('%s' % (lmid), allow_unicode=True)
+                lipid.save()
+                return HttpResponseRedirect(reverse('liplist'))
+        else:
+            form_add = LipidForm(instance=lipid)
+        return render(request, 'lipids/lip_form.html', {'form_add': form_add, 'lipids': True, 'search': False})
+    else:
+        return HttpResponseRedirect(reverse('liplist'))
 
 
 class LipDetail(DetailView):
@@ -85,23 +231,6 @@ class LipDetail(DetailView):
         context_data = super(LipDetail, self).get_context_data(**kwargs)
         context_data['lipids'] = True
         context_data['tops'] = Topology.objects.filter(lipid=Lipid.objects.get(slug=slug))
-        return context_data
-
-
-class LipUpdate(UpdateView):
-    model = Lipid
-    form_class = LipidForm
-    template_name = 'lipids/lip_form.html'
-
-    def form_valid(self, form):
-        self.object = form.save() 
-        self.object.save()
-        return HttpResponseRedirect(self.object.get_absolute_url())
-
-    def get_context_data(self, **kwargs):
-        context_data = super(LipUpdate, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
-        context_data['lipcreate'] = False
         return context_data
 
 
@@ -118,14 +247,77 @@ class LipDelete(DeleteView):
         return context_data
 
 
-class TopList(ListView):
-    model = Topology
-    template_name = 'lipids/topologies.html'
+class LipAutocomplete(autocomplete.Select2QuerySetView):
 
-    def get_context_data(self, **kwargs):
-        context_data = super(TopList, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
-        return context_data
+    def get_queryset(self):
+        qs = Lipid.objects.all()
+        if self.q:
+            #qs = qs.filter(refid__istartswith=self.q)
+            qs = qs.filter(slug__icontains=self.q)
+        return qs
+
+
+topheaders = {'software'  : 'asc',
+              'forcefield': 'asc',
+              'lipid'     : 'asc',
+              'version'   : 'asc',}
+
+
+def TopList(request):
+
+    top_list = Topology.objects.all()
+
+    params = request.GET.copy()
+
+    #form_select = SelectForm()
+    #if 'main_class' in request.GET.keys():
+    #    main_class = request.GET['main_class']
+    #    if main_class != "":
+    #        form_select = SelectForm({'main_class': main_class})
+    #        if form_select.is_valid():
+    #            lip_list = Lipid.objects.filter(main_class=main_class)
+
+    sort = request.GET.get('sort')
+    if sort is not None:
+        top_list = top_list.order_by(sort)
+        if topheaders[sort] == "des":
+            top_list = top_list.reverse()
+            topheaders[sort] = "asc"
+        else:
+            topheaders[sort] = "des"
+
+    per_page = 4
+    if 'per_page' in request.GET.keys():
+        try:
+            per_page = int(request.GET['per_page'])
+        except:
+            per_page = 4
+    if per_page not in [4,10,25]:
+        per_page = 4
+    paginator = Paginator(top_list, per_page)
+
+    page = request.GET.get('page')
+    try:
+        topologies = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        topologies = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        topologies = paginator.page(paginator.num_pages)
+
+    data = {}
+    #data['form_select'] = form_select
+    data['page_objects'] = topologies
+    data['per_page'] = per_page
+    data['sort'] = sort
+    if sort is not None:
+        data['dir'] = topheaders[sort]
+    data['topologies'] = True
+    data['params'] = params
+    data['mems'] = Membrane.objects.all()
+
+    return render_to_response('lipids/topologies.html', data, context_instance=RequestContext(request))
 
 
 class TopCreate(CreateView):
@@ -140,7 +332,7 @@ class TopCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TopCreate, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['topologies'] = True
         return context_data
 
 
@@ -150,7 +342,7 @@ class TopDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TopDetail, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['topologies'] = True
         return context_data
 
 
@@ -166,7 +358,7 @@ class TopUpdate(UpdateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TopUpdate, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['topologies'] = True
         return context_data
 
 
@@ -179,9 +371,7 @@ class TopDelete(DeleteView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TopDelete, self).get_context_data(**kwargs)
-        context_data['lipids'] = True
+        context_data['topologies'] = True
         return context_data
-
-
 
 

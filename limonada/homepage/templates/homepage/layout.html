@@ -39,6 +39,9 @@
 			<li class="nav-item {% if lipids %} bg-success rounded {% endif %}">
 				<a class="nav-link text-light" href="{% url 'liplist' %}">Lipids</a>
 			</li>
+			<li class="nav-item {% if topologies %} bg-success rounded {% endif %}">
+				<a class="nav-link text-light" href="{% url 'toplist' %}">Topologies</a>
+			</li>
 			<li class="nav-item {% if forcefields %} bg-success rounded {% endif %}">
 				<a class="nav-link text-light" href="{% url 'fflist' %}">Forcefields</a>
 			</li>
@@ -86,9 +89,12 @@
 				<a href="http://www.wbi.be/"><img src="{% static "img/wbi.png" %}" alt="WBI" style="height:75px;" class="p-1"/></a> 
 			</div> 
 		</div> 
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		{% block footer %}
+		{% endblock %}	
 	</footer>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
 	<script src="{% static 'js/popper.min.js' %}"></script>
 	<script src="{% static 'js/bootstrap.min.js' %}"></script>
 	<script src="{% static 'js/jquery.formset.js' %}"></script>

@@ -9,9 +9,10 @@ import requests, datetime
 def validate_year(value):
     if value < 1950 or value > datetime.datetime.now().year:
         raise ValidationError(
-            _('%(value)s is not valid'),
-            code='invalid',
-            params={'value': value},
+            _('Year must be > 1950 and < %(value)s'),
+           # _('%(value)s is not valid'),
+           # code='invalid',
+            params={'value': datetime.datetime.now().year},
         )
 
 
@@ -23,7 +24,7 @@ def validate_doi(value):
         response.raise_for_status()
     except requests.exceptions.RequestException as err:
         raise ValidationError(
-            _('%(value)s is not valid.'),
+            _('%(value)s is not valid'),
             code='invalid',
             params={'value': value},
         )

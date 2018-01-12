@@ -21,32 +21,17 @@
     <br>
     <div class="container">
         <div class="row align-items-center rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
-            <div class="col-0 p-1" align="right">
-                Show  
-            </div>
-            <div class="col-0" align="center">
-                <!--<select name="per_page" class="custom-select" onchange="$(this).parent().submit()">-->
-                <select name="per_page" class="custom-select" onchange="document.location.href=this.value">
-                    <option {% if per_page == 5 %}selected{% endif %} value="?{% url_replace per_page=5 %}">5</option>
-                    <option {% if per_page == 10 %}selected{% endif %} value="?{% url_replace per_page=10 %}">10</option>
-                    <option {% if per_page == 25 %}selected{% endif %} value="?{% url_replace per_page=25 %}">25</option>
-                </select>
-            </div>
-            <div class="col-0 p-1" align="left">
-                entries
-            </div>
-            <div class="col-4" align="right">
+            {% include 'per_page.html' %}
+            <div class="col-3" align="right">
                 <p id="click_advance"><i class="fa fa-minus"></i> Advanced selection</p>
-                <!--{{ params }}-->
             </div>
-            <div class="col-4" id="display_advance">
-                <form action="" method="get">
-                    {% csrf_token %}
+            <div class="col-7" id="display_advance">
+                <form id="select_form"  action="" method="get">
                     <div class="row p-1">
                         {% for field in form_select %}
                             <div class="col-1">
                             </div>
-                            <div class="col-2">
+                            <div class="col-1">
                                 {{ field.label_tag }}<br>
                             </div>
                             <div class="col-3">
@@ -62,8 +47,7 @@
                             </div>
                         {% endfor %}
                         <div class="col-1">
-                            <!--<a class="page-link" href="?{% url_replace year=form_select.year %}">Select</a>-->  
-                            <button type="submit" class="btn btn-primary btn-sm" name="search">Select</button>
+                            <a onclick="url_replace()" class="btn btn-primary btn-sm text-white">Select</a> 
                         </div>
                     </div>
                 </form>
@@ -90,7 +74,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for ref in refs %}
+                        {% for ref in page_objects %}
                             <tr>
                                 <td><a class="text-success" href="http://dx.doi.org/{{ ref.doi }}">{{ ref.refid }}</a></td>
                                 <td>
@@ -117,46 +101,46 @@
             </div>
         </div>
         <div class="row rounded-bottom border border-top-0 border-success p-3" style="background-color:#c2e5ca" >
-		    <div class="col-6 p-1" align="left">
-                Showing {{ refs.start_index }} to {{ refs.end_index }} of {{ refs.paginator.count }} entries
-            </div>
-            <div class="col-6">
-            {% if refs.has_other_pages %}
-                <nav aria-label="Page Reference">
-                    <ul class="pagination justify-content-end">
-                        {% if refs.has_previous %} 
-                            <li class="page-item"><a class="page-link" href="?{% url_replace page=refs.previous_page_number %}">Previous</a></li>
-                        {% else %} 
-                            <li class="page-item disabled"><a class="page-link" href="?page=1">Previous</a></li>
-                        {% endif %} 
-                        {% for i in refs.paginator.page_range %}
-                            {% if refs.number == i %}
-                                <li class="page-item active"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-                            {% else %}
-                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-                            {% endif %}
-                        {% endfor %}
-                        {% if refs.has_next %}
-                            <li class="page-item"><a class="page-link" href="?{% url_replace page=refs.next_page_number %}">Next</a></li>
-                        {% else %}
-                            <li class="page-item disabled"><a class="page-link" href="?{% url_replace page=refs.paginator.num_pages %}">Next</a></li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            {% endif %}
-            </div>
+            {% include 'paginator.html' %}
         </div>
     </div>
     <br>
 {% endblock %}
 
 {% block script %}
-    <script>
+    <script type="text/javascript">
         $('#click_advance').click(function(){
             $('#display_advance').toggle();
             icon = $(this).find("i");
             icon.toggleClass("fa-plus fa-minus")
         })
+        $("#select_form").submit(function(){
+            url =  window.location.href;
+            params = url.split('?')[1].split('&');
+            for (var i = 0; i < params.length; i++){
+                param = params[i].split('=');
+                if (param[0] == "per_page") {
+                    $('<input>').attr('type', 'hidden').attr('name', 'per_page').attr('value', param[1]).appendTo('#select_form');
+                }
+                if (param[0] == "page") {
+                    $('<input>').attr('type', 'hidden').attr('name', 'page').attr('value', param[1]).appendTo('#select_form');
+                }
+            }
+            //alert("Submitted");
+        });
+        function url_replace(){
+            url =  window.location.href;
+            paramName = 'year';
+            paramValue = $('#id_year').val();
+            var pattern = new RegExp('('+paramName+'=).*?(&|$)'); 
+            var newUrl = url.replace(pattern,'$1' + paramValue + '$2');
+            var n=url.indexOf(paramName);
+            //alert(n);
+            if(n == -1){
+                newUrl = newUrl + (newUrl.indexOf('?')>0 ? '&' : '?') + paramName + '=' + paramValue ;
+            }
+            window.location.href = newUrl;
+        }
     </script>
 {% endblock %}
 

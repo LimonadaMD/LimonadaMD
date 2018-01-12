@@ -1,34 +1,73 @@
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
+from django.template import RequestContext
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
-from dal import autocomplete
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Forcefield 
 from .forms import ForcefieldForm
-from homepage.models import Reference
 
 
-class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
-
-    def get_queryset(self):
-        # Don't forget to filter out results depending on the visitor !
-        #if not self.request.user.is_authenticated():
-        #    return Country.objects.none()
-        qs = Reference.objects.all()
-        if self.q:
-            qs = qs.filter(name__istartswith=self.q)
-        return qs
+headers = {'software': 'asc',
+           'forcefield_type': 'asc',
+           'name':  'asc',}
 
 
-class FfList(ListView):
-    model = Forcefield
-    template_name = 'forcefields/forcefields.html'
+def FfList(request):
 
-    def get_context_data(self, **kwargs):
-        context_data = super(FfList, self).get_context_data(**kwargs)
-        context_data['forcefields'] = True
-        return context_data
+    ff_list = Forcefield.objects.all()
+
+    params = request.GET.copy()
+
+    #form_select = SelectForm()
+    #if 'main_class' in request.GET.keys():
+    #    main_class = request.GET['main_class']
+    #    if main_class != "":
+    #        form_select = SelectForm({'main_class': main_class})
+    #        if form_select.is_valid():
+    #            lip_list = Lipid.objects.filter(main_class=main_class)
+
+    sort = request.GET.get('sort')
+    if sort is not None:
+        ff_list = ff_list.order_by(sort)
+        if headers[sort] == "des":
+            ff_list = ff_list.reverse()
+            headers[sort] = "asc"
+        else:
+            headers[sort] = "des"
+
+    per_page = 4
+    if 'per_page' in request.GET.keys():
+        try:
+            per_page = int(request.GET['per_page'])
+        except:
+            per_page = 4
+    if per_page not in [4,10,25]:
+        per_page = 4
+    paginator = Paginator(ff_list, per_page)
+
+    page = request.GET.get('page')
+    try:
+        forcefields = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        forcefields = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        forcefields = paginator.page(paginator.num_pages)
+
+    data = {}
+    #data['form_select'] = form_select
+    data['page_objects'] = forcefields
+    data['per_page'] = per_page
+    data['sort'] = sort
+    if sort is not None:
+        data['dir'] = headers[sort]
+    data['forcefields'] = True
+    data['params'] = params
+
+    return render_to_response('forcefields/forcefields.html', data, context_instance=RequestContext(request))
 
 
 class FfCreate(CreateView):

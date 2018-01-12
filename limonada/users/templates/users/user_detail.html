@@ -3,17 +3,26 @@
 {% block title %}Users{% endblock %}
 
 {% block content %}
+    <br>
     <h1>Users</h1>
     <br>
-    {% if request.user.is_authenticated %}
-        <h2>{{ user.get_full_name }}</h2>
-        <ul>
-            <li>Username: {{ request.user.username }}</li>
-            <li>Institute: {{ request.user.profile.institute }}</li>
-        </ul>
-    {% else %}
-        <a href="{% url login %}">Login</a>
-    {% endif %}
+    <h2>{{ user.get_full_name }}</h2>
+    <br>
+    <div class="container"> 
+        <div class="row">
+            <div class="col-6 bg-white rounded border border-success p-3">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr><td><b>Username:</b></td><td>{{ user.username }}</td></tr>
+                        <tr><td><b>Institute:</b></td><td>{{ user.profile.institute }}</td></tr>
+                        <tr><td><b>Position:</b></td><td>{{ user.profile.position }}</td></tr>
+                        <tr><td><b>e-mail:</b></td><td>{{ user.email }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br>
 {% endblock %}
 
 

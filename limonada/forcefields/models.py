@@ -1,4 +1,5 @@
 import os
+from django.contrib.auth.models import User
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_delete
@@ -53,6 +54,8 @@ class Forcefield(models.Model):
                                 default=GROMACS) 
     description = models.TextField(blank=True)					
     reference = models.ManyToManyField('homepage.Reference') 
+    curator = models.ForeignKey(User,
+                                on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
 
     def __unicode__(self):

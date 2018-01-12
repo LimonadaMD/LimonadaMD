@@ -1,0 +1,39 @@
+Format browse button 
+	https://getbootstrap.com/docs/4.0/components/forms/#select-menu
+	https://blueimp.github.io/jQuery-File-Upload/basic.html
+
+Search query instead of icontains
+	https://docs.djangoproject.com/en/1.11/releases/1.10/#search-lookup-replacement
+
+Replace Add, Update and Delete buttons by icons (http://fontawesome.io/)
+	When the user is not the curator, redirect to a page allowing to send an email to the current curator 
+	with a description of the problem and the possibility to change the curator 
+
+Register a domain and implement an email service (Who is paying? Where will be the website?)
+	https://simpleisbetterthancomplex.com/tutorial/2016/06/13/how-to-send-email.html
+	https://simpleisbetterthancomplex.com/tutorial/2016/09/19/how-to-create-password-reset-view.html
+	https://pythonprogramming.net/django-web-server-publish-tutorial/?completed=/finished-blog-django-python-tutorial/
+
+Improve url replace functions and deplace in limonada.js
+
+Improve autocomplete for lipids
+
+Deplace pagination and form html in templates with include
+
+Add topology page
+
+Add pagination and selection to lipids, topology, forcefields and membranes
+
+Check file save of lipids (and others)
+
+Improve models (json), forms, views and templates of lipids (from LipidMaps (and others?))
+
+Add generation of img from LipidMaps flat structure (Software of Regis for sugar?)
+
+Add the possibility to add limonada lipids (LI..)
+
+Where to put the website? (DigitalOcean before builder?)
+
+Put form.media in script section
+
+

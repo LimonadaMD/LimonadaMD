@@ -2,13 +2,15 @@ from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
+#from django.urls import reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView 
 from .models import Reference
 from .forms import DoiForm, ReferenceForm, SelectForm
-import json, requests, string, re
+import json, requests, string, re, urllib
+from dal import autocomplete
 
 
 def homepage(request):
@@ -24,8 +26,16 @@ headers = {'refid': 'asc',
 def RefList(request):
 
     ref_list = Reference.objects.all()
-
+    
     params = request.GET.copy() 
+
+    form_select = SelectForm()
+    if 'year' in request.GET.keys():
+        year = request.GET['year']
+        if year != "":
+            form_select = SelectForm({'year': year})
+            if form_select.is_valid():
+                ref_list = Reference.objects.filter(year=year)
 
     sort = request.GET.get('sort')
     if sort is not None:
@@ -36,12 +46,14 @@ def RefList(request):
         else:
             headers[sort] = "des"
 
-    per_page = 5
+    per_page = 4
     if 'per_page' in request.GET.keys():
         try:
             per_page = int(request.GET['per_page'])
         except:
-            per_page = 5
+            per_page = 4
+    if per_page not in [4,10,25]:
+        per_page = 4
     paginator = Paginator(ref_list, per_page) 
 
     page = request.GET.get('page')
@@ -54,17 +66,17 @@ def RefList(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         refs = paginator.page(paginator.num_pages)
 
-    form_select = SelectForm()
-
     data = {}
     data['form_select'] = form_select 
-    data['refs'] = refs
+    data['page_objects'] = refs
     data['per_page'] = per_page
     data['sort'] = sort
     if sort is not None:
         data['dir'] = headers[sort] 
     data['references'] = True
     data['params'] = params
+    #data['urlpath'] = request.path
+    #data['urlpath'] = request.GET.urlencode()
 
     return render_to_response('homepage/references.html', data, context_instance=RequestContext(request))
 
@@ -113,7 +125,7 @@ def RefCreate(request):
     else:
         form_search = DoiForm()
         form_add = ReferenceForm()
-    return render(request, 'homepage/ref_form.html', {'form_search': form_search, 'form_add': form_add, 'references': True, 'search': True})
+    return render(request, 'homepage/ref_form.html', {'form_search': form_search, 'form_add': form_add, 'references': True, 'search': True })
 
 
 @login_required
@@ -151,5 +163,14 @@ class RefDelete(DeleteView):
         context_data['references'] = True
         return context_data
 
+
+class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        qs = Reference.objects.all()
+        if self.q:
+            #qs = qs.filter(refid__istartswith=self.q)
+            qs = qs.filter(refid__icontains=self.q)
+        return qs
 
 

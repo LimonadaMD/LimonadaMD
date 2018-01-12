@@ -1,0 +1,30 @@
+{% load homepage_extras %}
+
+<div class="col-6 p-1" align="left">
+    Showing {{ page_objects.start_index }} to {{ page_objects.end_index }} of {{ page_objects.paginator.count }} entries
+</div>
+<div class="col-6">
+{% if page_objects.has_other_pages %}
+    <nav aria-label="Page Reference">
+        <ul class="pagination justify-content-end">
+            {% if page_objects.has_previous %}
+                <li class="page-item"><a class="page-link" href="?{% url_replace page=page_objects.previous_page_number %}">Previous</a></li>
+            {% else %}
+                <li class="page-item disabled"><a class="page-link" href="?page=1">Previous</a></li>
+            {% endif %}
+            {% for i in page_objects.paginator.page_range %}
+                {% if page_objects.number == i %}
+                    <li class="page-item active"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_objects.has_next %}
+                <li class="page-item"><a class="page-link" href="?{% url_replace page=page_objects.next_page_number %}">Next</a></li>
+            {% else %}
+                <li class="page-item disabled"><a class="page-link" href="?{% url_replace page=page_objects.paginator.num_pages %}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+</div>

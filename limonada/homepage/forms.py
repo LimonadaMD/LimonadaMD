@@ -1,7 +1,8 @@
 from django import forms
 from django.forms.widgets import TextInput
 from django.forms import Form, ModelForm
-from .models import Reference, validate_doi       
+from dal import autocomplete
+from .models import Reference, validate_doi, validate_year       
 
 
 class DoiForm(Form):
@@ -17,12 +18,12 @@ class ReferenceForm(ModelForm):
                                                       'placeholder':'e.g., Klauda2010b'}),
                               help_text="Format: AuthorYear[Index]", 
                               label="Name") 
-    authors = forms.CharField(widget=TextInput(attrs={'size': '33'})) #,'placeholder':''}))
-    title   = forms.CharField(widget=TextInput(attrs={'size': '33'})) #,'placeholder':''}))
-    journal = forms.CharField(widget=TextInput(attrs={'size': '33'})) #,'placeholder':''}))
+    authors = forms.CharField(widget=TextInput(attrs={'size': '33'})) 
+    title   = forms.CharField(widget=TextInput(attrs={'size': '33'})) 
+    journal = forms.CharField(widget=TextInput(attrs={'size': '33'})) 
     volume  = forms.CharField(widget=TextInput(attrs={'size': '33'}),
-                              required=False) #,'placeholder':''}))
-    year    = forms.CharField(widget=TextInput(attrs={'size': '33'})) #,'placeholder':''}))
+                              required=False) 
+    year    = forms.CharField(widget=TextInput(attrs={'size': '33'})) 
     doi     = forms.CharField(widget=TextInput(attrs={'size': '33',
                                                       'placeholder':'e.g., 10.1021/jp101759q'}),
                               required=False,
@@ -35,8 +36,8 @@ class ReferenceForm(ModelForm):
 
 class SelectForm(Form):
 
-    year = forms.CharField(widget=TextInput(attrs={'size': '4'}), 
-                           label="Year")
-
+    year = forms.IntegerField(validators=[validate_year],
+                              widget=TextInput(attrs={'size': '10'}), 
+                              label="Year")
 
 

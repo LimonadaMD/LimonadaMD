@@ -1,0 +1,16 @@
+<div class="col-1">
+</div>
+<div class="col-3">
+    {{ field.label_tag }}<br>
+</div>
+<div class="col-8">
+    {{ field }}
+    {% if field.help_text %}
+        <br>
+        <small style="color: grey">{{ field.help_text }}</small>
+    {% endif %}
+    {% for error in field.errors %}
+        <br>
+        <p style="color: red">{{ error }}</p>
+    {% endfor %}
+</div>

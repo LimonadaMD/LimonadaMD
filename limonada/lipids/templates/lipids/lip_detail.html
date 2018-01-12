@@ -18,7 +18,9 @@
                 <p>Formula: {{ lipid.formula }}</p>
                 <p>Main class: {{ lipid.main_class }}</p>
                 <p>Sub class: {{ lipid.sub_class }}</p>
-                <img src="{{ lipid.img.url }}"/>
+                {% if lipid.img %}
+                    <img src="{{ lipid.img.url }}"/>
+                {% endif %}
                 <br>
             </div>
             <div class="col">
