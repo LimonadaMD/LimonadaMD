@@ -1,8 +1,11 @@
 {% extends "homepage/layout.html" %}
 
+{% load homepage_extras %}
+
 {% block title %}Topologies{% endblock %}
 
 {% block content %}
+    <br>
     <h1>Topologies</h1>
     <br>
     <form action="" method="post" enctype="multipart/form-data">
@@ -15,7 +18,14 @@
                     {{ field.label_tag }}<br>
                 </div>
                 <div class="col">
-                    {{ field }}
+                    {% if field.name == "itp_file" or field.name == "gro_file" or field.name == "map_file"%}
+                        <label class="custom-file">
+                            <input type="file" accept="{% if field.name == "itp_file" %}.itp{% elif field.name == "gro_file" %}.gro,.pdb{% elif field.name == "map_file" %}.map{% endif %}" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#'+{{ field.name }}+'text').text($(this).val().split('\\').slice(-1)[0])">
+                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|split }}</span>
+                        </label>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
                     {% if field.help_text %}
                         <br>
                         <small style="color: grey">{{ field.help_text }}</small>
@@ -38,7 +48,7 @@
     <br>
 {% endblock %}
 
-{% block footer %}
+{% block script %}
     {{ form.media }}
 {% endblock %}
 

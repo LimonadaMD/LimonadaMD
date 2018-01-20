@@ -3,65 +3,53 @@
 {% block title %}Lipids{% endblock %}
 
 {% block content %}
+    <br>
     <h1>Lipids</h1>
     <br>
     <div class="container">
-        <div class="row">
-            <div class="col">
+        <div class="row align-items-center bg-white border rounded border-success p-3">
+            <div class="col-7">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr><td width="30%" class="font-weight-bold">Name:</td><td>{{ lipid.name }}</td></tr>  
+                        <tr><td class="font-weight-bold">LMID:</td><td><a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">{{ lipid.lmid }}<a/></td></tr>  
+                        <tr><td class="font-weight-bold">Common name:</td><td>{{ lipid.com_name }}</td></tr> 
+                        <tr><td class="font-weight-bold">Systematic name:</td><td>{{ lipid.sys_name }}</td></tr> 
+                        <tr><td class="font-weight-bold">IUPAC name:</td><td>{{ lipid.iupac_name }}</td></tr> 
+                        <tr><td class="font-weight-bold">Formula:</td><td>{{ lipid.formula }}</td></tr> 
+                        <tr><td class="font-weight-bold">Category:</td><td>{{ lipid.core }}</td></tr> 
+                        <tr><td class="font-weight-bold">Main class:</td><td>{{ lipid.main_class }}</td></tr> 
+                        <tr><td class="font-weight-bold">Sub class:</td><td>{{ lipid.sub_class }}</td></tr> 
+                        <tr><td class="font-weight-bold">Class level 4:</td><td>{{ lipid.l4_class }}</td></tr> 
+                    </tbody>
+                </table>
+                <div class="row">
+                    <div class="col">
+                        <a class="text-success" href={% url 'toplist' %}?lipid={{ lipid.pk }}>Available Topologies</a>,  
+                        <a class="text-success" href={% url 'memlist' %}?lipid={{ lipid.pk }}>Available Membranes</a> 
+                    </div>
+                </div>
+                <br>
+                {% if user.is_authenticated %}
+                    <p>
+                        {% if user == lipid.curator %}
+                            <a href={% url 'lipupdate' lipid.slug %}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a>&nbsp
+                            <a href={% url 'lipdelete' lipid.slug %}><i class="fa fa-trash text-success" aria-hidden="true"></i></a>
+                        {% else %}
+                            <a href={% url 'mail' %}?lipid={{ lipid.pk }}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a>
+                        {% endif %}
+                    </p>
+                {% endif %}
             </div>
-            <div class="col-10">
-                <p>Name: {{ lipid.name }}</p>
-                <p>LMID: {{ lipid.lmid }}</p>
-                <p>Common name: {{ lipid.com_name }}</p>
-                <p>Systematic name: {{ lipid.sys_name }}</p>
-                <p>IUPAC name: {{ lipid.iupac_name }}</p>
-                <p>Formula: {{ lipid.formula }}</p>
-                <p>Main class: {{ lipid.main_class }}</p>
-                <p>Sub class: {{ lipid.sub_class }}</p>
+            <div class="col-5">
                 {% if lipid.img %}
-                    <img src="{{ lipid.img.url }}"/>
+                    <img src="{{ lipid.img.url }}" style="max-height:520px;max-width:500px;">
                 {% endif %}
                 <br>
-            </div>
-            <div class="col">
-                {% if user.is_authenticated %}
-                    <p><a href={% url 'lipupdate' lipid.slug %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Update</a><p>
-                    <p><a href={% url 'lipdelete' lipid.slug %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Delete</a><p>
-                {% endif %}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-11">
-                <br>
-                <h2>Available MD Topologies</h2>
-            </div>
-            <div class="col-1 align-self-center" align="right">
-                {% if user.is_authenticated %}
-                    <a href={% url 'topcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
-                {% endif %}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-10">
-                <ul>
-                    {% for top in tops %}
-                        <li>{{ top.software }} topology for {{ top.forcefield }} forcefield. See <a href={% url 'topdetail' top.pk %}>details</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-11">
-                <br>
-                <h2>Related Membranes</h2>
-            </div>
-            <div class="col-1 align-self-center" align="right">
-                {% if user.is_authenticated %}
-                    <a href={% url 'memcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
-                {% endif %}
             </div>
         </div>
     </div>
+    <br>
 {% endblock %}
 
 

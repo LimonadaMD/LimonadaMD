@@ -1,27 +1,112 @@
 from django.conf import settings
 from django.contrib import messages
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError, transaction
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
+from django.template import RequestContext
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
+from django.contrib.auth.models import User
 from .models import Membrane, Composition
-from .forms import MembraneForm, CompositionForm, MemFormSet
+from .forms import MembraneForm, CompositionForm, MemFormSet, SelectMembraneForm 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from lipids.models import Lipid, Topology
+from django.db.models import Q
+import operator
 
 
 def display_data(request, data, **kwargs):
     return render(request, 'membranes/posted-data.html', dict(data=data, **kwargs))
 
 
-class MemList(ListView):
-    model = Membrane
-    template_name = 'membranes/membranes.html'
+headers = {'name': 'asc',
+           'equilibration':  'asc',}
 
-    def get_context_data(self, **kwargs):
-        context_data = super(MemList, self).get_context_data(**kwargs)
-        context_data['membranes'] = True
-        return context_data
+
+def MemList(request):
+
+    mem_list = Membrane.objects.all()
+
+    params = request.GET.copy()
+
+    selectparams = {}
+    for param in ['equilibration','lipid']:
+        if param in request.GET.keys():
+            if request.GET[param] != "":
+                if param == 'lipid':
+                    liplist = request.GET[param].split(',')
+                    selectparams['lipid'] = liplist
+                else:
+                    selectparams[param] = request.GET[param]
+    form_select = SelectMembraneForm(selectparams)
+    if form_select.is_valid():
+        if 'equilibration' in selectparams.keys():
+            mem_list = mem_list.filter(equilibration__gte=selectparams['equilibration'])
+        if 'lipid' in selectparams.keys():
+            querylist = []
+            for i in liplist:
+                querylist.append(Q(lipid=Lipid.objects.filter(id=i)))
+            top_list = Topology.objects.filter(reduce(operator.or_, querylist))  
+            mem_list = mem_list.filter(lipids=top_list)
+
+    if 'memid' in request.GET.keys(): 
+        try:
+            memid = int(request.GET['memid'])
+        except:
+            memid = 0
+        if memid > 0:
+            mem_list = mem_list.filter(id=memid)
+
+    if 'curator' in request.GET.keys():
+        try:
+            curator = int(request.GET['curator'])
+        except:
+            curator = 0
+        if curator > 0:
+            mem_list = mem_list.filter(curator=User.objects.filter(id=curator))
+
+    sort = request.GET.get('sort')
+    if sort is not None:
+        mem_list = mem_list.order_by(sort)
+        if headers[sort] == "des":
+            mem_list = mem_list.reverse()
+            headers[sort] = "asc"
+        else:
+            headers[sort] = "des"
+
+    per_page = 4
+    if 'per_page' in request.GET.keys():
+        try:
+            per_page = int(request.GET['per_page'])
+        except:
+            per_page = 4
+    if per_page not in [4,10,25]:
+        per_page = 4
+    paginator = Paginator(mem_list, per_page)
+
+    page = request.GET.get('page')
+    try:
+        membranes = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        membranes = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        membranes = paginator.page(paginator.num_pages)
+
+    data = {}
+    data['form_select'] = form_select
+    data['page_objects'] = membranes
+    data['per_page'] = per_page
+    data['sort'] = sort
+    if sort is not None:
+        data['dir'] = headers[sort]
+    data['membranes'] = True
+    data['params'] = params
+    data['comps'] = Composition.objects.all()
+
+    return render_to_response('membranes/membranes.html', data, context_instance=RequestContext(request))
 
 
 @login_required
@@ -59,16 +144,6 @@ def MemCreate(request, formset_class, template):
         'formset': formset,
         'membranes': True
     })
-
-
-class MemDetail(DetailView):
-    model = Membrane
-    template_name = 'membranes/mem_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context_data = super(MemDetail, self).get_context_data(**kwargs)
-        context_data['membranes'] = True
-        return context_data
 
 
 @login_required

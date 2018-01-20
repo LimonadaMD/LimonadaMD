@@ -10,10 +10,14 @@ from django.views.generic import CreateView, DetailView, DeleteView, ListView, U
 from django.conf import settings
 from django.utils.text import slugify
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from django.contrib.auth.models import User
+import operator
 from .models import Lipid, Topology   
-from .forms import LmidForm, LipidForm, TopologyForm
+from .forms import LmidForm, LipidForm, SelectLipidForm, TopologyForm, SelectTopologyForm  
 from membranes.models import Membrane
 from homepage.models import Reference
+from forcefields.models import Forcefield
 from dal import autocomplete
 import json, os, os.path, time, shutil
 import requests
@@ -34,23 +38,28 @@ def molsize(filename):
 
 
 def LM_class():
-    LM_class = {'mainclass':[]}
+    LM_dict = {}
+    LM_class = {'category':[]}
     for line in open("media/Lipid_Classification").readlines():
         name = line.split("[")[1].split("]")[0]
+        line = line.strip()
         l = len(name) 
+        LM_dict[name] = line 
         if l == 2:
-            LM_class['mainclass'].append(name) 
+            LM_class['category'].append([name,line]) 
         elif l == 4: 
-            if name in LM_class.keys(): 
-                LM_class[name[0:2]].append(name) 
-            else:
-                LM_class[name[0:2]] = [ name ]
+            if name[0:2] not in LM_class.keys(): 
+                LM_class[name[0:2]] = []
+            LM_class[name[0:2]].append([name,line]) 
         elif l == 6: 
-            if name in LM_class.keys(): 
-                LM_class[name[0:4]].append(name) 
-            else:
-                LM_class[name[0:4]] = [ name ]
-    return LM_class
+            if name[0:4] not in LM_class.keys(): 
+                LM_class[name[0:4]] = []
+            LM_class[name[0:4]].append([name,line]) 
+        elif l == 8: 
+            if name[0:6] not in LM_class.keys(): 
+                LM_class[name[0:6]] = []
+            LM_class[name[0:6]].append([name,line]) 
+    return LM_class, LM_dict
 
 
 lipheaders = {'name': 'asc',
@@ -61,17 +70,38 @@ lipheaders = {'name': 'asc',
 
 def LipList(request):
 
+    lmclass, lmdict = LM_class() 
+
     lipid_list = Lipid.objects.all()
 
     params = request.GET.copy()
 
-    #form_select = SelectForm()
-    #if 'main_class' in request.GET.keys():
-    #    main_class = request.GET['main_class']
-    #    if main_class != "":
-    #        form_select = SelectForm({'main_class': main_class})
-    #        if form_select.is_valid():
-    #            lip_list = Lipid.objects.filter(main_class=main_class)
+    selectparams = {}
+    for param in ['category','main_class','sub_class','l4_class','lipidid']:
+        if param in request.GET.keys():
+            if request.GET[param] != "":
+                if param == 'lipidid':
+                    liplist = request.GET[param].split(',')
+                    selectparams['lipidid'] = liplist
+                else:
+                    selectparams[param] = request.GET[param]
+    if 'category' in selectparams.keys():
+        lipid_list = lipid_list.filter(core=lmdict[selectparams['category']])
+    if 'main_class' in selectparams.keys():
+        lipid_list = lipid_list.filter(main_class=lmdict[selectparams['main_class']])
+    if 'sub_class' in selectparams.keys():
+        lipid_list = lipid_list.filter(sub_class=lmdict[selectparams['sub_class']])
+    if 'l4_class' in selectparams.keys():
+        lipid_list = lipid_list.filter(l4_class=lmdict[selectparams['l4_class']])
+    if 'lipidid' in selectparams.keys(): 
+        form_select = SelectLipidForm({'lipidid':selectparams['lipidid']})
+        if form_select.is_valid():
+            querylist = []
+            for i in liplist:
+                querylist.append(Q(id=i))
+            lipid_list = lipid_list.filter(reduce(operator.or_, querylist))
+    else:
+        form_select = SelectLipidForm()
 
     sort = request.GET.get('sort')
     if sort is not None:
@@ -103,13 +133,14 @@ def LipList(request):
         lipids = paginator.page(paginator.num_pages)
 
     data = {}
-    #data['form_select'] = form_select
+    data['form_select'] = form_select
     data['page_objects'] = lipids
     data['per_page'] = per_page
     data['sort'] = sort
     if sort is not None:
         data['dir'] = lipheaders[sort]
     data['lipids'] = True
+    data['lmclass'] = lmclass 
     data['params'] = params
 
     return render_to_response('lipids/lipids.html', data, context_instance=RequestContext(request))
@@ -252,8 +283,7 @@ class LipAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         qs = Lipid.objects.all()
         if self.q:
-            #qs = qs.filter(refid__istartswith=self.q)
-            qs = qs.filter(slug__icontains=self.q)
+            qs = qs.filter(search_name__icontains=self.q)
         return qs
 
 
@@ -269,13 +299,42 @@ def TopList(request):
 
     params = request.GET.copy()
 
-    #form_select = SelectForm()
-    #if 'main_class' in request.GET.keys():
-    #    main_class = request.GET['main_class']
-    #    if main_class != "":
-    #        form_select = SelectForm({'main_class': main_class})
-    #        if form_select.is_valid():
-    #            lip_list = Lipid.objects.filter(main_class=main_class)
+    selectparams = {'software':'GR'}
+    for param in ['software','forcefield','lipid']:
+        if param in request.GET.keys():
+            if request.GET[param] != "":
+                if param == 'lipid':
+                    liplist = request.GET[param].split(',')
+                    selectparams['lipid'] = liplist 
+                else:
+                    selectparams[param] = request.GET[param] 
+    form_select = SelectTopologyForm(selectparams)
+    if form_select.is_valid():
+        if 'software' in selectparams.keys(): 
+            top_list = top_list.filter(software=selectparams['software'])
+        if 'forcefield' in selectparams.keys(): 
+            top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
+        if 'lipid' in selectparams.keys(): 
+            querylist = [] 
+            for i in liplist: 
+                querylist.append(Q(lipid=Lipid.objects.filter(id=i)))
+            top_list = top_list.filter(reduce(operator.or_, querylist))
+
+    if 'topid' in request.GET.keys():
+        try:
+            topid = int(request.GET['topid'])
+        except:
+            topid = 0
+        if topid > 0:
+            top_list = top_list.filter(id=topid)
+
+    if 'curator' in request.GET.keys():
+        try:
+            curator = int(request.GET['curator'])
+        except:
+            curator = 0
+        if curator > 0:
+            top_list = top_list.filter(curator=User.objects.filter(id=curator))
 
     sort = request.GET.get('sort')
     if sort is not None:
@@ -307,7 +366,7 @@ def TopList(request):
         topologies = paginator.page(paginator.num_pages)
 
     data = {}
-    #data['form_select'] = form_select
+    data['form_select'] = form_select
     data['page_objects'] = topologies
     data['per_page'] = per_page
     data['sort'] = sort
@@ -332,16 +391,6 @@ class TopCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TopCreate, self).get_context_data(**kwargs)
-        context_data['topologies'] = True
-        return context_data
-
-
-class TopDetail(DetailView):
-    model = Topology
-    template_name = 'lipids/top_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context_data = super(TopDetail, self).get_context_data(**kwargs)
         context_data['topologies'] = True
         return context_data
 

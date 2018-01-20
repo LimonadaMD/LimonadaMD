@@ -5,6 +5,7 @@
 {% block title %}Lipids{% endblock %}
 
 {% block content %}
+    <br>
     <h1>Lipids</h1>
     <br>
     <div class="row p-1">
@@ -35,7 +36,29 @@
                 {% csrf_token %}
                 {% for field in form_add %}
                     <div class="row p-1">
-                        {% include 'form.html' %}
+                        <div class="col-1">
+                        </div>
+                        <div class="col-3">
+                            {{ field.label_tag }}<br>
+                        </div>
+                        <div class="col-8">
+                            {% if field.name == "img" %}
+                                <label class="custom-file">
+                                    <input type="file" accept=".jpg,.png" id="id_img" name="img" class="custom-file-input" onchange="$('#imgtext').text($(this).val().split('\\').slice(-1)[0])">
+                                    <span id="imgtext" class="custom-file-control">{% if imgpath %}{{ imgpath|cut:"tmp/" }}{% else %}{% if form_add.img.value %}{{ form_add.img.value|cut:"lipids/" }}{% endif %}{% endif %}</span>
+                                </label>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                                <br>
+                                <small style="color: grey">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <br>
+                                <p style="color: red">{{ error }}</p>
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endfor %}
                 <div class="row p-1">

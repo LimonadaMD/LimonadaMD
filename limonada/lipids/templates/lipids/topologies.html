@@ -20,8 +20,38 @@
         <br>
     </div>
     <div class="container">
-        <div class="row align-items-center rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
-            {% include 'per_page.html' %}
+        <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
+            <div class="col-2 align-self-start">
+                <div class="row">
+                    {% include 'per_page.html' %}
+                </div>
+            </div>
+            <div class="col-9" id="collapseselect" {% if not params.software %}style="display: none"{% endif %}>
+                <form id="select_form" action="" method="get">
+                    <div class="row">
+                        {% for field in form_select %}
+                            <div class="{% if field.name == 'lipid' %}col-12{% else %}col-0{% endif %} p-1">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <br>
+                                    <small style="color: grey">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <br>
+                                    <p style="color: red">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <div class="col-1 p-1">
+                            <a onclick="url_replace('software','forcefield','lipid')" class="btn btn-primary btn-sm text-white">Select</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-0 align-self-start">
+                <h2 class="text-info" id="clickselect"><i class="fa fa-plus"></i></h2>
+            </div>
         </div>
         <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
             <div class="col-12">
@@ -34,15 +64,16 @@
                             <th width="15%">
                                 {% if sort == "forcefield" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="forcefield" %}">Forcefield<a/></th>
-                            <th width="15%">
+                            <th width="28%">
                                 {% if sort == "lipid" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="lipid" %}">Lipid<a/></th>
-                            <th width="15%">
+                            <th width="18%">
                                 {% if sort == "version" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="version" %}">Version<a/></th>
-                            <th width="30%">Files</th>
+                            <th width="25%">Files</th>
                             {% if user.is_authenticated %}
-                                <th width="15%"></th>
+                                <th width="2%"></th>
+                                <th width="2%"></th>
                             {% endif %}
                         </tr>
                     </thead>
@@ -50,10 +81,10 @@
                         {% for topology in page_objects %}
                             <tr>
                                 <td>{{ topology.get_software_display }}</td>
-                                <td><a class="text-success" href={% url 'fflist' %}>{{ topology.forcefield }}</a></td>
-                                <td><a class="text-success" href={% url 'lipdetail' topology.lipid.slug %}>{{ topology.lipid.name }}</a></td>
+                                <td><a class="text-success" href="{% url 'fflist' %}?ffid={{ topology.forcefield.pk }}">{{ topology.forcefield }}</a></td>
+                                <td><a class="text-success" href={% url 'lipdetail' topology.lipid.slug %}>{{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a></td>
                                 <td id="{{ topology.pk }}">
-                                    <a class="text-dark" data-toggle="collapse" href="#collapse{{ topology.pk }}" aria-expanded="true" aria-controls="collapse{{ topology.pk }}">{{ topology.version }}</a>
+                                    <a class="text-info" data-toggle="collapse" href="#collapse{{ topology.pk }}" aria-expanded="true" aria-controls="collapse{{ topology.pk }}">{{ topology.version }}</a>
                                 </td>
                                 <td>
                                     <a href="{{ topology.gro_file.url }}" class="text-success" target="blank">Structure</a>
@@ -61,10 +92,13 @@
                                     <a href="{{ topology.map_file.url }}" class="text-success" target="blank">Mapping</a>
                                 </td>
                                 {% if user.is_authenticated %}
-                                    <td>
-                                        <a href={% url 'topupdate' topology.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Update</a>
-                                        <a href={% url 'topdelete' topology.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Delete</a>
-                                    </td>
+                                    {% if user == topology.curator %}
+                                        <td><a href={% url 'topupdate' topology.pk %}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'topdelete' topology.pk %}><i class="fa fa-trash text-success" aria-hidden="true"></i></a></td>
+                                    {% else %}
+                                        <td></td>
+                                        <td><a href={% url 'mail' %}?topid={{ topology.pk }}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                    {% endif %}
                                 {% endif %}
                             </tr>
                             <tr id="collapse{{ topology.pk }}" class="collapse" data-parent="#{{ topology.pk }}">
@@ -89,7 +123,7 @@
                                         <div class="col-10">
                                             {% query mems lipids=topology as memobjects %}
                                             {% for mem in memobjects %}
-                                                <a class="text-success" href={% url 'memdetail' mem.pk %}>{{ mem.name }}</a><br> 
+                                                <a class="text-success" href="{% url 'memlist' %}?memid={{ mem.pk }}">{{ mem.name }}</a><br> 
                                             {% endfor %}
                                         </div>
                                     </div>
@@ -112,4 +146,7 @@
     <br>
 {% endblock %}
 
+{% block script %}
+    {{ form_select.media }}
+{% endblock %}
 

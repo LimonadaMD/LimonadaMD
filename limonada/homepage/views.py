@@ -1,6 +1,7 @@
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.urlresolvers import reverse, reverse_lazy
 #from django.urls import reverse_lazy
@@ -8,7 +9,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView 
 from .models import Reference
-from .forms import DoiForm, ReferenceForm, SelectForm
+from .forms import DoiForm, ReferenceForm, SelectForm, MailForm
+from lipids.models import Lipid, Topology
+from forcefields.models import Forcefield
+from membranes.models import Membrane
 import json, requests, string, re, urllib
 from dal import autocomplete
 
@@ -75,8 +79,6 @@ def RefList(request):
         data['dir'] = headers[sort] 
     data['references'] = True
     data['params'] = params
-    #data['urlpath'] = request.path
-    #data['urlpath'] = request.GET.urlencode()
 
     return render_to_response('homepage/references.html', data, context_instance=RequestContext(request))
 
@@ -172,5 +174,89 @@ class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
             #qs = qs.filter(refid__istartswith=self.q)
             qs = qs.filter(refid__icontains=self.q)
         return qs
+
+
+@login_required
+def mail(request):
+
+    params = request.GET.copy()
+
+    name = ""
+    obj = ""
+    objtype = ""
+    objnames = {'lipid':'lipid','topid':'topology','ffid':'forcefield','memid':'membrane','refid':'reference'}
+    for param in ['lipid','topid','ffid','memid','refid']:
+        if param in request.GET.keys():
+            if request.GET[param] != "":
+                objtype = objnames[param]
+                i = request.GET[param]
+                if param == 'lipid':
+                   try:
+                      obj = Lipid.objects.filter(id=i)
+                      name = obj.values_list('search_name', flat=True)[0]  
+                   except:
+                      pass
+                elif param == 'topid':
+                   try:
+                      obj = Lipid.objects.filter(id=i)
+                      obj = Topology.objects.filter(id=i)
+                      version = obj.values_list('version', flat=True)[0] 
+                      lid = obj.values_list('lipid', flat=True)[0] 
+                      lname = Lipid.objects.filter(id=lid).values_list('name', flat=True)[0] 
+                      name = "%s_%s" % (lname, version)
+                   except:
+                      pass
+                elif param == 'ffid':
+                   try:
+                      obj = Lipid.objects.filter(id=i)
+                      obj = Forcefield.objects.filter(id=i)
+                      name = obj.values_list('name', flat=True)[0] 
+                   except:
+                      pass
+                elif param == 'memid':
+                   try:
+                      obj = Lipid.objects.filter(id=i)
+                      obj = Membrane.objects.filter(id=i)
+                      name = obj.values_list('name', flat=True)[0] 
+                   except:
+                      pass
+                elif param == 'refid':
+                   try:
+                      obj = Lipid.objects.filter(id=i)
+                      obj = Reference.objects.filter(id=i)
+                      name = obj.values_list('refid', flat=True)[0] 
+                   except:
+                      pass
+
+    subject = "" 
+    comment = "" 
+    curator = "" 
+    if name != "":
+        curatorid = obj.values_list('curator', flat=True)[0]
+        firstname = User.objects.filter(id=curatorid).values_list('first_name', flat=True)[0]
+        lastname = User.objects.filter(id=curatorid).values_list('last_name', flat=True)[0]
+        curator = "%s %s" % (firstname,lastname)
+        email = User.objects.filter(id=curatorid).values_list('email', flat=True)[0]
+        subject = "Request concerning a Limonada entry"
+        comment = "Dear Mr/Ms %s,\n\n%s %s is making the following comment on the %s entry (%s) for which you are the current curator.\n\n\nCould you please address these comments and/or reply him/her at %s?\nIf it is more convenient, the curation can also be changed.\n\nSincerely,\nThe Limonada Team" % (curator,request.user.first_name,request.user.last_name,objtype,name,email)
+    form = MailForm({'subject':subject,'comment':comment})
+
+    data = {}
+    data['homepage'] = True
+    data['curator'] = curator
+    data['objecttype'] = objtype
+    data['name'] = name
+    data['form'] = form
+    data['params'] = params
+
+    if request.method == 'POST':
+        form = MailForm(request.POST)
+        if form.is_valid():
+            test = ""
+            return render(request, 'homepage/mail.html', data)
+    return render(request, 'homepage/mail.html', data)
+
+
+
 
 

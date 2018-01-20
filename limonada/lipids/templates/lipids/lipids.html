@@ -1,6 +1,7 @@
 {% extends "homepage/layout.html" %}
 
 {% load homepage_extras %}
+{% load lipid_extras %}
 
 {% block title %}Lipids{% endblock %}
 
@@ -20,8 +21,86 @@
     </div>
     <br>
     <div class="container">
-        <div class="row align-items-center rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
-            {% include 'per_page.html' %}
+        <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
+            <div class="col-2 align-self-start">
+                <div class="row">
+                    {% include 'per_page.html' %}
+                </div>
+            </div>
+            <div class="col-9" id="collapseselect" {% if not params.category and not params.lipidid %}style="display: none"{% endif %}>
+                <form id="select_form" action="" method="get">
+                    {% for field in form_select %}
+                        <div class="row p-1">
+                            <div class="col-2">
+                                {% if field.name == 'main_class' %}
+                                    <label id="id_main_class_label" for="id_main_class" {% if not params.category %}style="display: none;"{% endif %}>Main Class:</label>
+                                {% elif field.name == 'sub_class' %}
+                                    <label id="id_sub_class_label" for="id_sub_class" {% if not params.main_class %}style="display: none;"{% else %}{% lm_select params.main_class as lmobjects %}{% if not lmobjects %}style="display: none;"{% endif %}{% endif %}>Sub Class:</label>
+                                {% elif field.name == 'l4_class' %}
+                                    <label id="id_l4_class_label" for="id_l4_class" {% if not params.sub_class %}style="display: none;"{% else %}{% lm_select params.sub_class as lmobjects %}{% if not lmobjects %}style="display: none;"{% endif %}{% endif %}>Class Level 4:</label>
+                                {% else %}
+                                    {{ field.label_tag }}
+                                {% endif %}
+                            </div>
+                            <div class="col-7">
+                                {% if field.name == 'category' %}
+                                    <select id="id_category" name="category" onchange="rmselect('id_l4_class');rmselect('id_sub_class');rmselect('id_main_class'),populate(this.id,'id_main_class',{{ lmclass }});">
+                                    <option value="">---------</option>
+                                    {% lm_select "category" as lmobjects %}
+                                    {% for value,name in lmobjects %}
+                                        <option value="{{ value }}" {% if value == params.category %}selected="selected"{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                    </select>
+                                {% elif field.name == 'main_class' %}
+                                    <select id="id_main_class" name="main_class" {% if not params.category %}style="display: none;"{% endif %} onchange="rmselect('id_l4_class');rmselect('id_sub_class');populate(this.id,'id_sub_class',{{ lmclass }})">
+                                    <option value="">---------</option>
+                                    {% if params.category %}
+                                        {% lm_select params.category as lmobjects %}
+                                        {% for value,name in lmobjects %}
+                                            <option value="{{ value }}" {% if value == params.main_class %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                    </select>
+                                {% elif field.name == 'sub_class' %}
+                                    <select id="id_sub_class" name="sub_class" {% if not params.main_class %}style="display: none;"{% else %}{% lm_select params.main_class as lmobjects %}{% if not lmobjects %}style="display: none;"{% endif %}{% endif %} onchange="rmselect('id_l4_class');populate(this.id,'id_l4_class',{{ lmclass }})">
+                                    <option value="">---------</option>
+                                    {% if params.main_class %}
+                                        {% lm_select params.main_class as lmobjects %}
+                                        {% for value,name in lmobjects %}
+                                            <option value="{{ value }}" {% if value == params.sub_class %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                    </select>
+                                {% elif field.name == 'l4_class' %}
+                                    <select id="id_l4_class" name="l4_class" {% if not params.sub_class %}style="display: none;"{% else %}{% lm_select params.sub_class as lmobjects %}{% if not lmobjects %}style="display: none;"{% endif %}{% endif %}>
+                                    <option value="">---------</option>
+                                    {% if params.sub_class %}
+                                        {% lm_select params.sub_class as lmobjects %}
+                                        {% for value,name in lmobjects %}
+                                            <option value="{{ value }}" {% if value == params.l4_class %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                    </select>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <br>
+                                    <small style="color: grey">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <br>
+                                    <p style="color: red">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <a onclick="url_replace('lipidid','category','main_class','sub_class','l4_class')" class="btn btn-primary btn-sm text-white">Select</a>
+                </form>
+            </div>
+            <div class="col-0 align-self-start">
+                <h2 class="text-info" id="clickselect"><i class="fa fa-plus"></i></h2>
+            </div>
         </div>
         <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
             <div class="col-12">
@@ -37,9 +116,13 @@
                             <th width="25%">
                                 {% if sort == "com_name" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="com_name" %}">Common Name<a/></th>
-                            <th width="50%">
+                            <th width="46%">
                                 {% if sort == "sys_name" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="sys_name" %}">Systematic Name<a/></th>
+                            {% if user.is_authenticated %}
+                                <th width="2%"></th>
+                                <th width="2%"></th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -49,6 +132,15 @@
                                 <td><a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">{{ lipid.lmid }}<a/></td>
                                 <td>{{ lipid.com_name }}</td>
                                 <td>{{ lipid.sys_name }}</td>
+                                {% if user.is_authenticated %}
+                                    {% if user == lipid.curator %}
+                                        <td><a href={% url 'lipupdate' lipid.slug %}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'lipdelete' lipid.slug %}><i class="fa fa-trash text-success" aria-hidden="true"></i></a></td>
+                                    {% else %}
+                                        <td></td>
+                                        <td><a href={% url 'mail' %}?lipid={{ lipid.pk }}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                    {% endif %}
+                                {% endif %}
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -60,6 +152,46 @@
         </div>
     </div>
     <br>
+    {{ params.per_page }}
 {% endblock %}
 
-
+{% block script %}
+    <script type="text/javascript">
+        function populate(s0,s1,lmclass){
+            var val = document.getElementById(s0).value;
+            var label = s1+"_label";
+            var s1  = document.getElementById(s1);
+            if (lmclass[val]) {  
+                for(var option in lmclass[val]){
+                    var newOption = document.createElement("option");
+                    newOption.value = lmclass[val][option][0];
+                    newOption.innerHTML = lmclass[val][option][1];
+                    s1.options.add(newOption);
+                }
+                s1.style.display = 'block'
+                document.getElementById(label).style.display = 'block';
+            } else {
+                s1.style.display = 'none'
+                document.getElementById(label).style.display = 'none';
+            }
+        }
+        function rmselect(s1){
+            var label = s1+"_label";
+            var s1  = document.getElementById(s1);
+            while (s1.options.length > 0) {                
+                s1.remove(0);
+            } 
+            var newOption = document.createElement("option");
+            newOption.value = "";
+            newOption.innerHTML = "---------";
+            s1.options.add(newOption);
+            s1.style.display = 'none'
+            document.getElementById(label).style.display = 'none';
+        }
+    </script>
+    {{ form_select.media }}
+{% endblock %}
+        
+        
+        
+        

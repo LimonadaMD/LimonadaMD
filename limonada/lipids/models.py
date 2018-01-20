@@ -7,6 +7,7 @@ from django.utils.text import slugify
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from forcefields.choices import *
 
 
 def validate_lmid(value):
@@ -51,11 +52,15 @@ class Lipid(models.Model):
                                   null=True)   					 
     formula = models.CharField(max_length=30, 
                                null=True)   					 
+    core = models.CharField(max_length=200,  
+                                  null=True)   					 
     main_class = models.CharField(max_length=200,  
                                   null=True)   					 
     sub_class = models.CharField(max_length=200,   
                                  null=True)   					 	
-    img = models.ImageField(upload_to=img_path,          			# add a button to download the mol file from LipidMaps and be able to draw the lipid image
+    l4_class = models.CharField(max_length=200,   
+                                 null=True)   					 	
+    img = models.ImageField(upload_to=img_path,          			
                            validators=[validate_file_extension],
                            null=True)
     curator = models.ForeignKey(User,
@@ -64,18 +69,13 @@ class Lipid(models.Model):
     slug = models.SlugField()							
 
     def __unicode__(self):
-        return self.slug
+        return self.search_name
 
     def get_absolute_url(self):
         return reverse('liplist')
 
 
 class Topology(models.Model):                                       # If not in CG recommend use of CGtools  
-
-    GROMACS = "GR"
-    SFTYPE_CHOICES = (
-        (GROMACS, 'Gromacs'),
-    )
 
     software = models.CharField(max_length=2,
                                 choices=SFTYPE_CHOICES,
@@ -92,7 +92,8 @@ class Topology(models.Model):                                       # If not in 
     description = models.TextField(blank=True)
     reference = models.ManyToManyField('homepage.Reference') 
     date = models.DateField(auto_now=True)
-    curator = models.ForeignKey(User)						 
+    curator = models.ForeignKey(User,
+                                on_delete=models.CASCADE)						 
 
     def __unicode__(self):
         return "%s_%s" % (self.lipid.name,self.version)

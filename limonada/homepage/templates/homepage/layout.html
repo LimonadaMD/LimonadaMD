@@ -89,32 +89,15 @@
 				<a href="http://www.wbi.be/"><img src="{% static "img/wbi.png" %}" alt="WBI" style="height:75px;" class="p-1"/></a> 
 			</div> 
 		</div> 
-	    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-		{% block footer %}
-		{% endblock %}	
 	</footer>
 
-	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<script src="{% static 'js/popper.min.js' %}"></script>
 	<script src="{% static 'js/bootstrap.min.js' %}"></script>
 	<script src="{% static 'js/jquery.formset.js' %}"></script>
+	<script src="{% static 'js/limonada.js' %}"></script>
     {% block script %}
     {% endblock %}
-	<script type="text/javascript">
-		 $(function() {
-			$('.link-formset').formset({
-				addText: 'add link',
-				deleteText: 'remove'
-				});
-			})
-	</script>
-	<script type="text/javascript">
-		$(function() {
-			$('#id_contact_info_table tbody tr').formset({
-				extraClasses: ['row1', 'row2', 'row3']
-				})
-			})
-	</script>
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 	<script src="{% static 'js/ie10-viewport-bug-workaround.js' %}"></script>
 	<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->

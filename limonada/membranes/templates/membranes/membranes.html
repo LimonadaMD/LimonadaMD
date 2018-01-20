@@ -1,8 +1,12 @@
 {% extends "homepage/layout.html" %}
 
+{% load homepage_extras %}
+{% load membrane_extras %}
+
 {% block title %}Membranes{% endblock %}
 
 {% block content %}
+    <br>
     <div class="container">
         <div class="row">
             <div class="col-11">
@@ -17,61 +21,145 @@
     </div>
     <br>
     <div class="container">
-        <ol>
-            {% for membrane in object_list %}
+        <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
+            <div class="col-2 align-self-start">
                 <div class="row">
-                    <div class="col">
-                        <li>{{ membrane.name }}</li>
-                    </div>
-                    <div class="col-10">
-                        <div class="row">
-                            <div class="col-1">
-                                <p><strong>File:</strong>
-                            </div>
-                            <div class="col-9">
-                                <a href="{{ membrane.mem_file.url }}" target="blank">Membrane file</a> 
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-1">
-                                <p><strong>Composition:</strong>
-                            </div>
-                            <div class="col-9">
-                                <ul>
-                                {% for lipid in membrane.composition_set.all %}
-                                    <p>{{lipid.topology.version}}</p>
-                                    <p>{{lipid.number}}</p>
-                                {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                        <p><strong>Equilibration:</strong> {{ membrane.equilibration }}</p>
-                        <p><strong>Description:</strong> {{ membrane.description }}</p>
-                        <div class="row">
-                            <div class="col-1">
-                                <p><strong>Reference:</strong>
-                            </div>
-                            <div class="col-9">
-                                <ul>
-                                {% for reference in membrane.reference.all %}
-                                    <p>{{ reference.authors|truncatewords:"2" }} {{ reference.year }}
-                                    Doi:<a href="http://dx.doi.org/{{ reference.doi }}" target="blank">{{ reference.doi }}</a></p>
-                                {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                        <br>
-                    </div>
-                    <div class="col" align="right">
-                        <p><a href={% url 'memdetail' membrane.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Details</a><p>
-                        {% if user.is_authenticated %}
-                            <p><a href={% url 'memupdate' membrane.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Update</a><p>
-                            <p><a href={% url 'memdelete' membrane.pk %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">Delete</a><p>
-                        {% endif %}
-                    </div>
+                    {% include 'per_page.html' %}
                 </div>
-            {% endfor %}
-        </ol>
+            </div>
+            <div class="col-9" id="collapseselect" {% if not params.equilibration and not params.lipid %}style="display: none"{% endif %}>
+                <form id="select_form" action="" method="get">
+                    <div class="row">
+                        {% for field in form_select %}
+                            <div class="{% if field.name == 'lipid' %}col-12{% else %}col-0{% endif %} p-1">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <br>
+                                    <small style="color: grey">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <br>
+                                    <p style="color: red">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <div class="col-1 p-1">
+                            <a onclick="url_replace('equilibration','lipid')" class="btn btn-primary btn-sm text-white">Select</a> 
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-0  align-self-start">
+                <h2 class="text-info" id="clickselect"><i class="fa fa-plus"></i></h2>
+            </div>
+        </div>
+        <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
+            <div class="col-12">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th width="15%">
+                                {% if sort == "name" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="name" %}">Name<a/></th>
+                            <th width="41%">Lipids<a/></th>
+                            <th width="15%">
+                                {% if sort == "equilibration" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="com_name" %}">Equilibration<a/></th>
+                            <th width="25%">Files<a/></th>
+                            {% if user.is_authenticated %}
+                                <th width="2%"></th>
+                                <th width="2%"></th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for membrane in page_objects %}
+                            <tr>
+                                <td>{{ membrane.name }}</td>
+                                <td id="{{ membrane.pk }}">
+                                    <a class="text-info" data-toggle="collapse" href="#collapse{{ membrane.pk }}" aria-expanded="true" aria-controls="collapse{{ membrane.pk }}">
+                                        {% lipidnames membrane.composition_set.all %}
+                                    </a>
+                                </td>
+                                <td>{{ membrane.equilibration }}</td>
+                                <td>
+                                    <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">Membrane</a>
+                                    <a href="" class="text-success" target="blank">Composition</a>
+                                </td>
+                                {% if user.is_authenticated %}
+                                    {% if user == membrane.curator %}
+                                        <td><a href={% url 'memupdate' membrane.pk %}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'memdelete' membrane.pk %}><i class="fa fa-trash text-success" aria-hidden="true"></i></a></td>
+                                    {% else %}
+                                        <td></td>
+                                        <td><a href={% url 'mail' %}?memid={{ membrane.pk }}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                    {% endif %}
+                                {% endif %}
+                            </tr>
+                            <tr id="collapse{{ membrane.pk }}" class="collapse" data-parent="#{{ membrane.pk }}">
+                                <td></td>
+                                <td colspan="3">
+                                    <div class="row">
+                                        <div class="col-2 font-weight-bold">Description:</div>
+                                        <div class="col-10">{{ membrane.description }}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2 font-weight-bold">Composition:</div>
+                                        <div class="col-5 font-weight-bold font-italic">Lower leaflet</div>
+                                        <div class="col-5 font-weight-bold font-italic">Upper leaflet</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2"></div>
+                                        <div class="col-5">
+                                            {% query comps membrane=membrane side="LO" as compobjects %}
+                                            {% queryorder compobjects "number" "des" as orderedcompobjects %}
+                                            {% for lipid in orderedcompobjects %}
+                                                    {{lipid.number}}
+                                                    <a class="text-success" href={% url 'lipdetail' lipid.topology.lipid.slug %}>{{lipid.topology.lipid.name}}</a>
+                                                    (<a class="text-success" href="{% url 'toplist' %}?topid={{lipid.topology.pk}}">{{lipid.topology.version}}</a>)<br> 
+                                            {% endfor %}
+                                        </div>
+                                        <div class="col-5">
+                                            {% for lipid in membrane.composition_set.all %}
+                                                {% if lipid.side == "UP" %}
+                                                    {{lipid.number}}
+                                                    <a class="text-success" href={% url 'lipdetail' lipid.topology.lipid.slug %}>{{lipid.topology.lipid.name}}</a>
+                                                    (<a class="text-success" href="{% url 'toplist' %}?topid={{lipid.topology.pk}}">{{lipid.topology.version}}</a>)<br> 
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2"><strong>References:</strong></div>
+                                        <div class="col-10">
+                                            {% for reference in membrane.reference.all %}
+                                                <a class="text-success" href="http://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>
+                                                <i>{{ reference.journal }}</i>, {{ reference.volume }}.
+                                                {{ reference.title }}<br>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2"><strong>Curator:</strong></div>
+                                        <div class="col-10"><a class="text-success" href={% url 'userdetail' membrane.curator.pk %}>{{ membrane.curator.get_full_name }}</a> on {{ membrane.date }}</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row rounded-bottom border border-top-0 border-success p-3" style="background-color:#c2e5ca" >
+            {% include 'paginator.html' %}
+        </div>
     </div>
+    <br>
+{% endblock %}
+
+{% block script %}
+    {{ form_select.media }}
 {% endblock %}
 

@@ -24,16 +24,15 @@ class Membrane(models.Model):
                             unique=True)							# help_text to set guidelines to format the name? (no space or special character)
     lipids = models.ManyToManyField('lipids.Topology',
                                     through='Composition')
-    equilibration =  models.CharField(max_length=30,				 
-                                      help_text="ex.: During 250 ns",
-                                      default="Not done")
+    equilibration = models.PositiveSmallIntegerField()
     mem_file = models.FileField(upload_to=directory_path,		
                                 help_text=".pdb and .gro files are supported",
                                 validators=[validate_file_extension])
     description = models.TextField(blank=True)
     reference = models.ManyToManyField('homepage.Reference')
     date = models.DateField(auto_now=True)
-    curator = models.ManyToManyField(User) 						
+    curator = models.ForeignKey(User,
+                                on_delete=models.CASCADE)
 
     def __unicode__(self):
         return self.name
@@ -63,6 +62,7 @@ class Composition(models.Model):
 def _delete_file(path):
     if os.path.isfile(path):
         os.remove(path)
+
 
 @receiver(pre_delete, sender=Membrane)
 def delete_file_pre_delete_mem(sender, instance, *args, **kwargs):

@@ -1,0 +1,53 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Mail{% endblock %}
+
+{% block content %}
+    <br> 
+    <h1>Mail</h1>
+    <br> 
+    <div class="row p-1">
+        <div class="col-7">
+            <div class="row p-1">
+                <div class="col-1"></div>
+                <div class="col-11">
+                    The {{ objecttype }} entry ({{ name }}) you want to edit is currently handled by {{ curator }}.
+                    You cannot directly update this entry but you can send your comments to the curator and/or ask to become the new curator.
+                </div>
+            </div>
+            <br>
+            <form action="" method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="row p-1">
+                        <div class="col-1">
+                        </div>
+                        <div class="{% if field.name == 'curation' %}col-6{% else %}col-3{% endif %}">
+                            {{ field.label_tag }}<br>
+                        </div>
+                        <div class="{% if field.name == 'curation' %}col-1{% else %}col-8{% endif %}">
+                            {{ field }}
+                            {% if field.help_text %}
+                                <br>
+                                <small style="color: grey">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <br>
+                                <p style="color: red">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="row p-1">
+                    <div class="col-1">
+                    </div>
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-primary" name="add">Send</button>
+                    </div>
+                </div>
+            </form>
+            <br>
+        </div>
+    </div>
+    <br> 
+{% endblock %}

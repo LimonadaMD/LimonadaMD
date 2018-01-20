@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.widgets import TextInput
+from django.forms.widgets import TextInput, Textarea
 from django.forms import Form, ModelForm
 from dal import autocomplete
 from .models import Reference, validate_doi, validate_year       
@@ -39,5 +39,15 @@ class SelectForm(Form):
     year = forms.IntegerField(validators=[validate_year],
                               widget=TextInput(attrs={'size': '10'}), 
                               label="Year")
+
+
+class MailForm(Form):
+
+    subject  = forms.CharField(widget=TextInput(attrs={'size': '37'}),
+                               required=False)
+    comment  = forms.CharField(widget=Textarea(),
+                               required=False)
+    curation = forms.BooleanField(required=False,
+                                  label="Request to become the new curator:")
 
 

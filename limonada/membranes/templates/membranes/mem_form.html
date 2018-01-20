@@ -1,8 +1,11 @@
 {% extends "homepage/layout.html" %}
 
+{% load homepage_extras %}
+
 {% block title %}Membranes{% endblock %}
 
 {% block content %}
+    <br>
     <h1>Membranes</h1>
     <br>
     <form method="post" action="" enctype="multipart/form-data">
@@ -15,7 +18,14 @@
                     {{ field.label_tag }}<br>
                 </div>
                 <div class="col">
-                    {{ field }}
+                    {% if field.name == "mem_file" %}
+                        <label class="custom-file">
+                            <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#'+{{ field.name }}+'text').text($(this).val().split('\\').slice(-1)[0])">
+                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|split }}</span>
+                        </label>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
                     {% if field.help_text %}
                         <br>
                         <small style="color: grey">{{ field.help_text }}</small>
@@ -67,4 +77,16 @@
     </form>
     <br>
 {% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        $(function() {
+            $('#id_contact_info_table tbody tr').formset({
+                extraClasses: ['row1', 'row2', 'row3']
+                })
+            })
+    </script>
+    {{ form.media }}
+{% endblock %}
+
 

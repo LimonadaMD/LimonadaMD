@@ -5,8 +5,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.models import User
 from .models import Forcefield 
-from .forms import ForcefieldForm
+from .forms import ForcefieldForm, SelectForcefieldForm
 
 
 headers = {'software': 'asc',
@@ -20,13 +21,33 @@ def FfList(request):
 
     params = request.GET.copy()
 
-    #form_select = SelectForm()
-    #if 'main_class' in request.GET.keys():
-    #    main_class = request.GET['main_class']
-    #    if main_class != "":
-    #        form_select = SelectForm({'main_class': main_class})
-    #        if form_select.is_valid():
-    #            lip_list = Lipid.objects.filter(main_class=main_class)
+    selectparams = {'software':'GR'}
+    for param in ['software','forcefield_type']:
+        if param in request.GET.keys():
+            if request.GET[param] != "":
+                selectparams[param] = request.GET[param]
+    form_select = SelectForcefieldForm(selectparams)
+    if form_select.is_valid():
+        if 'software' in selectparams.keys():
+            ff_list = ff_list.filter(software=selectparams['software'])
+        if 'forcefield_type' in selectparams.keys():
+            ff_list = ff_list.filter(forcefield_type=selectparams['forcefield_type'])
+
+    if 'ffid' in request.GET.keys():
+        try:
+            ffid = int(request.GET['ffid'])
+        except:
+            ffid = 0
+        if ffid > 0:
+            ff_list = ff_list.filter(id=ffid)
+
+    if 'curator' in request.GET.keys():
+        try:
+            curator = int(request.GET['curator'])
+        except:
+            curator = 0
+        if curator > 0:
+            ff_list = ff_list.filter(curator=User.objects.filter(id=curator))
 
     sort = request.GET.get('sort')
     if sort is not None:
@@ -58,7 +79,7 @@ def FfList(request):
         forcefields = paginator.page(paginator.num_pages)
 
     data = {}
-    #data['form_select'] = form_select
+    data['form_select'] = form_select
     data['page_objects'] = forcefields
     data['per_page'] = per_page
     data['sort'] = sort

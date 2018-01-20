@@ -1,9 +1,12 @@
 {% extends "homepage/layout.html" %}
 
+{% load homepage_extras %}
+
 {% block title %}Forcefields{% endblock %}
 
 {% block content %}
-<h1>Forcefields</h1>
+    <br>
+    <h1>Forcefields</h1>
     <br>
     <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -15,7 +18,14 @@
                     {{ field.label_tag }}<br>
                 </div>
                 <div class="col">
-                    {{ field }}
+                    {% if field.name == "ff_file" or field.name == "mdp_file"%}
+                        <label class="custom-file">
+                            <input type="file" accept=".zip" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#'+{{ field.name }}+'text').text($(this).val().split('\\').slice(-1)[0])">
+                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|split }}</span>
+                        </label>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
                     {% if field.help_text %}
                         <br>
                         <small style="color: grey">{{ field.help_text }}</small>
@@ -38,4 +48,7 @@
     <br>
 {% endblock %}
 
+{% block script %}
+    {{ form.media }}
+{% endblock %}
 
