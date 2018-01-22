@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError, transaction
 from django.contrib.auth.decorators import login_required
@@ -107,7 +107,7 @@ def MemList(request):
     data['params'] = params
     data['comps'] = Composition.objects.all()
 
-    return render_to_response('membranes/membranes.html', data, context_instance=RequestContext(request))
+    return render(request, 'membranes/membranes.html', data)
 
 
 @login_required

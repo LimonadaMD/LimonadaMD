@@ -1,4 +1,4 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
@@ -88,7 +88,7 @@ def FfList(request):
     data['forcefields'] = True
     data['params'] = params
 
-    return render_to_response('forcefields/forcefields.html', data, context_instance=RequestContext(request))
+    return render(request, 'forcefields/forcefields.html', data)
 
 
 class FfCreate(CreateView):

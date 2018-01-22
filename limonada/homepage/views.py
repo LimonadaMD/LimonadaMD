@@ -1,4 +1,4 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -80,7 +80,7 @@ def RefList(request):
     data['references'] = True
     data['params'] = params
 
-    return render_to_response('homepage/references.html', data, context_instance=RequestContext(request))
+    return render(request, 'homepage/references.html', data)
 
 
 @login_required

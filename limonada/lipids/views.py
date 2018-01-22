@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
@@ -143,7 +143,7 @@ def LipList(request):
     data['lmclass'] = lmclass 
     data['params'] = params
 
-    return render_to_response('lipids/lipids.html', data, context_instance=RequestContext(request))
+    return render('lipids/lipids.html', data)
 
 
 @login_required
@@ -376,7 +376,7 @@ def TopList(request):
     data['params'] = params
     data['mems'] = Membrane.objects.all()
 
-    return render_to_response('lipids/topologies.html', data, context_instance=RequestContext(request))
+    return render(request, 'lipids/topologies.html', data)
 
 
 class TopCreate(CreateView):

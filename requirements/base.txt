@@ -1,8 +1,9 @@
 Django>=1.9.7
 django-registration-redux>=1.4
 django-cors-headers
+django-autocomplete-light
+Pillow
 netifaces
 requests
-django-autocomplete-light
 pymol
 openbabel
