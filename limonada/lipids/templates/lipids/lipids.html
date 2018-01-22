@@ -43,8 +43,9 @@
                                 {% endif %}
                             </div>
                             <div class="col-7">
+                                {% lm_select "all" as lmall %}
                                 {% if field.name == 'category' %}
-                                    <select id="id_category" name="category" onchange="rmselect('id_l4_class');rmselect('id_sub_class');rmselect('id_main_class'),populate(this.id,'id_main_class',{{ lmclass }});">
+                                    <select id="id_category" name="category" onchange="rmselect('id_l4_class');rmselect('id_sub_class');rmselect('id_main_class');populate(this.id,'id_main_class',{{ lmall }});">
                                     <option value="">---------</option>
                                     {% lm_select "category" as lmobjects %}
                                     {% for value,name in lmobjects %}
@@ -52,7 +53,7 @@
                                     {% endfor %}
                                     </select>
                                 {% elif field.name == 'main_class' %}
-                                    <select id="id_main_class" name="main_class" {% if not params.category %}style="display: none;"{% endif %} onchange="rmselect('id_l4_class');rmselect('id_sub_class');populate(this.id,'id_sub_class',{{ lmclass }})">
+                                    <select id="id_main_class" name="main_class" {% if not params.category %}style="display: none;"{% endif %} onchange="rmselect('id_l4_class');rmselect('id_sub_class');populate(this.id,'id_sub_class',{{ lmall }})">
                                     <option value="">---------</option>
                                     {% if params.category %}
                                         {% lm_select params.category as lmobjects %}
@@ -62,7 +63,7 @@
                                     {% endif %}
                                     </select>
                                 {% elif field.name == 'sub_class' %}
-                                    <select id="id_sub_class" name="sub_class" {% if not params.main_class %}style="display: none;"{% else %}{% lm_select params.main_class as lmobjects %}{% if not lmobjects %}style="display: none;"{% endif %}{% endif %} onchange="rmselect('id_l4_class');populate(this.id,'id_l4_class',{{ lmclass }})">
+                                    <select id="id_sub_class" name="sub_class" {% if not params.main_class %}style="display: none;"{% else %}{% lm_select params.main_class as lmobjects %}{% if not lmobjects %}style="display: none;"{% endif %}{% endif %} onchange="rmselect('id_l4_class');populate(this.id,'id_l4_class',{{ lmselect }})">
                                     <option value="">---------</option>
                                     {% if params.main_class %}
                                         {% lm_select params.main_class as lmobjects %}

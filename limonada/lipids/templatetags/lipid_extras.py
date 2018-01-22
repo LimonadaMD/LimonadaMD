@@ -10,6 +10,8 @@ def lm_select(val):
     options = []
     if val in lmclass.keys():
        options = lmclass[val] 
+    elif val == "all":
+       options = lmclass 
     return options
 
 

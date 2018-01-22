@@ -140,10 +140,9 @@ def LipList(request):
     if sort is not None:
         data['dir'] = lipheaders[sort]
     data['lipids'] = True
-    data['lmclass'] = lmclass 
     data['params'] = params
 
-    return render('lipids/lipids.html', data)
+    return render(request,'lipids/lipids.html', data)
 
 
 @login_required
