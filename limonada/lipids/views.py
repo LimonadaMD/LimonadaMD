@@ -175,10 +175,10 @@ def LipCreate(request):
                 script.close()
                 args = shlex.split("pymol -c media/tmp/%s_rotate.pml" % lm_data['lmid'])
                 process = subprocess.Popen(args, stdout=subprocess.PIPE)
-            args = shlex.split("molconvert jpeg:Q95,#ffffff,H_off,wireframe,scale100,bondl42.0 %s.mol -o %s.jpg" % (filename,filename))
+            args = shlex.split("obabel %s.mol -O %s.png -xC -xp 1200 -x0 molfile -xd --title" % (filename,filename))
             process = subprocess.Popen(args, stdout=subprocess.PIPE)
             process.communicate()
-            lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name=lm_data['com_name'], img="tmp/%s.jpg" % lm_data['lmid'])
+            lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name=lm_data['com_name'], img="tmp/%s.png" % lm_data['lmid'])
             file_data = { 'img': lipid.img }
             os.remove("media/tmp/%s.mol" % lm_data['lmid'])
             if os.path.isfile("media/tmp/%s_rotate.pml" % lm_data['lmid']):
@@ -205,7 +205,7 @@ def LipCreate(request):
                 except KeyError:
                     pass
             form_add = LipidForm(lm_data, file_data)
-            return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'imgpath': "tmp/%s.jpg" % lm_data['lmid'] })
+            return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'imgpath': "tmp/%s.png" % lm_data['lmid'] })
     elif request.method == 'POST' and 'add' in request.POST:
         form_search = LmidForm()
         form_add = LipidForm(request.POST, request.FILES)
@@ -215,10 +215,10 @@ def LipCreate(request):
             lmid = form_add.cleaned_data['lmid']
             com_name = form_add.cleaned_data['com_name']
             lipid.search_name = '%s - %s - %s' % (name,lmid,com_name)
-            imgpath = "media/tmp/%s.jpg" % lmid 
+            imgpath = "media/tmp/%s.png" % lmid 
             if not request.FILES and os.path.isfile(imgpath):
-                shutil.copy(imgpath, "media/lipids/%s.jpg" % lmid) 
-                lipid.img = "lipids/%s.jpg" % lmid 
+                shutil.copy(imgpath, "media/lipids/%s.png" % lmid) 
+                lipid.img = "lipids/%s.png" % lmid 
             if os.path.isfile(imgpath):
                 os.remove(imgpath)
             lipid.slug = slugify('%s' % (lmid), allow_unicode=True)
@@ -385,13 +385,18 @@ class TopCreate(CreateView):
     template_name = 'lipids/top_form.html'
 
     def form_valid(self, form):
-        self.object = form.save() 
+        self.object = form.save(commit=False)
+        self.object.curator = self.request.user
         self.object.save()
+        refs = form.cleaned_data['reference']
+        for ref in refs:
+            self.object.reference.add(ref)
         return HttpResponseRedirect(self.object.get_absolute_url())
 
     def get_context_data(self, **kwargs):
         context_data = super(TopCreate, self).get_context_data(**kwargs)
         context_data['topologies'] = True
+        context_data['topcreate'] = True
         return context_data
 
 

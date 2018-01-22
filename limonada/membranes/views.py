@@ -103,6 +103,7 @@ def MemList(request):
     if sort is not None:
         data['dir'] = headers[sort]
     data['membranes'] = True
+    data['memcreate'] = True
     data['params'] = params
     data['comps'] = Composition.objects.all()
 
@@ -116,8 +117,9 @@ def MemCreate(request, formset_class, template):
         form = MembraneForm(request.POST, request.FILES)
         formset = formset_class(request.POST)
         if form.is_valid() and formset.is_valid():
-            m = form.save()
-            #data = formset.cleaned_data
+            m = form.save(commit=False)
+            m.curator = request.user
+            m.save()
             comp = [] 
             for lip in formset:
                 topology = lip.cleaned_data.get('topology')
@@ -135,7 +137,7 @@ def MemCreate(request, formset_class, template):
             except IntegrityError: #If the transaction failed
                 messages.error(request, 'There was an error saving your composition.')
             #return display_data(request, data)
-            return render(request, 'membranes/membranes.html') #, {'lipids', True})
+            return render(request, 'membranes/membranes.html', {'membranes', True})
     else:
         form = MembraneForm()
         formset = formset_class()
@@ -151,7 +153,7 @@ def MemCreate(request, formset_class, template):
 def MemUpdate(request, pk=None):
     m = Membrane.objects.get(pk=pk)
     if request.method == 'POST':
-        form = MembraneForm(request.POST, request.FILES) #, instance=m)
+        form = MembraneForm(request.POST, request.FILES, instance=m)
         formset = MemFormSet(request.POST) #, instance=m)
         if form.is_valid() and formset.is_valid():
             m = form.save()
@@ -164,16 +166,16 @@ def MemUpdate(request, pk=None):
                    comp.append(Composition(membrane=m, topology=topology, number=number, side=side))
             try:
                 with transaction.atomic():
-                  #Replace the old with the new
-                   m = Membrane.objects.get(pk=pk)
-                   Composition.objects.filter(membrane=m).delete()
-                   Composition.objects.bulk_create(comp)
-                  # And notify our users that it worked
-                   messages.success(request, 'You have updated your composition.')
+                    #Replace the old with the new
+                    m = Membrane.objects.get(pk=pk)
+                    Composition.objects.filter(membrane=m).delete()
+                    Composition.objects.bulk_create(comp)
+                    # And notify our users that it worked
+                    messages.success(request, 'You have updated your composition.')
             except IntegrityError: #If the transaction failed
                 messages.error(request, 'There was an error saving your composition.')
                 #return redirect(reverse('profile-settings'))
-            return render(request, 'membranes/membranes.html', {'lipids': True})
+            return HttpResponseRedirect(reverse('memlist'))
     else:
         form = MembraneForm(instance=m)
         c = Composition.objects.filter(membrane=m)

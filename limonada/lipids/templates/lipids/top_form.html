@@ -20,7 +20,13 @@
                 <div class="col">
                     {% if field.name == "itp_file" or field.name == "gro_file" or field.name == "map_file"%}
                         <label class="custom-file">
-                            <input type="file" accept="{% if field.name == "itp_file" %}.itp{% elif field.name == "gro_file" %}.gro,.pdb{% elif field.name == "map_file" %}.map{% endif %}" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#'+{{ field.name }}+'text').text($(this).val().split('\\').slice(-1)[0])">
+                            {% if field.name == "itp_file" %} 
+                                <input type="file" accept=".itp" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#itp_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                            {% elif field.name == "gro_file" %} 
+                                <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#gro_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                            {% else %} 
+                                <input type="file" accept=".map" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#map_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                            {% endif %} 
                             <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|split }}</span>
                         </label>
                     {% else %}
@@ -41,7 +47,7 @@
             <div class="col-1">
             </div>
             <div class="col-2">
-                <button type="submit" class="btn btn-primary">{% if lipcreate %} Add {% else %} Update {% endif %}</button>
+                <button type="submit" class="btn btn-primary">{% if topcreate %} Add {% else %} Update {% endif %}</button>
             </div>
         </div>
     </form>

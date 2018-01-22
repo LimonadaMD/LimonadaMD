@@ -76,6 +76,11 @@ class SelectLipidForm(forms.Form):
 
 
 class TopologyForm(forms.ModelForm):
+
+    itp_file     = forms.FileField(label="Topology file")
+    gro_file     = forms.FileField(label="Structure file")
+    map_file     = forms.FileField(label="Mapping file")
+
     class Meta:
         model = Topology
         fields = ['software','forcefield','lipid','itp_file','gro_file','map_file','version','description','reference']

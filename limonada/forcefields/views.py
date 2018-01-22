@@ -97,11 +97,12 @@ class FfCreate(CreateView):
     template_name = 'forcefields/ff_form.html'
 
     def form_valid(self, form):
-        self.object = form.save() #commit=False)
-        #refs = form.cleaned_data['reference']
-        #for ref in refs:
-        #    self.object.reference.add(ref)
+        self.object = form.save(commit=False)
+        self.object.curator = self.request.user
         self.object.save()
+        refs = form.cleaned_data['reference']
+        for ref in refs:
+            self.object.reference.add(ref)
         return HttpResponseRedirect(self.object.get_absolute_url())
 
     def get_context_data(self, **kwargs):
@@ -117,10 +118,9 @@ class FfUpdate(UpdateView):
     template_name = 'forcefields/ff_form.html'
 
     def form_valid(self, form):
-        self.object = form.save() #commit=False)
+        self.object = form.save() 
         self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
-        #return reverse('ffdetail', kwargs={'pk': self.object.pk,})
 
     def get_context_data(self, **kwargs):
         context_data = super(FfUpdate, self).get_context_data(**kwargs)

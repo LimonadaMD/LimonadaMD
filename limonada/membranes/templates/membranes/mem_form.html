@@ -20,7 +20,7 @@
                 <div class="col">
                     {% if field.name == "mem_file" %}
                         <label class="custom-file">
-                            <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#'+{{ field.name }}+'text').text($(this).val().split('\\').slice(-1)[0])">
+                            <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#mem_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|split }}</span>
                         </label>
                     {% else %}
@@ -70,7 +70,7 @@
             <div class="col-1">
             </div>
             <div class="col-2">
-                <button type="submit" class="btn btn-primary">Create</button>
+                <button type="submit" class="btn btn-primary">{% if memcreate %} Add {% else %} Update {% endif %}</button>
             </div>
         </div>
         {{ formset.management_form }}

@@ -5,4 +5,4 @@ netifaces
 requests
 django-autocomplete-light
 pymol
-molconvert #ChemAxon
+openbabel

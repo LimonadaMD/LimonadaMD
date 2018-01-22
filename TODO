@@ -16,4 +16,6 @@ Where to put the website? (DigitalOcean before builder?)
 
 Limit access to Update and delete views to curators in views.py with decorators
 
+Replace Version field of Topology by the refid or the request.user and the date ...
+
 
