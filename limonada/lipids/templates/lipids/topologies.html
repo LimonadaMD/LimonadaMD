@@ -1,6 +1,7 @@
 {% extends "homepage/layout.html" %}
 
 {% load homepage_extras %}
+{% load forcefield_extras %}
 
 {% block title %}Topologies{% endblock %}
 
@@ -26,13 +27,38 @@
                     {% include 'per_page.html' %}
                 </div>
             </div>
+            <p id="demo"></p>
             <div class="col-9" id="collapseselect" {% if not params.software %}style="display: none"{% endif %}>
                 <form id="select_form" action="" method="get">
                     <div class="row">
                         {% for field in form_select %}
                             <div class="{% if field.name == 'lipid' %}col-12{% else %}col-0{% endif %} p-1">
                                 {{ field.label_tag }}
-                                {{ field }}
+                                {% ff_select "all" as ffall %}
+                                {% if field.name == 'software' %}
+                                    <select id="id_software" name="software" onchange="populate({{ ffall }});">
+                                    {% for value,name in sfchoices %} 
+                                        {% if params.software %} 
+                                            <option value="{{ value }}" {% if value == params.software %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% else %}
+                                            <option value="{{ value }}" {% if value == "GR" %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </select>
+                                {% elif field.name == 'forcefield' %}
+                                    <select id="id_forcefield" name="forcefield">
+                                    {% if params.software %}{% ff_select params.software as ffobjects %}{% else %}{% ff_select "GR" as ffobjects %}{% endif %} 
+                                    {% if ffobjects %} 
+                                        {% for value,name in ffobjects %}
+                                            <option value="{{ value }}" {% if value|slugify == params.forcefield %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="">---------</option>
+                                    {% endif %}
+                                    </select>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
                                 {% if field.help_text %}
                                     <br>
                                     <small style="color: grey">{{ field.help_text }}</small>
@@ -50,7 +76,7 @@
                 </form>
             </div>
             <div class="col-0 align-self-start">
-                <h2 class="text-info" id="clickselect"><i class="fa fa-plus"></i></h2>
+                <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
             </div>
         </div>
         <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
@@ -59,16 +85,16 @@
                     <thead>
                         <tr>
                             <th width="10%">
-                                {% if sort == "software" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "software" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="software" %}">Software<a/></th>
                             <th width="15%">
-                                {% if sort == "forcefield" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "forcefield" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="forcefield" %}">Forcefield<a/></th>
                             <th width="28%">
-                                {% if sort == "lipid" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "lipid" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="lipid" %}">Lipid<a/></th>
                             <th width="18%">
-                                {% if sort == "version" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "version" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="version" %}">Version<a/></th>
                             <th width="25%">Files</th>
                             {% if user.is_authenticated %}
@@ -93,11 +119,11 @@
                                 </td>
                                 {% if user.is_authenticated %}
                                     {% if user == topology.curator %}
-                                        <td><a href={% url 'topupdate' topology.pk %}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
-                                        <td><a href={% url 'topdelete' topology.pk %}><i class="fa fa-trash text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'topupdate' topology.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'topdelete' topology.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a></td>
                                     {% else %}
                                         <td></td>
-                                        <td><a href={% url 'mail' %}?topid={{ topology.pk }}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'mail' %}?topid={{ topology.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
                                     {% endif %}
                                 {% endif %}
                             </tr>
@@ -121,9 +147,10 @@
                                     <div class="row">
                                         <div class="col-2"><strong>Membranes:</strong></div>
                                         <div class="col-10">
-                                            {% query mems lipids=topology as memobjects %}
+                                            {% query mems lipids=topology.lipid as memobjects %}
+                                            {% query memtops membrane=memobjects forcefield=topology.forcefield as memobjects %}
                                             {% for mem in memobjects %}
-                                                <a class="text-success" href="{% url 'memlist' %}?memid={{ mem.pk }}">{{ mem.name }}</a><br> 
+                                                <a class="text-success" href="{% url 'memlist' %}?memid={{ mem.pk }}">{{ mem.version }}</a><br> 
                                             {% endfor %}
                                         </div>
                                     </div>
@@ -147,6 +174,30 @@
 {% endblock %}
 
 {% block script %}
+    <script type="text/javascript">
+        function populate(ffall){
+            var val = document.getElementById("id_software").value;
+            var s1  = document.getElementById("id_forcefield");
+            while (s1.options.length > 0) {                
+                s1.remove(0);
+            } 
+            var i = -1;
+            if (ffall[val].length > 0) { 
+                for(var option in ffall[val]){
+                    i++;
+                    var newOption = document.createElement("option");
+                    newOption.value = ffall[val][i][0]; 
+                    newOption.innerHTML = ffall[val][i][1];
+                    s1.options.add(newOption);
+                }
+            } else {
+                var newOption = document.createElement("option");
+                newOption.value = "";
+                newOption.innerHTML = "---------";
+                s1.options.add(newOption);
+            }
+        }
+    </script>
     {{ form_select.media }}
 {% endblock %}
 

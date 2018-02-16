@@ -21,13 +21,13 @@
                     {% if field.name == "itp_file" or field.name == "gro_file" or field.name == "map_file"%}
                         <label class="custom-file">
                             {% if field.name == "itp_file" %} 
-                                <input type="file" accept=".itp" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#itp_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                                <input type="file" accept=".itp" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="basename('#id_itp_file','#itp_filetext')">
                             {% elif field.name == "gro_file" %} 
                                 <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#gro_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             {% else %} 
                                 <input type="file" accept=".map" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#map_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             {% endif %} 
-                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|split }}</span>
+                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|basename }}</span>
                         </label>
                     {% else %}
                         {{ field }}
@@ -55,6 +55,13 @@
 {% endblock %}
 
 {% block script %}
+    <script type="text/javascript">
+        function basename(){
+            filefield = arguments[0];
+            textfield = arguments[1];
+            $(textfield).text($(filefield).val().split('\\').slice(-1)[0])
+        }
+    </script>
     {{ form.media }}
 {% endblock %}
 

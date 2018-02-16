@@ -50,7 +50,7 @@
                 </form>
             </div>
             <div class="col-0 align-self-start">
-                <h2 class="text-info" id="clickselect"><i class="fa fa-plus"></i></h2>
+                <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
             </div>
         </div>
         <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
@@ -59,14 +59,14 @@
                     <thead>
                         <tr>
                             <th width="17%">
-                                {% if sort == "refid" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "refid" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="refid" %}"> Name<a/>
                             </th>
                             <th width="72%">
-                                {% if sort == "title" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "title" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="title" %}">Title<a/></th>
                             <th width="7%">
-                                {% if sort == "year" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "year" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="year" %}">Year<a/></th>
                             {% if user.is_authenticated %}
                                 <th width="2%"></th>
@@ -91,11 +91,11 @@
                                 <td>{{ ref.year }}</td>
                                 {% if user.is_authenticated %}
                                     {% if user == ref.curator %}
-                                        <td><a href={% url 'refupdate' ref.pk %}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
-                                        <td><a href={% url 'refdelete' ref.pk %}><i class="fa fa-trash text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'refupdate' ref.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'refdelete' ref.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a></td>
                                     {% else %}
                                         <td></td>
-                                        <td><a href={% url 'mail' %}?refid={{ ref.pk }}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'mail' %}?refid={{ ref.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
                                     {% endif %}
                                 {% endif %}
                             </tr>

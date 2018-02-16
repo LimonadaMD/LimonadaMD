@@ -21,11 +21,11 @@
                     {% if field.name == "ff_file" or field.name == "mdp_file"%}
                         <label class="custom-file">
                             {% if field.name == "ff_file" %}
-                                <input type="file" accept=".zip" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#ff_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                                <input type="file" accept=".zip" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('ff_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             {% else %}
                                 <input type="file" accept=".zip" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#mdp_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             {% endif %}
-                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|split }}</span>
+                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|basename }}</span>
                         </label>
                     {% else %}
                         {{ field }}

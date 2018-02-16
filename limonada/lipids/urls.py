@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
-from .views import LipList, LipCreate, LipDelete, LipDetail, LipUpdate, LipAutocomplete 
+from .views import LipList, LipCreate, LipDelete, LipDetail, LipUpdate, LipAutocomplete, LipAutoCompleteView 
 from .views import TopList, TopCreate, TopDelete, TopUpdate
 
 urlpatterns = [
@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^lipids/(?P<slug>\w+)/update/$', LipUpdate, name='lipupdate'),
     url(r'^lipids/(?P<slug>\w+)/delete/$', login_required(LipDelete.as_view()), name='lipdelete'),
     url(r'^lipid-autocomplete/$', LipAutocomplete.as_view(), name='lipid-autocomplete'),
+    url(r'^lipid-autocompleteview/$', LipAutoCompleteView.as_view(), name='lipid-autocompleteview'),
     url(r'^topologies/$', TopList, name='toplist'),
     url(r'^topologies/create/$', login_required(TopCreate.as_view()), name='topcreate'),
     url(r'^topologies/(?P<pk>\d+)/update/$', login_required(TopUpdate.as_view()), name='topupdate'),

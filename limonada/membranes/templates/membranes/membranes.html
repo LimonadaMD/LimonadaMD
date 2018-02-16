@@ -51,7 +51,7 @@
                 </form>
             </div>
             <div class="col-0  align-self-start">
-                <h2 class="text-info" id="clickselect"><i class="fa fa-plus"></i></h2>
+                <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
             </div>
         </div>
         <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
@@ -60,11 +60,11 @@
                     <thead>
                         <tr>
                             <th width="15%">
-                                {% if sort == "name" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "name" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="name" %}">Name<a/></th>
                             <th width="41%">Lipids<a/></th>
                             <th width="15%">
-                                {% if sort == "equilibration" %}{% if dir == "asc" %}<i class="fa fa-sort-asc"></i>{% else %}<i class="fa fa-sort-desc"></i>{% endif %}{% endif %}
+                                {% if sort == "equilibration" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="com_name" %}">Equilibration<a/></th>
                             <th width="25%">Files<a/></th>
                             {% if user.is_authenticated %}
@@ -89,11 +89,11 @@
                                 </td>
                                 {% if user.is_authenticated %}
                                     {% if user == membrane.curator %}
-                                        <td><a href={% url 'memupdate' membrane.pk %}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
-                                        <td><a href={% url 'memdelete' membrane.pk %}><i class="fa fa-trash text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'memupdate' membrane.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'memdelete' membrane.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a></td>
                                     {% else %}
                                         <td></td>
-                                        <td><a href={% url 'mail' %}?memid={{ membrane.pk }}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'mail' %}?memid={{ membrane.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
                                     {% endif %}
                                 {% endif %}
                             </tr>

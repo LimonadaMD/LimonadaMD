@@ -1,0 +1,114 @@
+{% extends "homepage/layout.html" %}
+
+{% load homepage_extras %}
+{% load membrane_extras %}
+
+{% block title %}Membranes{% endblock %}
+
+{% block content %}
+    <form method="post" action="." role="form">{% csrf_token %}
+        <input type="radio" name="flavor" id="radio_freeform" value="Freeform" checked>Freeform
+        <br />
+        <input type="radio" name="flavor" id="radio_uneditable" value="Uneditable">Uneditable
+        <br />
+        <input type="radio" name="flavor" id="radio_autocompletion" value="Autocompletion">Autocompletion
+        <br />
+        <br />
+        Name:
+        <br >
+        <span id="name_span">
+            <input type="text" name="name" id="input_name" value="">
+        </span>
+        <br />
+        <br />
+        <input class="standard-btn" type="submit" value="Submit" />
+    </form>
+{% endblock %}
+
+{% block script %}
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+        //$(document).on('autocompleteLightInitialize', '[data-autocomplete-light-function=select2]',function () {
+            var inputName = $('#input_name');
+
+            var freeformState = {
+                // nothing to do; this is the normal state which is set up by
+                // default and to which other states must restore on teardown
+                setup: function () {
+                },
+                teardown: function () {
+                }
+            };
+
+            var uneditableState = {
+                setup: function () {
+                    var hardcodedVal = 'MY-NAME';
+                    inputName.hide();
+                    $('#name_span').append('<span id="hardcoded_name">' + hardcodedVal + '</span>');
+                    inputName.val(hardcodedVal);
+                },
+                teardown: function () {
+                    $('#hardcoded_name').remove();
+                    $('#input_name').show();
+                }
+            };
+
+            var autocompleteState = {
+                autocomplete: null,
+                setup: function () {
+                    if (this.autocomplete != null) {
+                        alert('autocomplete already set up!');
+                    } else {
+                        alert('autocomplete not set up!');
+                    }
+
+                    inputName.val('');
+
+                    this.autocomplete = inputName.yourlabsAutocomplete({
+                        //url: '{{ autocomplete_url }}',
+                        url: 'lipid-autocomplete/',
+                        placeholder: '',
+                        //placeholder: 'Test',
+                        choiceSelector: "[data-value]"  // attribute in HTML sent by server which contains the choice
+                    });
+
+                    // when user selects one of the choices:
+                    this.autocomplete.input.bind('selectChoice', function (e, choice) {
+                        inputName.val(choice.html());
+                    });
+                },
+                teardown: function () {
+                    if (this.autocomplete == null) {
+                        alert('autocomplete NOT already set up!');
+                    }
+                    inputName.yourlabsAutocomplete('destroy');
+                    this.autocomplete = null;
+                }
+            };
+
+            var state = freeformState;  // initial state embodied in the HTML
+
+            function changeToState(newState) {
+                if (newState === state) {
+                    return;
+                }
+
+                state.teardown();
+                state = newState;
+                state.setup();
+            }
+
+            $('#radio_freeform').change(function () {
+                changeToState(freeformState);
+            });
+            $('#radio_uneditable').change(function () {
+                changeToState(uneditableState);
+            });
+            $('#radio_autocompletion').change(function () {
+                changeToState(autocompleteState);
+            });
+
+        });
+    </script>
+{% endblock %}

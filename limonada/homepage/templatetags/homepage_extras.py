@@ -1,6 +1,6 @@
 from django import template
 from .. import __version__
-import urllib
+import urllib, os
 
 
 register = template.Library()
@@ -43,9 +43,11 @@ def queryorder(qs, param, direction):
         return qs.order_by(param).reverse()
 
 
-@register.filter(name='split')
+@register.filter(name='basename')
 def split(value):
     return str(value).split("/")[-1]  
+
+
 
 
 

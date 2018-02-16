@@ -64,29 +64,28 @@
                     <div class="col-2">
                         Composition:
                     </div>
-                    <div id="mem-form" class="col-9">
+                    <div class="col-9">
                         <div class="row">
                             <div class="col-5">Lipid</div>
                             <div class="col-4">Number</div>
                             <div class="col-2">Side</div>
                         </div>
+                        {{ formset.management_form }}
                         {% for lip in formset.forms %}
-                            <div id="{{ lip.prefix }}-row" class="row form-row">
-                                <div class="col-5 pt-1">{{ lip.lipid }}</div> 
-                                <div class="col-4 pt-1">{{ lip.number }}</div> 
-                                <div class="col-2 pt-1">{{ lip.side }}</div> 
-                                <div class="col-1 pt-1">
-                                    <button id="{{ lip.prefix }}-remove" type="button" class="btn btn-danger btn-sm remove-form-row" name="{{ lip.prefix }}-remove"><i class="fas fa-minus" aria-hidden="true"></i></button>
+                            <div id="{{ lip.prefix }}-row" class="row">
+                                <div id="{{ lip.prefix }}-c1" class="col-5 pt-1" {% if lip.prefix != "form-0" %}style="display: none;"{% endif %}>{{ lip.lipid }}</div> 
+                                <div id="{{ lip.prefix }}-c2" class="col-4 pt-1" {% if lip.prefix != "form-0" %}style="display: none;"{% endif %}>{{ lip.number }}</div> 
+                                <div id="{{ lip.prefix }}-c3" class="col-2 pt-1" {% if lip.prefix != "form-0" %}style="display: none;"{% endif %}>{{ lip.side }}</div> 
+                                <div id="{{ lip.prefix }}-c4" class="col-1 pt-1" {% if lip.prefix != "form-0" %}style="display: none;"{% endif %}>
+                                    <button id="{{ lip.prefix }}-remove" type="button" class="btn btn-danger btn-sm btn-rm" onclick="formremove('{{ lip.prefix }}');"><i class="fas fa-minus" aria-hidden="true"></i></button>
                                 </div> 
                             </div>
                         {% endfor %}
+                        <div class="pt-1"><button id="form-add" type="button" class="btn btn-success btn-sm" onclick="formadd();"><i class="fas fa-plus" aria-hidden="true"></i></button></div>  
                     </div>
-                    <div class="col-3"></div>  
-                    <div class="col-9 pt-1"><button id="addForm" type="button" class="btn btn-success btn-sm"><i class="fas fa-plus" aria-hidden="true"></i></button></div>  
                 </div>
             {% endif %}
         {% endfor %}
-        {{ formset.management_form }}
         <div class="row p-1">
             <div class="col-1">
             </div>
@@ -96,59 +95,51 @@
         </div>
     </form>
     <br>
-
 {% endblock %}
 
 {% block script %}
     <script type="text/javascript">
-
-        $(document).on('click', '#addForm', function() {
-            var total = $('#id_form-TOTAL_FORMS').val();
-            $('<div/>', {"class": "row form-row",}).appendTo('#mem-form');
-            $('<div/>', {"class":"col-5 pt-1"}).appendTo('.form-row:last');
-            $('<div/>', {"class":"col-4 pt-1"}).appendTo('.form-row:last');
-            $('<div/>', {"class":"col-2 pt-1"}).appendTo('.form-row:last');
-            $('<div/>', {"class":"col-1 pt-1"}).appendTo('.form-row:last');
-            var $lipid = $("<select>", {id:'id_form-'+total+'-lipid',name:'form-'+total+'-lipid',"data-autocomplete-light-function":"select2","data-autocomplete-light-url":"/lipid-autocomplete/"});
-            $lipid.appendTo($('.form-row:last').children(".col-5"));
-            $('[data-autocomplete-light-function]:not(.select2-hidden-accessible)').trigger('autocompleteLightInitialize');
-            var $num = $("<input>", {id:'id_form-'+total+'-number',name:'form-'+total+'-number',step:'0.0001',type:'number'});
-            $num.appendTo($('.form-row:last').children(".col-4"));
-            var $side = $("<select>", {id:'id_form-'+total+'-side',name:'form-'+total+'-side'});
-            $side.append($('<option>', {value: 'UP',text: 'Upper leaflet'}));
-            $side.append($('<option>', {value: 'LO',text: 'Lower leaflet'}));
-            $side.appendTo($('.form-row:last').children(".col-2"));
-            var $btnrm = $('<button>', {id:'form-'+total+'-remove',name:'form-'+total+'-remove',"class":'btn btn-danger btn-sm remove-form-row',type:'button'});
-            $btnrm.html('<i class="fas fa-minus" aria-hidden="true"></i>')
-            $btnrm.appendTo($('.form-row:last').children(".col-1"));
-            total++;
-            $('#id_form-TOTAL_FORMS').val(total);
-        });
-
-        $(document).on('click', '.remove-form-row', function(e){
-            delForm($(this));
-        });
-
-        function delForm(btn) {
-            var total = parseInt($('#id_form-TOTAL_FORMS').val());
-            if (total > 1){
-                btn.closest('.form-row').remove();
-                var forms = $('.form-row');
-                $('#id_form-TOTAL_FORMS').val(forms.length);
-                for (var i=0, formCount=forms.length; i<formCount; i++) {
-                    $(forms.get(i)).find(':input').each(function() {updateElementIndex(this, i)});
+        function lastform(){
+            var val = 1;
+            for (i = 0; i < 10; i++) { 
+                var s0 = document.getElementById("form-"+i+"-c1");
+                var isVisible = s0.offsetWidth > 0 || s0.offsetHeight > 0; 
+                if (isVisible == true){
+                    val = i;
                 }
             }
+            return ++val;
         };
-
-        function updateElementIndex(el, ndx) {
-            var id_regex = new RegExp('(form-\\d+)');
-            var replacement = 'form-' + ndx;
-            if ($(el).attr("for")) $(el).attr("for", $(el).attr("for").replace(id_regex, replacement));
-            if (el.id) el.id = el.id.replace(id_regex, replacement);
-            if (el.name) el.name = el.name.replace(id_regex, replacement);
+        function formremove(s0){
+            var val = lastform();
+            var cur = parseInt(s0.split("-")[1]);
+            for (i = cur; i < val; i++) { 
+               var j = i + 1; 
+               s0c1 = document.getElementById("id_form-"+i+"-lipid"); 
+               s1c1 = document.getElementById("id_form-"+j+"-lipid"); 
+               s0c1.value = s1c1.value;
+               alert(s0c1.value);
+               s0c2 = document.getElementById("id_form-"+i+"-number");
+               s1c2 = document.getElementById("id_form-"+j+"-number"); 
+               s0c2.value = s1c2.value;
+               s0c3 = document.getElementById("id_form-"+i+"-side");
+               s1c3 = document.getElementById("id_form-"+j+"-side"); 
+               s0c3.value = s1c3.value;
+            }
+            document.getElementById("form-"+(val-1)+"-c1").style.display = 'none';
+            document.getElementById("form-"+(val-1)+"-c2").style.display = 'none';
+            document.getElementById("form-"+(val-1)+"-c3").style.display = 'none';
+            document.getElementById("form-"+(val-1)+"-c4").style.display = 'none';
         };
-
+        function formadd(){
+            var val = lastform();
+            if (val < 10){
+                document.getElementById("form-"+val+"-c1").style.display = 'block';
+                document.getElementById("form-"+val+"-c2").style.display = 'block';
+                document.getElementById("form-"+val+"-c3").style.display = 'block';
+                document.getElementById("form-"+val+"-c4").style.display = 'block';
+            }
+        };
     </script>
     {{ topform.media }}
 {% endblock %}

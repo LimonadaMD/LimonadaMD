@@ -7,8 +7,7 @@
 	<title>Limonada - {% block title %}{% endblock %}</title>
 	<link rel="icon" href="{% static 'img/favicon.ico' %}">
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet"/>
-     <!--<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css"/>-->
-	<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" type="text/css"/>
+	<link rel="stylesheet" href="http://code.jquery.com/ui/1.8.18/themes/base/jquery-ui.css" type="text/css" media="all" />
 	<link rel="stylesheet" href="{% static 'css/limonada.css' %}" type="text/css"/>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
@@ -48,12 +47,16 @@
 			<li class="nav-item {% if membranes %} bg-success rounded {% endif %}">
 				<a class="nav-link text-light" href="{% url 'memlist' %}">Membranes</a>
 			</li>
+<!--
 			<li class="nav-item {% if builder %} bg-success rounded {% endif %}">
 				<a class="nav-link text-light" href="{% url 'builder' %}">Builder</a>
 			</li>
-			<li class="nav-item {% if references %} bg-success rounded {% endif %}">
-				<a class="nav-link text-light" href="{% url 'reflist' %}">References</a>
-			</li>
+-->
+            {% if user.is_authenticated %}
+				<li class="nav-item {% if references %} bg-success rounded {% endif %}">
+					<a class="nav-link text-light" href="{% url 'reflist' %}">References</a>
+				</li>
+			{% endif %}	
 <!--
 			<li class="nav-item {% if jobs %} bg-success rounded {% endif %}">
 				<a class="nav-link text-light" href="{% url 'jobs' %}">Jobs</a>
@@ -92,10 +95,13 @@
 	</footer>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<!--<script src="https://code.jquery.com/jquery-1.12.4.js"></script>--> 
+	<!--<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>--> 
+	<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 	<script src="{% static 'js/popper.min.js' %}"></script>
 	<script src="{% static 'js/bootstrap.min.js' %}"></script>
 	<script src="{% static 'js/jquery.formset.js' %}"></script>
-	<script src="{% static 'js/limonada.js' %}"></script>
+	<script src="{% static 'js/limonada.js' %}?ver=20180210"></script>
     {% block script %}
     {% endblock %}
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->

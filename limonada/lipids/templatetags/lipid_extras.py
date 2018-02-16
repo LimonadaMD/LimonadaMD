@@ -1,6 +1,7 @@
 from django import template
 from lipids.views import LM_class
 
+
 register = template.Library()
 
 

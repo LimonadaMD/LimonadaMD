@@ -62,13 +62,13 @@ class LipidForm(forms.ModelForm):
 class SelectLipidForm(forms.Form):
 
     category     = forms.ChoiceField(label="Category",  
-                                   required=False)
+                                     required=False)
     main_class   = forms.ChoiceField(label="Main Class",  
-                                   required=False)
+                                     required=False)
     sub_class    = forms.ChoiceField(label="Sub Class",
-                                   required=False)
+                                     required=False)
     l4_class     = forms.ChoiceField(label="Class Level 4",
-                                   required=False)
+                                     required=False)
     lipidid = forms.ModelMultipleChoiceField(label="Lipid",  
                                              queryset=Lipid.objects.all(),
                                              widget=autocomplete.ModelSelect2Multiple(url='lipid-autocomplete'),
@@ -96,16 +96,13 @@ class TopologyForm(forms.ModelForm):
 
 class SelectTopologyForm(forms.Form):
 
-    FF_CHOICES = []
-    ff = Forcefield.objects.values('name').distinct()
-    for i in range(len(ff)):
-        FF_CHOICES.append((i, ff[i]['name']))
-
-    software = forms.ChoiceField(choices=SFTYPE_CHOICES,
-                                 required=False)
-    forcefield = forms.ChoiceField(choices = FF_CHOICES, 
-                                   required=False)
+    #software = forms.ChoiceField(choices=SFTYPE_CHOICES,
+    software = forms.ChoiceField(required=False)
+    forcefield = forms.ChoiceField(required=False)
     lipid = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(), 
                                            widget=autocomplete.ModelSelect2Multiple(url='lipid-autocomplete'),
                                            required=False)
+
+
+
 

@@ -2,29 +2,47 @@ from django.conf import settings
 from django import forms
 from django.forms import ModelForm, BaseInlineFormSet, fields
 from django.forms import formset_factory, inlineformset_factory
-from .models import Membrane, Composition
+from .models import MembraneTopol, Membrane, Composition
 from django.forms.formsets import BaseFormSet
 from lipids.models import Lipid, Topology
 from dal import autocomplete
+from homepage.models import Reference
+
+
+class MembraneTopolForm(ModelForm):
+
+    version      = forms.CharField(label="Name",
+                                   required=False,
+                                   help_text="YearAuthor")
+
+    class Meta:
+        model = MembraneTopol
+        fields = ['version','forcefield','equilibration','mem_file','description','reference']
+        widgets = {
+            'reference': autocomplete.ModelSelect2Multiple(
+                url='reference-autocomplete'
+            )
+        }
 
 
 class MembraneForm(ModelForm):
 
     class Meta:
         model = Membrane
-        fields = ['name','equilibration','mem_file','description','reference']
-        widgets = {
-            'reference': autocomplete.ModelSelect2Multiple(
-                url='reference-autocomplete'
-            ),
-        }
+        fields = ['organism','organel']
 
 
 
 class CompositionForm(ModelForm):
+
     class Meta:
         model = Composition
-        fields = ['topology','number','side']
+        fields = ['lipid','number','side']
+        widgets = {
+            'lipid': autocomplete.ModelSelect2(
+                url='lipid-autocomplete'
+            ),
+        }
 
 
 MemFormSet = formset_factory(CompositionForm)

@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect
-from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
+from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView, FormView
 from django.conf import settings
 from django.utils.text import slugify
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -15,7 +15,7 @@ from django.contrib.auth.models import User
 import operator
 from .models import Lipid, Topology   
 from .forms import LmidForm, LipidForm, SelectLipidForm, TopologyForm, SelectTopologyForm  
-from membranes.models import Membrane
+from membranes.models import MembraneTopol, Membrane 
 from homepage.models import Reference
 from forcefields.models import Forcefield
 from dal import autocomplete
@@ -23,16 +23,25 @@ import json, os, os.path, time, shutil
 import requests
 import shlex, subprocess
 from django.core.files.uploadedfile import SimpleUploadedFile
+from forcefields.choices import *
+import simplejson as json
 
 
 def molsize(filename):
     mol = open("%s.mol" % filename).readlines()
+    rotmol = open("%s_rot.mol" % filename,"w") 
+    for j in range(0,4):
+        rotmol.write(mol[j])
     X = []
     Y = []
     nb = int(mol[3][0:3])
     for j in range(4,nb+4):
         X.append(float(mol[j].split()[0]))
         Y.append(float(mol[j].split()[1]))
+        rotmol.write(" %s%s %s" % (mol[j][11:20],mol[j][0:10],mol[j][21:]))
+    for line in mol[j+1:]:
+        rotmol.write("%s" % line)
+    rotmol.close()
     R = (max(Y)-min(Y)) / (max(X)-min(X))
     return R
 
@@ -169,19 +178,16 @@ def LipCreate(request):
             f.close()
             R = molsize(filename)
             if R < 1:
-                script = open("media/tmp/%s_rotate.pml" % lm_data['lmid'],"w")
-                script.write("load %s.mol\nrotate z, 90\nsave %s.mol\nquit" % (filename, filename))
-                script.close()
-                args = shlex.split("pymol -c media/tmp/%s_rotate.pml" % lm_data['lmid'])
-                process = subprocess.Popen(args, stdout=subprocess.PIPE)
-            args = shlex.split("obabel %s.mol -O %s.png -xC -xp 1200 -x0 molfile -xd --title" % (filename,filename))
+                shutil.copy("%s_rot.mol" % filename, "%s.mol" % filename)
+            args = shlex.split("obabel %s.mol -O %s.png -xC -xh 1200 -xw 1000 -x0 molfile -xd --title" % (filename,filename))
             process = subprocess.Popen(args, stdout=subprocess.PIPE)
             process.communicate()
             lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name=lm_data['com_name'], img="tmp/%s.png" % lm_data['lmid'])
             file_data = { 'img': lipid.img }
-            os.remove("media/tmp/%s.mol" % lm_data['lmid'])
-            if os.path.isfile("media/tmp/%s_rotate.pml" % lm_data['lmid']):
-                os.remove("media/tmp/%s_rotate.pml" % lm_data['lmid'])
+            if os.path.isfile("%s_rot.mol" % filename): 
+                os.remove("%s_rot.mol" % filename)
+            if os.path.isfile("%s.mol" % filename): 
+                os.remove("%s.mol" % filename)
             if lm_data["pubchem_cid"] != "":
                 try:
                     pubchem_response = requests.get("https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/%s/JSON/" % lm_data["pubchem_cid"])
@@ -286,6 +292,27 @@ class LipAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
+class LipAutoCompleteView(FormView):
+ 
+    def get(self,request,*args,**kwargs):
+        data = request.GET
+        q = data.get("term")
+        if q:
+            lipids = Lipid.objects.filter(search_name__icontains = q)
+        else:
+            lipids = Lipid.objects.all()
+        results = []
+        for lipid in lipids:
+            lipid_json = {}
+            lipid_json['id'] = lipid.id
+            lipid_json['label'] = lipid.search_name
+            lipid_json['value'] = lipid.search_name
+            results.append(lipid_json)
+        data = json.dumps(results)
+        mimetype = 'application/json'
+        return HttpResponse(data, mimetype)
+
+
 topheaders = {'software'  : 'asc',
               'forcefield': 'asc',
               'lipid'     : 'asc',
@@ -298,8 +325,8 @@ def TopList(request):
 
     params = request.GET.copy()
 
-    selectparams = {'software':'GR'}
-    for param in ['software','forcefield','lipid']:
+    selectparams = {} 
+    for param in ['software','forcefield','lipid']:  
         if param in request.GET.keys():
             if request.GET[param] != "":
                 if param == 'lipid':
@@ -307,17 +334,19 @@ def TopList(request):
                     selectparams['lipid'] = liplist 
                 else:
                     selectparams[param] = request.GET[param] 
-    form_select = SelectTopologyForm(selectparams)
-    if form_select.is_valid():
-        if 'software' in selectparams.keys(): 
-            top_list = top_list.filter(software=selectparams['software'])
-        if 'forcefield' in selectparams.keys(): 
-            top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
-        if 'lipid' in selectparams.keys(): 
+    if 'software' in selectparams.keys(): 
+        top_list = top_list.filter(software=selectparams['software'])
+    if 'forcefield' in selectparams.keys(): 
+        top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
+    if 'lipid' in selectparams.keys(): 
+        form_select = SelectTopologyForm({'lipid':selectparams['lipid']})
+        if form_select.is_valid():
             querylist = [] 
             for i in liplist: 
                 querylist.append(Q(lipid=Lipid.objects.filter(id=i)))
             top_list = top_list.filter(reduce(operator.or_, querylist))
+    else:
+        form_select = SelectTopologyForm()
 
     if 'topid' in request.GET.keys():
         try:
@@ -372,7 +401,9 @@ def TopList(request):
     if sort is not None:
         data['dir'] = topheaders[sort]
     data['topologies'] = True
+    data['sfchoices'] = SFTYPE_CHOICES
     data['params'] = params
+    data['memtops'] = MembraneTopol.objects.all()
     data['mems'] = Membrane.objects.all()
 
     return render(request, 'lipids/topologies.html', data)

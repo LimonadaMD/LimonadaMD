@@ -8,8 +8,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
 from django.contrib.auth.models import User
-from .models import Membrane, Composition
-from .forms import MembraneForm, CompositionForm, MemFormSet, SelectMembraneForm 
+from .models import MembraneTopol, Membrane, Composition
+from .forms import MembraneTopolForm, MembraneForm, CompositionForm, MemFormSet, SelectMembraneForm 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from lipids.models import Lipid, Topology
 from django.db.models import Q
@@ -26,7 +26,7 @@ headers = {'name': 'asc',
 
 def MemList(request):
 
-    mem_list = Membrane.objects.all()
+    mem_list = MembraneTopol.objects.all()
 
     params = request.GET.copy()
 
@@ -47,8 +47,9 @@ def MemList(request):
             querylist = []
             for i in liplist:
                 querylist.append(Q(lipid=Lipid.objects.filter(id=i)))
-            top_list = Topology.objects.filter(reduce(operator.or_, querylist))  
-            mem_list = mem_list.filter(lipids=top_list)
+            #top_list = Topology.objects.filter(reduce(operator.or_, querylist))  
+            #mem_list = mem_list.filter(lipids=top_list)
+            mem_list = mem_list.filter(reduce(operator.or_, querylist))  
 
     if 'memid' in request.GET.keys(): 
         try:
@@ -103,7 +104,6 @@ def MemList(request):
     if sort is not None:
         data['dir'] = headers[sort]
     data['membranes'] = True
-    data['memcreate'] = True
     data['params'] = params
     data['comps'] = Composition.objects.all()
 
@@ -114,19 +114,20 @@ def MemList(request):
 #@transaction.atomic
 def MemCreate(request, formset_class, template):
     if request.method == 'POST':
-        form = MembraneForm(request.POST, request.FILES)
+        topform = MembraneTopolForm(request.POST, request.FILES)
+        memform = MembraneForm(request.POST)
         formset = formset_class(request.POST)
-        if form.is_valid() and formset.is_valid():
-            m = form.save(commit=False)
-            m.curator = request.user
+        if topform.is_valid() and memform.is_valid() and formset.is_valid():
+            m = memform.save(commit=False)
+            #m.curator = request.user
             m.save()
             comp = [] 
             for lip in formset:
-                topology = lip.cleaned_data.get('topology')
+                lipid = lip.cleaned_data.get('lipid')
                 number = lip.cleaned_data.get('number')
                 side = lip.cleaned_data.get('side')
-                if topology:
-                    comp.append(Composition(membrane=m, topology=topology, number=number, side=side))
+                if lipid:
+                    comp.append(Composition(membrane=m, lipid=lipid, number=number, side=side))
             try:
                 with transaction.atomic():
                     #Replace the old with the new
@@ -136,15 +137,25 @@ def MemCreate(request, formset_class, template):
                     messages.success(request, 'You have updated your composition.')
             except IntegrityError: #If the transaction failed
                 messages.error(request, 'There was an error saving your composition.')
-            #return display_data(request, data)
             return render(request, 'membranes/membranes.html', {'membranes', True})
     else:
-        form = MembraneForm()
+        topform = MembraneTopolForm()
+        memform = MembraneForm()
+
+        #data = {
+        #    'form-TOTAL_FORMS': '10',
+        #    'form-INITIAL_FORMS': '0',
+        #    'form-MAX_NUM_FORMS': '',
+        #    }
+        #formset = formset_class(data)
+
         formset = formset_class()
     return render(request, template, {
-        'form': form, 
+        'topform': topform, 
+        'memform': memform, 
         'formset': formset,
-        'membranes': True
+        'membranes': True,
+        'memcreate': True
     })
 
 
@@ -199,7 +210,7 @@ def MemUpdate(request, pk=None):
 
 
 class MemDelete(DeleteView):
-    model = Membrane
+    model = MembraneTopol
     template_name = 'membranes/mem_delete.html'
 
     def get_success_url(self):
@@ -209,4 +220,13 @@ class MemDelete(DeleteView):
         context_data = super(MemDelete, self).get_context_data(**kwargs)
         context_data['membranes'] = True
         return context_data
+
+
+def TestAutocomplete(request):
+
+    data = {}
+    data['autocomplete_url'] = reverse('lipid-autocomplete')
+
+    return render(request, 'membranes/example_form.html', data)
+
 

@@ -18,16 +18,19 @@ def directory_path(instance, filename):
     return 'membranes/{0}{1}'.format(instance.name,ext)				
 
 
-class Membrane(models.Model):
+class MembraneTopol(models.Model):
 
-    name = models.CharField(max_length=200,
-                            unique=True)							# help_text to set guidelines to format the name? (no space or special character)
-    lipids = models.ManyToManyField('lipids.Topology',
-                                    through='Composition')
-    equilibration = models.PositiveSmallIntegerField()
+    membrane = models.ForeignKey('Membrane',
+                                 on_delete=models.CASCADE)
+    equilibration = models.PositiveIntegerField()
     mem_file = models.FileField(upload_to=directory_path,		
                                 help_text=".pdb and .gro files are supported",
                                 validators=[validate_file_extension])
+    forcefield = models.ForeignKey('forcefields.Forcefield',
+                                   on_delete=models.CASCADE)
+    nb_lipids = models.PositiveIntegerField() 
+    version = models.CharField(max_length=30,
+                               help_text="YearAuthor")
     description = models.TextField(blank=True)
     reference = models.ManyToManyField('homepage.Reference')
     date = models.DateField(auto_now=True)
@@ -35,28 +38,40 @@ class Membrane(models.Model):
                                 on_delete=models.CASCADE)
 
     def __unicode__(self):
+        return self.version
+
+
+class Membrane(models.Model):
+
+    name = models.TextField(unique=True)						
+    lipids = models.ManyToManyField('lipids.Lipid',
+                                    through='Composition')
+    organism = models.CharField(max_length=30,
+                                blank=True) 
+    organel = models.CharField(max_length=30, 
+                               blank=True) 
+
+    def __unicode__(self):
         return self.name
 
 
 class Composition(models.Model):
 
-    UNKNOWN = "UN"
     UPPER = "UP"
     LOWER = "LO"
     LEAFLET_CHOICES = (
-        (UNKNOWN, 'Unknown'),
         (UPPER, 'Upper leaflet'),
         (LOWER, 'Lower leaflet'),
     )
 
     membrane = models.ForeignKey(Membrane, 
                                  on_delete=models.CASCADE)
-    topology = models.ForeignKey('lipids.Topology', 
-                                 on_delete=models.CASCADE)
-    number = models.IntegerField()
+    lipid = models.ForeignKey('lipids.Lipid', 
+                              on_delete=models.CASCADE)
+    number = models.DecimalField(max_digits=6, decimal_places=4) 
     side = models.CharField(max_length=2,
                             choices=LEAFLET_CHOICES,
-                            default=UNKNOWN)
+                            default=UPPER)
 
 
 def _delete_file(path):

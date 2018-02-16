@@ -1,3 +1,6 @@
+// Use Ctrl+F5 to refresh js files on the client side when devellopping
+// Ver parameter with date is used in layout.html to avoid confusion when the this file is updated
+
 function url_replace(){
     url =  window.location.href;
     for (var i = 0, j = arguments.length; i < j; i++){
@@ -16,8 +19,7 @@ function url_replace(){
 
 $('#clickselect').click(function(){
     $('#collapseselect').toggle();
-    icon = $(this).find("i");
-    icon.toggleClass("fa-plus fa-minus")
+    $('#iconselect').toggleClass("fa-plus fa-minus")
 })
 
 

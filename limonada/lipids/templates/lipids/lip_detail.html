@@ -33,10 +33,10 @@
                 {% if user.is_authenticated %}
                     <p>
                         {% if user == lipid.curator %}
-                            <a href={% url 'lipupdate' lipid.slug %}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a>&nbsp
-                            <a href={% url 'lipdelete' lipid.slug %}><i class="fa fa-trash text-success" aria-hidden="true"></i></a>
+                            <a href={% url 'lipupdate' lipid.slug %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a>&nbsp
+                            <a href={% url 'lipdelete' lipid.slug %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a>
                         {% else %}
-                            <a href={% url 'mail' %}?lipid={{ lipid.pk }}><i class="fa fa-pencil text-success" aria-hidden="true"></i></a>
+                            <a href={% url 'mail' %}?lipid={{ lipid.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a>
                         {% endif %}
                     </p>
                 {% endif %}

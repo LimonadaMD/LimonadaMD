@@ -94,6 +94,9 @@
                 <button type="submit" class="btn btn-primary">{% if memcreate %} Add {% else %} Update {% endif %}</button>
             </div>
         </div>
+        <div class="test">
+            <button id="dalTest" type="button" class="btn btn-success btn-sm"><i class="fas fa-plus" aria-hidden="true"></i></button>
+        </div>
     </form>
     <br>
 
@@ -101,17 +104,35 @@
 
 {% block script %}
     <script type="text/javascript">
+        $(function () {
+            var autocompleteOptions = {
+                minLength: 1,
+                source: "{% url 'lipid-autocompleteview' %}",
+            };
+            $('#id_form-0-lipid').autocomplete(autocompleteOptions);
+        });
+
+        $(document).on('click', '#dalTest', function() {
+            alert("Test");
+            var $test = $("<select>", {id:'id_test',name:'test',"data-autocomplete-light-function":"select2","data-autocomplete-light-url":"/reference-autocomplete/"});
+            $test.appendTo($('.test'));
+            $('[data-autocomplete-light-function]:not(.select2-hidden-accessible)').trigger('autocompleteLightInitialize');
+            alert("Test2");
+        });
 
         $(document).on('click', '#addForm', function() {
+            var autocompleteOptions = {
+                minLength: 1,
+                source: "{% url 'lipid-autocompleteview' %}",
+            };
             var total = $('#id_form-TOTAL_FORMS').val();
             $('<div/>', {"class": "row form-row",}).appendTo('#mem-form');
             $('<div/>', {"class":"col-5 pt-1"}).appendTo('.form-row:last');
             $('<div/>', {"class":"col-4 pt-1"}).appendTo('.form-row:last');
             $('<div/>', {"class":"col-2 pt-1"}).appendTo('.form-row:last');
             $('<div/>', {"class":"col-1 pt-1"}).appendTo('.form-row:last');
-            var $lipid = $("<select>", {id:'id_form-'+total+'-lipid',name:'form-'+total+'-lipid',"data-autocomplete-light-function":"select2","data-autocomplete-light-url":"/lipid-autocomplete/"});
-            $lipid.appendTo($('.form-row:last').children(".col-5"));
-            $('[data-autocomplete-light-function]:not(.select2-hidden-accessible)').trigger('autocompleteLightInitialize');
+            var $lipid = $("<input>", {id:'id_form-'+total+'-lipid',name:'form-'+total+'-lipid'});
+            $lipid.appendTo($('.form-row:last').children(".col-5")).focus().autocomplete(autocompleteOptions);
             var $num = $("<input>", {id:'id_form-'+total+'-number',name:'form-'+total+'-number',step:'0.0001',type:'number'});
             $num.appendTo($('.form-row:last').children(".col-4"));
             var $side = $("<select>", {id:'id_form-'+total+'-side',name:'form-'+total+'-side'});
@@ -148,6 +169,7 @@
             if (el.id) el.id = el.id.replace(id_regex, replacement);
             if (el.name) el.name = el.name.replace(id_regex, replacement);
         };
+
 
     </script>
     {{ topform.media }}
