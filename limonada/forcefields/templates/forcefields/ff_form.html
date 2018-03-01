@@ -15,17 +15,32 @@
                 <div class="col-1">
                 </div>
                 <div class="col-2">
-                    {{ field.label_tag }}<br>
+                    {{ field.label_tag }}
+                    {% if field.name == "ff_file" %}
+                        <span data-toggle="popover" data-trigger="hover" title="Forcefield files" data-html="true" 
+                              data-content='Use a zip file containing the forcefield directory. This directory can be used as it is to run 
+                                            membrane simulations and for Gromacs, it will be used during the validation process of new topologies.'>
+                              <i class="fas fa-info-circle text-success"></i>
+                        </span>
+                    {% elif field.name == "mdp_file" %}
+                        <span data-toggle="popover" data-trigger="hover" title="Parameters files" data-html="true" 
+                              data-content='Use a zip file containing the parameters files for minimization, nvt, npt and production run. For Gromacs, 
+                                            files must be in the format used since the version 5 and the files named em.mdp, nvt.mdp, npt.mdp and run.mdp.'>
+                              <i class="fas fa-info-circle text-success"></i>
+                        </span>
+                    {% endif %}
                 </div>
                 <div class="col">
                     {% if field.name == "ff_file" or field.name == "mdp_file"%}
                         <label class="custom-file">
                             {% if field.name == "ff_file" %}
-                                <input type="file" accept=".zip" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('ff_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                                <input type="file" accept=".zip" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" 
+                                       onchange="$('#ff_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             {% else %}
-                                <input type="file" accept=".zip" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#mdp_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                                <input type="file" accept=".zip" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" 
+                                       onchange="$('#mdp_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             {% endif %}
-                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|basename }}</span>
+                            <span id="{{ field.name }}text" class="custom-file-control" style="width: 340px">{{ field.value|basename }}</span>
                         </label>
                     {% else %}
                         {{ field }}
@@ -53,6 +68,11 @@
 {% endblock %}
 
 {% block script %}
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="popover"]').popover(); 
+        });
+    </script>
     {{ form.media }}
 {% endblock %}
 

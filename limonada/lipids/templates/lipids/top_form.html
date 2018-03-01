@@ -11,24 +11,40 @@
     <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% for field in form %}
-            <div class="row p-1">
-                <div class="col-1">
-                </div>
+            <div class="row p-1 ml-5">
                 <div class="col-2">
                     {{ field.label_tag }}<br>
                 </div>
                 <div class="col">
-                    {% if field.name == "itp_file" or field.name == "gro_file" or field.name == "map_file"%}
+                    {% if field.name == "itp_file" or field.name == "gro_file" or field.name == "map_file" %}
                         <label class="custom-file">
                             {% if field.name == "itp_file" %} 
-                                <input type="file" accept=".itp" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="basename('#id_itp_file','#itp_filetext')">
+                                <input type="file" accept=".itp" id="id_{{ field.name }}" name="{{ field.name }}" 
+                                       class="custom-file-input" onchange="basename('#id_itp_file','#itp_filetext')">
                             {% elif field.name == "gro_file" %} 
-                                <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#gro_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                                <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" 
+                                       class="custom-file-input" onchange="$('#gro_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             {% else %} 
-                                <input type="file" accept=".map" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#map_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                                <input type="file" accept=".map" id="id_{{ field.name }}" name="{{ field.name }}" 
+                                       class="custom-file-input" onchange="$('#map_filetext').text($(this).val().split('\\').slice(-1)[0])">
                             {% endif %} 
-                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|basename }}</span>
+                            <span id="{{ field.name }}text" class="custom-file-control" style="width: 340px">{{ field.value|basename }}</span>
                         </label>
+                    {% elif field.name == 'forcefield' %}
+                        <select id="id_forcefield" name="forcefield" style="width: 340px">
+                        {% if form.software.value %}
+                            {% query ffs software=form.software.value as ffobjects %}
+                        {% else %}
+                            {% query ffs software="GR" as ffobjects %}
+                        {% endif %}
+                        {% for ff in ffobjects %}
+                            {% if form.forcefield.value %}
+                                <option value="{{ ff.id }}" {% if ff.name == form.forcefield.value %}selected="selected"{% endif %}>{{ ff.name }}</option>
+                            {% else %}
+                                <option value="{{ ff.id }}" {% if ff.name == "charmm36" %}selected="selected"{% endif %}>{{ ff.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
                     {% else %}
                         {{ field }}
                     {% endif %}
@@ -43,9 +59,7 @@
                 </div>
             </div>
         {% endfor %}
-        <div class="row p-1">
-            <div class="col-1">
-            </div>
+        <div class="row p-1 ml-5">
             <div class="col-2">
                 <button type="submit" class="btn btn-primary">{% if topcreate %} Add {% else %} Update {% endif %}</button>
             </div>
@@ -55,12 +69,38 @@
 {% endblock %}
 
 {% block script %}
+    <script>
+        var sf_ff = {{ sf_ff|safe }};
+    </script>
     <script type="text/javascript">
         function basename(){
             filefield = arguments[0];
             textfield = arguments[1];
             $(textfield).text($(filefield).val().split('\\').slice(-1)[0])
         }
+        function populate(){
+            var val = document.getElementById("id_software").value;
+            var s1  = document.getElementById("id_forcefield");
+            while (s1.options.length > 0) {                
+                s1.remove(0);
+            } 
+            if (sf_ff[val]) {
+                for(var option in sf_ff[val]){
+                    var newOption = document.createElement("option");
+                    newOption.value = sf_ff[val][option][0];
+                    newOption.innerHTML = sf_ff[val][option][1];
+                    s1.options.add(newOption);
+                }
+            } else {
+                var newOption = document.createElement("option");
+                newOption.value = "";
+                newOption.innerHTML = "---------";
+                s1.options.add(newOption);
+            }
+        }
+        $("#id_software").change(function() {
+            populate();
+        });
     </script>
     {{ form.media }}
 {% endblock %}

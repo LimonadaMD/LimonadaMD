@@ -71,6 +71,39 @@ def LM_class():
     return LM_class, LM_dict
 
 
+def LI_index():
+    lmclass, lmdict = LM_class() 
+    liindex = {}
+    liid = []
+    if Lipid.objects.filter(lmid__istartswith="LI").exists():
+        for i in Lipid.objects.filter(lmid__istartswith="LI").values_list('lmid', flat=True):
+           liid.append(i)
+    for grp in lmdict.keys():
+        if grp not in lmclass.keys(): 
+            l = len(grp)
+            for lipid in liid:
+                if lipid[2:l+2] == grp:
+                   if grp in liindex.keys():
+                       if int(liindex[grp][l+2:]) <= int(lipid[l+2:]): 
+                           liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
+                       liid.remove(lipid)
+                   else: 
+                       liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
+                       liid.remove(lipid)
+            if grp not in liindex.keys(): 
+                liindex[grp] = "LI%s%04d" % (grp,1)
+    return liindex
+
+
+def sf_ff_dict():
+    sf_ff = {}
+    for ff in Forcefield.objects.values_list('software', 'id', 'name'):
+        if ff[0] not in sf_ff.keys():
+            sf_ff[ff[0].encode("utf-8")] = []
+        sf_ff[ff[0].encode("utf-8")].append([ff[1],ff[2].encode("utf-8")]) 
+    return sf_ff
+
+
 lipheaders = {'name': 'asc',
               'lmid': 'asc',
               'com_name': 'asc',
@@ -156,6 +189,7 @@ def LipList(request):
 
 @login_required
 def LipCreate(request):
+    liindex = LI_index()
     if request.method == 'POST' and 'search' in request.POST:
         form_search = LmidForm(request.POST)
         form_add = LipidForm()
@@ -164,12 +198,11 @@ def LipCreate(request):
             lm_data['lmid'] = form_search.cleaned_data['lmidsearch']
             lm_response = requests.get("http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json" % lm_data['lmid'])
             lm_data_raw = lm_response.json()
-            if lm_data_raw != []:
-                for key in ["pubchem_cid", "name", "sys_name", "main_class", "sub_class", "core","formula","abbrev_chains"]:
-                    if key == "name" and 'name' in lm_data_raw.keys():
-                        lm_data['com_name'] = lm_data_raw[key]
-                    elif key in lm_data_raw.keys():
-                        lm_data[key] = lm_data_raw[key]
+            for key in ["pubchem_cid", "name", "sys_name","formula","abbrev_chains"]:
+                if key == "name" and 'name' in lm_data_raw.keys():
+                    lm_data['com_name'] = lm_data_raw[key]
+                elif key in lm_data_raw.keys():
+                    lm_data[key] = lm_data_raw[key]
             filename = "media/tmp/%s" % lm_data['lmid']
             url = "http://www.lipidmaps.org/data/LMSDRecord.php?Mode=File&LMID=%s" % lm_data['lmid']
             response = requests.get(url)
@@ -212,6 +245,7 @@ def LipCreate(request):
             form_add = LipidForm(lm_data, file_data)
             return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'imgpath': "tmp/%s.png" % lm_data['lmid'] })
     elif request.method == 'POST' and 'add' in request.POST:
+        lmclass, lmdict = LM_class() 
         form_search = LmidForm()
         form_add = LipidForm(request.POST, request.FILES)
         if form_add.is_valid():
@@ -220,6 +254,16 @@ def LipCreate(request):
             lmid = form_add.cleaned_data['lmid']
             com_name = form_add.cleaned_data['com_name']
             lipid.search_name = '%s - %s - %s' % (name,lmid,com_name)
+            core = form_add.cleaned_data['core']
+            main_class = form_add.cleaned_data['main_class']
+            sub_class = form_add.cleaned_data['sub_class']
+            l4_class = form_add.cleaned_data['l4_class']
+            lipid.core = lmdict[core]
+            lipid.main_class = lmdict[main_class]
+            if sub_class != "": 
+                lipid.sub_class = lmdict[sub_class]
+            if l4_class != "": 
+                lipid.l4_class = lmdict[l4_class]
             imgpath = "media/tmp/%s.png" % lmid 
             if not request.FILES and os.path.isfile(imgpath):
                 shutil.copy(imgpath, "media/lipids/%s.png" % lmid) 
@@ -233,7 +277,7 @@ def LipCreate(request):
     else:
         form_search = LmidForm()
         form_add = LipidForm()
-    return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True })
+    return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'liindex': liindex })
 
 
 @login_required
@@ -290,27 +334,6 @@ class LipAutocomplete(autocomplete.Select2QuerySetView):
         if self.q:
             qs = qs.filter(search_name__icontains=self.q)
         return qs
-
-
-class LipAutoCompleteView(FormView):
- 
-    def get(self,request,*args,**kwargs):
-        data = request.GET
-        q = data.get("term")
-        if q:
-            lipids = Lipid.objects.filter(search_name__icontains = q)
-        else:
-            lipids = Lipid.objects.all()
-        results = []
-        for lipid in lipids:
-            lipid_json = {}
-            lipid_json['id'] = lipid.id
-            lipid_json['label'] = lipid.search_name
-            lipid_json['value'] = lipid.search_name
-            results.append(lipid_json)
-        data = json.dumps(results)
-        mimetype = 'application/json'
-        return HttpResponse(data, mimetype)
 
 
 topheaders = {'software'  : 'asc',
@@ -425,6 +448,8 @@ class TopCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TopCreate, self).get_context_data(**kwargs)
+        context_data['ffs'] = Forcefield.objects.all()
+        context_data['sf_ff'] = sf_ff_dict() 
         context_data['topologies'] = True
         context_data['topcreate'] = True
         return context_data
@@ -442,6 +467,8 @@ class TopUpdate(UpdateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TopUpdate, self).get_context_data(**kwargs)
+        context_data['ffs'] = Forcefield.objects.all()
+        context_data['sf_ff'] = sf_ff_dict() 
         context_data['topologies'] = True
         return context_data
 

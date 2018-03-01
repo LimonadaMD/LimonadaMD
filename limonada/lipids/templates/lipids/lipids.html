@@ -63,7 +63,7 @@
                                     {% endif %}
                                     </select>
                                 {% elif field.name == 'sub_class' %}
-                                    <select id="id_sub_class" name="sub_class" {% if not params.main_class %}style="display: none;"{% else %}{% lm_select params.main_class as lmobjects %}{% if not lmobjects %}style="display: none;"{% endif %}{% endif %} onchange="rmselect('id_l4_class');populate(this.id,'id_l4_class',{{ lmselect }})">
+                                    <select id="id_sub_class" name="sub_class" {% if not params.main_class %}style="display: none;"{% else %}{% lm_select params.main_class as lmobjects %}{% if not lmobjects %}style="display: none;"{% endif %}{% endif %} onchange="rmselect('id_l4_class');populate(this.id,'id_l4_class',{{ lmall }})">
                                     <option value="">---------</option>
                                     {% if params.main_class %}
                                         {% lm_select params.main_class as lmobjects %}

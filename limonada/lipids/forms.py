@@ -1,19 +1,19 @@
 from django import forms
 from .models import Lipid, Topology
-from .models import validate_lmid
+from .models import validate_lmid, validate_name
 from forcefields.models import Forcefield 
 from homepage.models import Reference 
 from dal import autocomplete
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
-from django.forms.widgets import TextInput
+from django.forms.widgets import TextInput, NumberInput, Select, Textarea
 from .models import validate_file_extension
 from forcefields.choices import *
 
 
 class LmidForm(forms.Form):
 
-    lmidsearch = forms.CharField(label="LM ID", 
+    lmidsearch = forms.CharField(label="LipidMaps ID", 
                                  widget=TextInput(attrs={'placeholder':'e.g., LMGP01010005'}),
                                  validators=[validate_lmid])
 
@@ -22,22 +22,29 @@ class LipidForm(forms.ModelForm):
 
     name       = forms.CharField(widget=TextInput(attrs={'size': '33',
                                                          'placeholder':'e.g., POPC'}),
-                                 help_text="Format: [0-9A-Z]{4}", # 1679616 possibilities 
+                                 validators=[validate_name],
                                  label="Name")
-    lmid       = forms.CharField(label="LM ID", 
-                                 widget=TextInput(attrs={'size': '33',  
-                                                         'placeholder':'e.g., LMGP01010005'}),
+    lmid       = forms.CharField(label="LM/LI ID", 
+                                 widget=TextInput(attrs={'readonly':'readonly',
+                                                         'class':'text-success',
+                                                         'size': '33'}),
                                  validators=[validate_lmid])
-    core       = forms.CharField(label="Category", 
-                                 widget=TextInput(attrs={'size': '33'}))  
-    main_class = forms.CharField(label="Main Class", 
-                                 widget=TextInput(attrs={'size': '33'}))  
-    sub_class  = forms.CharField(label="Sub Class", 
-                                 widget=TextInput(attrs={'size': '33'}),  
-                                 required=False)
-    l4_class   = forms.CharField(label="Class Level 4", 
-                                 widget=TextInput(attrs={'size': '33'}),  
-                                 required=False)
+    core         = forms.CharField(label="Category",
+                                   widget=TextInput(attrs={'readonly':'readonly',
+                                                           'size': '33'}),
+                                   required=False)
+    main_class   = forms.CharField(label="Main Class",
+                                   widget=TextInput(attrs={'readonly':'readonly',
+                                                           'size': '33'}),
+                                   required=False)
+    sub_class    = forms.CharField(label="Sub Class",
+                                   widget=TextInput(attrs={'readonly':'readonly',
+                                                           'size': '33'}),
+                                   required=False)
+    l4_class     = forms.CharField(label="Class Level 4",
+                                   widget=TextInput(attrs={'readonly':'readonly',
+                                                           'size': '33'}),
+                                   required=False)
     com_name   = forms.CharField(label="Common Name", 
                                  widget=TextInput(attrs={'size': '33'}))  
     sys_name   = forms.CharField(label="Systematic Name", 
@@ -77,26 +84,36 @@ class SelectLipidForm(forms.Form):
 
 class TopologyForm(forms.ModelForm):
 
+    software     = forms.ChoiceField(choices=SFTYPE_CHOICES,
+                                     initial="GR",  
+                                     widget=Select(attrs={'style': 'width: 340px'}))
     itp_file     = forms.FileField(label="Topology file")
     gro_file     = forms.FileField(label="Structure file")
     map_file     = forms.FileField(label="Mapping file")
+    version      = forms.CharField(widget=TextInput(attrs={'style': 'width: 340px'}),
+                                   help_text="Format: AuthorYear[Index]",)
+    description  = forms.CharField(widget=Textarea(attrs={'style': 'width: 340px'}))  
 
     class Meta:
         model = Topology
         fields = ['software','forcefield','lipid','itp_file','gro_file','map_file','version','description','reference']
         widgets = {
             'lipid': autocomplete.ModelSelect2(
-                url='lipid-autocomplete'
+                url='lipid-autocomplete',
+                attrs={'style': 'width: 340px'}
             ),
             'reference': autocomplete.ModelSelect2Multiple(
-                url='reference-autocomplete'
+                url='reference-autocomplete',
+                attrs={'style': 'width: 340px'}
             ),
+        }
+        labels = {
+            'reference': 'References'
         }
 
 
 class SelectTopologyForm(forms.Form):
 
-    #software = forms.ChoiceField(choices=SFTYPE_CHOICES,
     software = forms.ChoiceField(required=False)
     forcefield = forms.ChoiceField(required=False)
     lipid = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(), 

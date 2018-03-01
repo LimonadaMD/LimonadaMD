@@ -1,8 +1,7 @@
 Search query instead of icontains
 	https://docs.djangoproject.com/en/1.11/releases/1.10/#search-lookup-replacement
 
-Replace Add, Update and Delete buttons by icons (http://fontawesome.io/)
-	When the user is not the curator, redirect to a page allowing to send an email to the current curator 
+When the user is not the curator, redirect to a page allowing to send an email to the current curator 
 	with a description of the problem and the possibility to change the curator 
 
 Register a domain and implement an email service (Who is paying? Where will be the website?)
@@ -10,12 +9,45 @@ Register a domain and implement an email service (Who is paying? Where will be t
 	https://simpleisbetterthancomplex.com/tutorial/2016/09/19/how-to-create-password-reset-view.html
 	https://pythonprogramming.net/django-web-server-publish-tutorial/?completed=/finished-blog-django-python-tutorial/
 
-Add the possibility to add limonada lipids (LI..)
-
 Where to put the website? (DigitalOcean before builder?)
 
 Limit access to Update and delete views to curators in views.py with decorators
 
 Replace Version field of Topology by the refid or the request.user and the date ...
+
+Potential problem with the size of objects passed as context 
+
+Concatenate a file with all topologies per forcefield that can be downloaded from forcefield page
+
+Limit the lipid name to 4 or max length to 5 (gro)?
+
+When uploading a file, relpace the existing file if it exist (as it is done for lipid picture) 
+
+Validation of new topologies with gromacs and the forcefields files for gromacs
+
+Fill composition fields when a gro file is uploaded
+
+Save a composition file, that can be downloaded or uploaded afterwards. eg.,  
+     POPC   90.50000   UP
+     CHOL    9.50000   UP
+     DPPC  100.00000   LO
+
+Create a unique membrane composition field
+     uPOPC90.5uCHOL9.5lDPPC100
+
+Rethink about the best way to handle membranes (two add buttons, top choicefield if gro file, reoder lipid according to %, ...)
+
+Add biophisical parameters according to membrane composition
+
+
+
+
+
+
+For the LipidMaps records with U, ISO and RAC descriptors, several topologies entries can be used (with a description).
+The same approach can be used with lipids in different ioniastion states.
+
+
+
 
 

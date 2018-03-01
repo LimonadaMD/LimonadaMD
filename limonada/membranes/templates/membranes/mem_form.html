@@ -10,6 +10,26 @@
     <br>
     <form method="post" action="" enctype="multipart/form-data">
         {% csrf_token %}
+        {% for memfield in memform %}
+            <div class="row p-1">
+                <div class="col-1">
+                </div>
+                <div class="col-2">
+                    {{ memfield.label_tag }}<br>
+                </div>
+                <div class="col">
+                    {{ memfield }}
+                    {% if memfield.help_text %}
+                        <br>
+                        <small style="color: grey">{{ memfield.help_text }}</small>
+                    {% endif %}
+                    {% for error in memfield.errors %}
+                        <br>
+                        <p style="color: red">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
         {% for field in topform %}
             <div class="row p-1">
                 <div class="col-1">
@@ -21,7 +41,7 @@
                     {% if field.name == "mem_file" %}
                         <label class="custom-file">
                             <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#mem_filetext').text($(this).val().split('\\').slice(-1)[0])">
-                            <span id="{{ field.name }}text" class="custom-file-control">{{ field.value|basename }}</span>
+                            <span id="{{ field.name }}text" class="custom-file-control" style="width: 340px">{{ field.value|basename }}</span>
                         </label>
                     {% else %}
                         {{ field }}
@@ -36,28 +56,7 @@
                     {% endfor %}
                 </div>
             </div>
-            {% if field.name == 'version' %}
-                {% for memfield in memform %}
-                    <div class="row p-1">
-                        <div class="col-1">
-                        </div>
-                        <div class="col-2">
-                            {{ memfield.label_tag }}<br>
-                        </div>
-                        <div class="col">
-                            {{ memfield }}
-                            {% if memfield.help_text %}
-                                <br>
-                                <small style="color: grey">{{ memfield.help_text }}</small>
-                            {% endif %}
-                            {% for error in memfield.errors %}
-                                <br>
-                                <p style="color: red">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
-            {% elif field.name == 'mem_file' %}
+            {% if field.name == 'mem_file' %}
                 <div class="row p-1">
                     <div class="col-1">
                     </div>
@@ -65,15 +64,15 @@
                         Composition:
                     </div>
                     <div id="mem-form" class="col-9">
-                        <div class="row">
-                            <div class="col-5">Lipid</div>
-                            <div class="col-4">Number</div>
-                            <div class="col-2">Side</div>
+                        <div class="row ml-1 mr-1">
+                            <div class="col-5 pl-0">Lipid</div>
+                            <div class="col-2 pl-1">Pourcentage</div>
+                            <div class="col-2 pl-2">Side</div>
                         </div>
                         {% for lip in formset.forms %}
                             <div id="{{ lip.prefix }}-row" class="row form-row">
                                 <div class="col-5 pt-1">{{ lip.lipid }}</div> 
-                                <div class="col-4 pt-1">{{ lip.number }}</div> 
+                                <div class="col-2 pt-1">{{ lip.number }}</div> 
                                 <div class="col-2 pt-1">{{ lip.side }}</div> 
                                 <div class="col-1 pt-1">
                                     <button id="{{ lip.prefix }}-remove" type="button" class="btn btn-danger btn-sm remove-form-row" name="{{ lip.prefix }}-remove"><i class="fas fa-minus" aria-hidden="true"></i></button>
@@ -104,23 +103,23 @@
 
         $(document).on('click', '#addForm', function() {
             var total = $('#id_form-TOTAL_FORMS').val();
-            $('<div/>', {"class": "row form-row",}).appendTo('#mem-form');
-            $('<div/>', {"class":"col-5 pt-1"}).appendTo('.form-row:last');
-            $('<div/>', {"class":"col-4 pt-1"}).appendTo('.form-row:last');
-            $('<div/>', {"class":"col-2 pt-1"}).appendTo('.form-row:last');
-            $('<div/>', {"class":"col-1 pt-1"}).appendTo('.form-row:last');
+            $('<div/>', {"class":"row form-row",}).appendTo('#mem-form');
+            $('<div/>', {"class":"lip  col-5 pt-1"}).appendTo('.form-row:last');
+            $('<div/>', {"class":"num  col-2 pt-1"}).appendTo('.form-row:last');
+            $('<div/>', {"class":"side col-2 pt-1"}).appendTo('.form-row:last');
+            $('<div/>', {"class":"min  col-1 pt-1"}).appendTo('.form-row:last');
             var $lipid = $("<select>", {id:'id_form-'+total+'-lipid',name:'form-'+total+'-lipid',"data-autocomplete-light-function":"select2","data-autocomplete-light-url":"/lipid-autocomplete/"});
-            $lipid.appendTo($('.form-row:last').children(".col-5"));
+            $lipid.appendTo($('.form-row:last').children(".lip"));
             $('[data-autocomplete-light-function]:not(.select2-hidden-accessible)').trigger('autocompleteLightInitialize');
-            var $num = $("<input>", {id:'id_form-'+total+'-number',name:'form-'+total+'-number',step:'0.0001',type:'number'});
-            $num.appendTo($('.form-row:last').children(".col-4"));
+            var $num = $("<input>", {id:'id_form-'+total+'-number',name:'form-'+total+'-number',step:'0.0001',type:'number',style:'width: 100px'});
+            $num.appendTo($('.form-row:last').children(".num"));
             var $side = $("<select>", {id:'id_form-'+total+'-side',name:'form-'+total+'-side'});
             $side.append($('<option>', {value: 'UP',text: 'Upper leaflet'}));
             $side.append($('<option>', {value: 'LO',text: 'Lower leaflet'}));
-            $side.appendTo($('.form-row:last').children(".col-2"));
+            $side.appendTo($('.form-row:last').children(".side"));
             var $btnrm = $('<button>', {id:'form-'+total+'-remove',name:'form-'+total+'-remove',"class":'btn btn-danger btn-sm remove-form-row',type:'button'});
             $btnrm.html('<i class="fas fa-minus" aria-hidden="true"></i>')
-            $btnrm.appendTo($('.form-row:last').children(".col-1"));
+            $btnrm.appendTo($('.form-row:last').children(".min"));
             total++;
             $('#id_form-TOTAL_FORMS').val(total);
         });

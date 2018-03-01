@@ -9,17 +9,37 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+import requests, re
+import simplejson as json
 from forcefields.choices import *
 
 
-def validate_lmid(value):
-    if value[0:2] != "LM" and value[0:2] != "LI":
+def validate_name(value):
+    if len(value) != 4 or not re.match(r"[0-9A-Z]{4}", value): 
         raise ValidationError(
-            _('Invalid LMID - it must start with "LM" or "LI"'),
+            _('Invalid name'),
             code='invalid',
             params={'value': value},
         )
 
+
+def validate_lmid(value):
+    try:
+        lm_response = requests.get("http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json" % value)
+        lm_data_raw = lm_response.json()
+        if lm_data_raw == [] or int(value[-4:]) == 0:
+            raise ValidationError(
+                _('Invalid LMID'),
+                code='invalid',
+                params={'value': value},
+            )
+    except:
+        raise ValidationError(
+            _('Invalid LMID'),
+            code='invalid',
+            params={'value': value},
+        )
+    
 
 def validate_file_extension(value):
   ext = os.path.splitext(value.name)[1]
