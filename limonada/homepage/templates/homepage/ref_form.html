@@ -3,12 +3,49 @@
 {% block title %}References{% endblock %}
 
 {% block content %}
-<h1>Articles</h1>
-
-<form action="" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit">
-</form>
-
+    <br>
+    <h1>Articles</h1>
+    <br>
+    <div class="row p-1">
+        <div class="col-7">
+            {% if search %}
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="row p-1">
+                        {% for field in form_search %}
+                            {% include 'searchform.html' %}
+                        {% endfor %}
+                        <div class="col-1">
+                            <button type="submit" class="btn btn-primary btn-sm" align="left" name="search">Search</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="row p-1">
+                    <br>
+                    <div class="col-1">
+                    </div>
+                    <div class="col-10 border border-top-0 border-right-0 border-left-0 border-success">
+                    </div>
+                </div>
+                <br>
+            {% endif %}
+            <form action="" method="post">
+                {% csrf_token %}
+                {% for field in form_add %}
+                    <div class="row p-1">
+                        {% include 'form.html' %}
+                    </div>
+                {% endfor %}
+                <div class="row p-1">
+                    <div class="col-1">
+                    </div>
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-primary" name="add">{% if search %}Add{% else %}Update{% endif %}</button>
+                    </div>
+                </div>
+            </form>
+            <br>
+        </div>
+    </div>
+    <br>
 {% endblock %}

@@ -1,82 +1,159 @@
 {% extends "homepage/layout.html" %}
 
-{% block title %}Basic Formset (Table layout){% endblock %}
+{% load homepage_extras %}
 
-{% block extrahead %}
-<script type="text/javascript">
-    $(function() {
-        $('#id_contact_info_table tbody tr').formset({
-            extraClasses: ['row1', 'row2', 'row3']
-        })
-    })
-</script>
-<!-- Here's an example of how you can style add/delete buttons with CSS -->
-<!--<style type="text/css">
-    .add-row {
-        padding-left:18px;
-        background:url({{ MEDIA_URL }}images/add.png) no-repeat left center;
-    }
-    .delete-row {
-        float:right;
-        display:block;
-        margin:5px 0 0 5px;
-        text-indent:-6000px;
-        background:url({{ MEDIA_URL }}images/delete.png) no-repeat left center;
-        width:16px;
-        height:16px;
-    }
-    tr.row1 td { background-color: #f9f9f9; }
-    tr.row2 td { background-color: #f3f3f3; }
-    tr.row3 td { background-color: #ededed; }
-</style>-->
-{% endblock %}
+{% block title %}Membranes{% endblock %}
 
 {% block content %}
-<div>
-    <div class="entry">
-        <form method="post" action="" enctype="multipart/form-data">
-            {% csrf_token %}
-            <label>Name</label>
-            {{ form.name }}
-            <br>
-            <label>File</label>
-            {{ form.mem_file }}
-            <br>
-            <table id="id_contact_info_table" border="0" cellpadding="0" cellspacing="5">
-                <thead>
-                    <tr>
-                        <th scope="col">Lipid</th>
-                        <th scope="col">Number</th>
-                        <th scope="col">Side</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lip in formset.forms %}
-                    <tr id="{{ lip.prefix }}-row">
-                        <td style="text-align:center;">{{ lip.topology }}</td>
-                        <td>{{ lip.number }}</td>
-                        <td>{{ lip.side }}</td>
-                    </tr>
+    <br>
+    <h1>Membranes</h1>
+    <br>
+    <form method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for memfield in memform %}
+            <div class="row p-1">
+                <div class="col-1">
+                </div>
+                <div class="col-2">
+                    {{ memfield.label_tag }}<br>
+                </div>
+                <div class="col">
+                    {{ memfield }}
+                    {% if memfield.help_text %}
+                        <br>
+                        <small style="color: grey">{{ memfield.help_text }}</small>
+                    {% endif %}
+                    {% for error in memfield.errors %}
+                        <br>
+                        <p style="color: red">{{ error }}</p>
                     {% endfor %}
-                </tbody>
-            </table>
-            <br>
-            <label>Equilibration</label>
-            {{ form.equilibration }}
-            <br>
-            <label>Description</label>
-            {{ form.description }}
-            <br>
-            <label>Reference</label>
-            {{ form.reference }}
-            <br>
-            <label>Reference</label>
-            {{ form.curator }}
-            <p>
-                {{ formset.management_form }}
-                <input type="submit" value="Submit" />
-            </p>
-        </form>
-    </div>
-</div>
+                </div>
+            </div>
+        {% endfor %}
+        {% for field in topform %}
+            <div class="row p-1">
+                <div class="col-1">
+                </div>
+                <div class="col-2">
+                    {{ field.label_tag }}<br>
+                </div>
+                <div class="col">
+                    {% if field.name == "mem_file" %}
+                        <label class="custom-file">
+                            <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" onchange="$('#mem_filetext').text($(this).val().split('\\').slice(-1)[0])">
+                            <span id="{{ field.name }}text" class="custom-file-control" style="width: 340px">{{ field.value|basename }}</span>
+                        </label>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+                    {% if field.help_text %}
+                        <br>
+                        <small style="color: grey">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <br>
+                        <p style="color: red">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if field.name == 'mem_file' %}
+                <div class="row p-1">
+                    <div class="col-1">
+                    </div>
+                    <div class="col-2">
+                        Composition:
+                    </div>
+                    <div id="mem-form" class="col-9">
+                        <div class="row ml-1 mr-1">
+                            <div class="col-5 pl-0">Lipid</div>
+                            <div class="col-2 pl-1">Pourcentage</div>
+                            <div class="col-2 pl-2">Side</div>
+                        </div>
+                        {% for lip in formset.forms %}
+                            <div id="{{ lip.prefix }}-row" class="row form-row">
+                                <div class="col-5 pt-1">{{ lip.lipid }}</div> 
+                                <div class="col-2 pt-1">{{ lip.number }}</div> 
+                                <div class="col-2 pt-1">{{ lip.side }}</div> 
+                                <div class="col-1 pt-1">
+                                    <button id="{{ lip.prefix }}-remove" type="button" class="btn btn-danger btn-sm remove-form-row" name="{{ lip.prefix }}-remove"><i class="fas fa-minus" aria-hidden="true"></i></button>
+                                </div> 
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-3"></div>  
+                    <div class="col-9 pt-1"><button id="addForm" type="button" class="btn btn-success btn-sm"><i class="fas fa-plus" aria-hidden="true"></i></button></div>  
+                </div>
+            {% endif %}
+        {% endfor %}
+        {{ formset.management_form }}
+        <div class="row p-1">
+            <div class="col-1">
+            </div>
+            <div class="col-2">
+                <button type="submit" class="btn btn-primary">{% if memcreate %} Add {% else %} Update {% endif %}</button>
+            </div>
+        </div>
+    </form>
+    <br>
+
 {% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+
+        $(document).on('click', '#addForm', function() {
+            var total = $('#id_form-TOTAL_FORMS').val();
+            $('<div/>', {"class":"row form-row",}).appendTo('#mem-form');
+            $('<div/>', {"class":"lip  col-5 pt-1"}).appendTo('.form-row:last');
+            $('<div/>', {"class":"num  col-2 pt-1"}).appendTo('.form-row:last');
+            $('<div/>', {"class":"side col-2 pt-1"}).appendTo('.form-row:last');
+            $('<div/>', {"class":"min  col-1 pt-1"}).appendTo('.form-row:last');
+            var $lipid = $("<select>", {id:'id_form-'+total+'-lipid',name:'form-'+total+'-lipid',"data-autocomplete-light-function":"select2","data-autocomplete-light-url":"/lipid-autocomplete/"});
+            $lipid.appendTo($('.form-row:last').children(".lip"));
+            $('[data-autocomplete-light-function]:not(.select2-hidden-accessible)').trigger('autocompleteLightInitialize');
+            var $num = $("<input>", {id:'id_form-'+total+'-number',name:'form-'+total+'-number',step:'0.0001',type:'number',style:'width: 100px'});
+            $num.appendTo($('.form-row:last').children(".num"));
+            var $side = $("<select>", {id:'id_form-'+total+'-side',name:'form-'+total+'-side'});
+            $side.append($('<option>', {value: 'UP',text: 'Upper leaflet'}));
+            $side.append($('<option>', {value: 'LO',text: 'Lower leaflet'}));
+            $side.appendTo($('.form-row:last').children(".side"));
+            var $btnrm = $('<button>', {id:'form-'+total+'-remove',name:'form-'+total+'-remove',"class":'btn btn-danger btn-sm remove-form-row',type:'button'});
+            $btnrm.html('<i class="fas fa-minus" aria-hidden="true"></i>')
+            $btnrm.appendTo($('.form-row:last').children(".min"));
+            total++;
+            $('#id_form-TOTAL_FORMS').val(total);
+        });
+
+        $(document).on('click', '.remove-form-row', function(e){
+            delForm($(this));
+        });
+
+        function delForm(btn) {
+            var total = parseInt($('#id_form-TOTAL_FORMS').val());
+            if (total > 1){
+                btn.closest('.form-row').remove();
+                var forms = $('.form-row');
+                $('#id_form-TOTAL_FORMS').val(forms.length);
+                for (var i=0, formCount=forms.length; i<formCount; i++) {
+                    $(forms.get(i)).find(':input').each(function() {updateElementIndex(this, i)});
+                }
+            }
+        };
+
+        function updateElementIndex(el, ndx) {
+            var id_regex = new RegExp('(form-\\d+)');
+            var replacement = 'form-' + ndx;
+            if ($(el).attr("for")) $(el).attr("for", $(el).attr("for").replace(id_regex, replacement));
+            if (el.id) el.id = el.id.replace(id_regex, replacement);
+            if (el.name) el.name = el.name.replace(id_regex, replacement);
+        };
+
+    </script>
+    {{ topform.media }}
+{% endblock %}
+
+
+
+
+
+

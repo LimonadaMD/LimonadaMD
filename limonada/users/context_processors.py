@@ -1,5 +1,7 @@
+
+
 def include_login_form(request):
-    from django.contrib.auth.forms import AuthenticationForm
-    form = AuthenticationForm()
+    from .forms import LoginForm
+    form = LoginForm()
     return {'login_form': form}
 

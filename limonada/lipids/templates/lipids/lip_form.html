@@ -1,13 +1,234 @@
 {% extends "homepage/layout.html" %}
 
+{% load staticfiles %}
+{% load lipid_extras %}
+
 {% block title %}Lipids{% endblock %}
 
 {% block content %}
-<h1>Lipids</h1>
-{{ lmid }}
-<form action="" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit">
-</form>
+
+    <br>
+    <h1>Lipids</h1><br> 
+
+    {% if search %}
+        <div class="row p-1 ml-5">
+            <div class="col-6">
+                <p>Search first for the lipid to add in the <a href="http://lipidmaps.org/data/classification/LM_classification_exp.php" class="text-success">LipidMaps</a> 
+                   database. If it is not present, a Limonada entry can be used.</p>
+            </div>
+        </div>
+        <div class="row p-1 ml-5 mb-3">
+            <div class="col-6 border border-top-0 border-right-0 border-left-0 border-success">
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="row p-1">
+                        <div class="col-3">
+                            {{ form_search.lmidsearch.label_tag }}
+                        </div>
+                        <div class="col-6">
+                            {{ form_search.lmidsearch }}
+                            {% if form_search.lmidsearch.help_text %}
+                                <br><small style="color: grey">{{ form_search.lmidsearch.help_text }}</small>
+                            {% endif %}
+                            {% for error in form_search.lmidsearch.errors %}
+                                <br><p style="color: red">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        <div class="col-2">
+                            <button type="submit" class="btn btn-primary btn-sm" name="search">Search</button>
+                        </div>
+                    </div>
+                </form>
+                <br>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row p-1 ml-5">
+        <div class="col-6">
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% for field in form_add %}
+                    <div class="row p-1">
+                        <div class="col-3">
+                            {% if field.name == "lmid" %}
+                                <label for="id_lmid"><span class="text-success">LM</span>/<span class="text-warning">LI</span> ID:</label>  
+                            {% elif field.name == "com_name" %}
+                                <label for="id_com_name">Common Name:
+                                    <span data-toggle="popover" data-trigger="hover" title="Common names" data-html="true"  
+                                          data-content="The LipidMaps nomenclature of lipids falls into two main categories: systematic names and common or trivial names. 
+                                                        The latter includes abbreviations that are a convenient way to define acyl/alkyl chains. These abbreviations are 
+                                                        explained in <a class='text-success' href='http://dx.doi.org/10.1093/nar/gkm324'>Fahy <i>et al</i>., 2007</a> 
+                                                        and <a class='text-success' href='http://dx.doi.org/10.1194/jlr.R800095-JLR200'>Fahy <i>et al</i>., 2009</a>">
+                                          <i class="fas fa-info-circle text-success"></i>
+                                    </span>
+                                </label> 
+                            {% else %}
+                                {{ field.label_tag }}
+                            {% endif %}
+                            {% if field.name == "name" %}
+                                <span data-toggle="popover" data-trigger="hover" title="Lipid naming" 
+                                      data-content='Most lipids are identified by a 4 character code. Initially, these codes corresponded to acronyms or nicknames. 
+                                                    With probably more than 100k natural lipids, a 4 digit code is the shortest length able to identify each lipid 
+                                                    and respect the maximal name length of gro (5) and itp (14) files. [0-9A-Z]{4} correspond to 1679616 possibilities.'>
+                                      <i class="fas fa-info-circle text-success"></i>
+                                </span>
+                            {% elif field.name == "lmid" %}
+                                <span data-toggle="popover" data-trigger="hover" title="LipidMaps or Limonada ID"
+                                      data-content="All the lipids parametrized for MD simulations are not present in LipidMaps, either because they have not been 
+                                                    observed in vivo or are not yet referenced by the consortium. However, these lipids can be added to limonada by 
+                                                    using the LipidMaps classification.">
+                                      <i class="fas fa-info-circle text-success"></i>
+                                </span>
+                            {% elif field.name == "img" %}
+                                <span data-toggle="popover" data-trigger="hover" title="Structure drawing"
+                                      data-content='The structure can be drawn with openbabel from a 2D mol file with the following command. 
+                                                    "obabel FILE.mol -O FILE.png -xC -xh 1200 -xw 1000 -x0 molfile -xd --title"'>
+                                      <i class="fas fa-info-circle text-success"></i>
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-8">
+                            {% if field.name == "img" %}
+                                <label class="custom-file">
+                                    <input type="file" accept=".jpg,.png" id="id_img" name="img" class="custom-file-input" onchange="$('#imgtext').text($(this).val().split('\\').slice(-1)[0])">
+                                    <span id="imgtext" class="custom-file-control" style="width: 340px">
+                                        {% if imgpath %}{{ imgpath|cut:"tmp/" }}{% else %}{% if form_add.img.value %}{{ form_add.img.value|cut:"lipids/" }}{% endif %}{% endif %}
+                                    </span>
+                                </label>
+                            {% elif field.name == 'core' and search %}
+                                <select id="id_core" name="core" style="width: 340px" 
+                                        onchange="rmselect('id_l4_class');rmselect('id_sub_class');rmselect('id_main_class');populate(this.id,'id_main_class');">
+                                <option value="">---------</option>
+                                {% lm_select "category" as lmobjects %}
+                                {% for value,name in lmobjects %}
+                                    <option value="{{ value }}" {% if value == form_add.lmid.value|substring:"2,4" %}selected="selected"{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                                </select>
+                            {% elif field.name == 'main_class' and search %}
+                                <select id="id_main_class" name="main_class" style="width: 340px" onchange="rmselect('id_l4_class');rmselect('id_sub_class');populate(this.id,'id_sub_class')">
+                                <option value="">---------</option>
+                                {% if form_add.lmid.value %}
+                                    {% lm_select form_add.lmid.value|substring:"2,4" as lmobjects %}
+                                    {% for value,name in lmobjects %}
+                                        <option value="{{ value }}" {% if value == form_add.lmid.value|substring:"2,6" %}selected="selected"{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                                </select>
+                            {% elif field.name == 'sub_class' and search %}
+                                <select id="id_sub_class" name="sub_class" style="width: 340px" onchange="rmselect('id_l4_class');populate(this.id,'id_l4_class')">
+                                <option value="">---------</option>
+                                {% if form_add.lmid.value %}
+                                    {% lm_select form_add.lmid.value|substring:"2,6" as lmobjects %}
+                                    {% for value,name in lmobjects %}
+                                        <option value="{{ value }}" {% if value == form_add.lmid.value|substring:"2,8" %}selected="selected"{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                                </select>
+                            {% elif field.name == 'l4_class' and search %}
+                                <select id="id_l4_class" name="l4_class" style="width: 340px" onchange="lmidupdate();">
+                                <option value="">---------</option>
+                                {% if form_add.lmid.value %}
+                                    {% lm_select form_add.lmid.value|substring:"2,8" as lmobjects %}
+                                    {% for value,name in lmobjects %}
+                                        <option value="{{ value }}" {% if value == form_add.lmid.value|substring:"2,10" %}selected="selected"{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                                </select>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                                <br><small style="color: grey">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <br><p style="color: red">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="row p-1">
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-primary" name="add">{% if search %}Add{% else %}Update{% endif %}</button>
+                    </div>
+                </div>
+            </form>
+            <br>
+        </div>
+        <div class="col-5">
+            <img src="{% if imgpath %}{{MEDIA_URL}}{{ imgpath }}{% else %}{{MEDIA_URL}}{{ form_add.img.value }}{% endif %}" id="lipidimg" name="lipidimg" 
+                 alt="{% if imgpath %}{{MEDIA_URL}}{{ imgpath }}{% else %}{% if form_add.img.value %}{{MEDIA_URL}}{{ form_add.img.value }}{% endif %}{% endif %}" 
+                 style="max-height:520px;max-width:500px;"> 
+        </div>
+    </div>
 {% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="popover"]').popover(); 
+        });
+        {% lm_select "all" as lmall %};
+        var lmclass = {{ lmall|safe }};
+        {% if liindex %}var liindex = {{ liindex|safe }}{% endif %};
+    </script>
+    <script type="text/javascript">
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#lipidimg').attr('src', e.target.result);
+                }
+            reader.readAsDataURL(input.files[0]);
+            }
+        }
+        $("#id_img").change(function() {
+          readURL(this);
+        });
+        function populate(s0,s1){
+            var val = document.getElementById(s0).value;
+            var label = s1+"_label";
+            var s1  = document.getElementById(s1);
+            if (lmclass[val]) {  
+                for(var option in lmclass[val]){
+                    var newOption = document.createElement("option");
+                    newOption.value = lmclass[val][option][0];
+                    newOption.innerHTML = lmclass[val][option][1];
+                    s1.options.add(newOption);
+                }
+            }
+            lmidupdate();
+        }
+        function rmselect(s1){
+            var label = s1+"_label";
+            var s1  = document.getElementById(s1);
+            while (s1.options.length > 0) {                
+                s1.remove(0);
+            } 
+            var newOption = document.createElement("option");
+            newOption.value = "";
+            newOption.innerHTML = "---------";
+            s1.options.add(newOption);
+        }
+        function lmidupdate() {
+            var cat = document.getElementById("id_core").value;
+            var main = document.getElementById("id_main_class").value;
+            var sub = document.getElementById("id_sub_class").value;
+            var l4  = document.getElementById("id_l4_class").value;
+            var text = "";
+            if ( cat ) { text = 'LI'+cat+'...' ; }
+            if ( main ) { 
+                if (liindex[main]) { text = liindex[main] ; 
+                } else { text = 'LI'+main+'...' ; }
+            }
+            if ( sub ) { 
+                if (liindex[sub]) { text = liindex[sub] ; 
+                } else { text = 'LI'+sub+'...' ; }
+            }
+            if ( l4 ) { text = liindex[l4] ; }
+            document.getElementById("id_lmid").value = text;
+            document.getElementById("id_lmid").className = "text-warning";
+        }
+    </script>
+{% endblock %}
+

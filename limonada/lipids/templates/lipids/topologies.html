@@ -1,52 +1,203 @@
 {% extends "homepage/layout.html" %}
 
+{% load homepage_extras %}
+{% load forcefield_extras %}
+
 {% block title %}Topologies{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-11">
-            <h1>Topologies</h1>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-11">
+                <h1>Topologies</h1>
+            </div>
+            <div class="col-1 align-self-center" align="right">
+                {% if user.is_authenticated %}
+                    <a href={% url 'topcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
+                {% endif %}
+            </div>
         </div>
-        <div class="col">
-            <a href={% url 'topcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
+        <br>
+    </div>
+    <div class="container">
+        <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
+            <div class="col-2 align-self-start">
+                <div class="row">
+                    {% include 'per_page.html' %}
+                </div>
+            </div>
+            <p id="demo"></p>
+            <div class="col-9" id="collapseselect" {% if not params.software %}style="display: none"{% endif %}>
+                <form id="select_form" action="" method="get">
+                    <div class="row">
+                        {% for field in form_select %}
+                            <div class="{% if field.name == 'lipid' %}col-12{% else %}col-0{% endif %} p-1">
+                                {{ field.label_tag }}
+                                {% ff_select "all" as ffall %}
+                                {% if field.name == 'software' %}
+                                    <select id="id_software" name="software" onchange="populate({{ ffall }});">
+                                    {% for value,name in sfchoices %} 
+                                        {% if params.software %} 
+                                            <option value="{{ value }}" {% if value == params.software %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% else %}
+                                            <option value="{{ value }}" {% if value == "GR" %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </select>
+                                {% elif field.name == 'forcefield' %}
+                                    <select id="id_forcefield" name="forcefield">
+                                    {% if params.software %}{% ff_select params.software as ffobjects %}{% else %}{% ff_select "GR" as ffobjects %}{% endif %} 
+                                    {% if ffobjects %} 
+                                        {% for value,name in ffobjects %}
+                                            <option value="{{ value }}" {% if value|slugify == params.forcefield %}selected="selected"{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="">---------</option>
+                                    {% endif %}
+                                    </select>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <br>
+                                    <small style="color: grey">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <br>
+                                    <p style="color: red">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <div class="col-1 p-1">
+                            <a onclick="url_replace('software','forcefield','lipid')" class="btn btn-primary btn-sm text-white">Select</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-0 align-self-start">
+                <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
+            </div>
+        </div>
+        <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
+            <div class="col-12">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th width="10%">
+                                {% if sort == "software" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="software" %}">Software<a/></th>
+                            <th width="15%">
+                                {% if sort == "forcefield" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="forcefield" %}">Forcefield<a/></th>
+                            <th width="28%">
+                                {% if sort == "lipid" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="lipid" %}">Lipid<a/></th>
+                            <th width="18%">
+                                {% if sort == "version" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="version" %}">Version<a/></th>
+                            <th width="25%">Files</th>
+                            {% if user.is_authenticated %}
+                                <th width="2%"></th>
+                                <th width="2%"></th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for topology in page_objects %}
+                            <tr>
+                                <td>{{ topology.get_software_display }}</td>
+                                <td><a class="text-success" href="{% url 'fflist' %}?ffid={{ topology.forcefield.pk }}">{{ topology.forcefield }}</a></td>
+                                <td><a class="text-success" href={% url 'lipdetail' topology.lipid.slug %}>{{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a></td>
+                                <td id="{{ topology.pk }}">
+                                    <a class="text-info" data-toggle="collapse" href="#collapse{{ topology.pk }}" aria-expanded="true" aria-controls="collapse{{ topology.pk }}">{{ topology.version }}</a>
+                                </td>
+                                <td>
+                                    <a href="{{ topology.gro_file.url }}" class="text-success" target="blank">Structure</a>
+                                    <a href="{{ topology.itp_file.url }}" class="text-success" target="blank">Topology</a>
+                                    <a href="{{ topology.map_file.url }}" class="text-success" target="blank">Mapping</a>
+                                </td>
+                                {% if user.is_authenticated %}
+                                    {% if user == topology.curator %}
+                                        <td><a href={% url 'topupdate' topology.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'topdelete' topology.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a></td>
+                                    {% else %}
+                                        <td></td>
+                                        <td><a href={% url 'mail' %}?topid={{ topology.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
+                                    {% endif %}
+                                {% endif %}
+                            </tr>
+                            <tr id="collapse{{ topology.pk }}" class="collapse" data-parent="#{{ topology.pk }}">
+                                <td></td>
+                                <td colspan="4">
+                                    <div class="row">
+                                        <div class="col-2"><strong>Description:</strong></div>
+                                        <div class="col-10">{{ topology.description }}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2"><strong>References:</strong></div>
+                                        <div class="col-10">
+                                            {% for reference in topology.reference.all %}
+                                                <a class="text-success" href="http://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>  
+                                                <i>{{ reference.journal }}</i>, {{ reference.volume }}.
+                                                {{ reference.title }}<br>  
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2"><strong>Membranes:</strong></div>
+                                        <div class="col-10">
+                                            {% query mems lipids=topology.lipid as memobjects %}
+                                            {% query memtops membrane=memobjects forcefield=topology.forcefield as memobjects %}
+                                            {% for mem in memobjects %}
+                                                <a class="text-success" href="{% url 'memlist' %}?memid={{ mem.pk }}">{{ mem.version }}</a><br> 
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2"><strong>Curator:</strong></div>
+                                        <div class="col-10"><a class="text-success" href={% url 'userdetail' topology.curator.pk %}>{{ topology.curator.get_full_name }}</a> on {{ topology.date }}</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row rounded-bottom border border-top-0 border-success p-3" style="background-color:#c2e5ca" >
+            {% include 'paginator.html' %}
         </div>
     </div>
     <br>
-    <div class="container">
-        <ol>
-            {% for topology in object_list %}
-                <div class="row">
-                    <div class="col">
-                        <li>{{ topology.id }}</li>
-                    </div>
-                    <div class="col-10">
-                        <p> {{ topology.lipid.name }} </p>
-                        <p> {{ topology.forcefield }} </p>
-                        <p><strong>Description:</strong> {{ topology.description }}</p>
-                        <div class="row">
-                            <div class="col-1">
-                                <p><strong>Reference:</strong>
-                            </div>
-                            <div class="col-9">
-                                <ul>
-                                {% for reference in topology.reference.all %}
-                                    <p>{{ reference.authors|truncatewords:"2" }} {{ reference.year }}
-                                    Doi:<a href="http://dx.doi.org/{{ reference.doi }}" target="blank">{{ reference.doi }}</a></p>
-                                {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                        <br>
-                    </div>
-                    <div class="col">
-                        <p><a href={% url 'topdetail' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>
-                        <p><a href={% url 'topupdate' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
-                        <p><a href={% url 'topdelete' topology.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
-                    </div>
-                </div>
-            {% endfor %}
-        </ol>
-    </div>
 {% endblock %}
 
+{% block script %}
+    <script type="text/javascript">
+        function populate(ffall){
+            var val = document.getElementById("id_software").value;
+            var s1  = document.getElementById("id_forcefield");
+            while (s1.options.length > 0) {                
+                s1.remove(0);
+            } 
+            var i = -1;
+            if (ffall[val].length > 0) { 
+                for(var option in ffall[val]){
+                    i++;
+                    var newOption = document.createElement("option");
+                    newOption.value = ffall[val][i][0]; 
+                    newOption.innerHTML = ffall[val][i][1];
+                    s1.options.add(newOption);
+                }
+            } else {
+                var newOption = document.createElement("option");
+                newOption.value = "";
+                newOption.innerHTML = "---------";
+                s1.options.add(newOption);
+            }
+        }
+    </script>
+    {{ form_select.media }}
+{% endblock %}
 

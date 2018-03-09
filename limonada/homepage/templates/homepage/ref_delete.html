@@ -3,14 +3,16 @@
 {% block title %}References{% endblock %}
 
 {% block content %}
+    <br>
     <h1>Articles</h1>
     <br>
     <form action="" method="post">
         {% csrf_token %}
         <p>Are you sure you want to delete "{{ object }}"?</p>
-        <input type="submit" class="btn btn-primary btn-sm active" value="Yes">
+        <input type="submit" class="btn btn-primary btn-sm" value="Yes">
         <a href={% url 'reflist' %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">No</a> 
     </form>
+    <br>
 {% endblock %}
 
 

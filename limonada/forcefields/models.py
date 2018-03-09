@@ -1,9 +1,11 @@
 import os
+from django.contrib.auth.models import User
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
+from .choices import *
 
 
 def validate_file_extension(value):
@@ -23,20 +25,6 @@ def mdp_path(instance, filename):
 
 class Forcefield(models.Model):									
 
-    ALLATOM = "AA"
-    UNITEDATOM = "UA"
-    COARSEGRAINED = "CG"
-    FFTYPE_CHOICES = (
-        (ALLATOM, 'All atom'),
-        (UNITEDATOM, 'United atom'),
-        (COARSEGRAINED, 'Coarse grained')
-    )
-
-    GROMACS = "GR"
-    SFTYPE_CHOICES = (
-        (GROMACS, 'Gromacs'),
-    )
-
     name = models.CharField(max_length=30,
                             unique=True)
     forcefield_type = models.CharField(max_length=2,
@@ -53,6 +41,8 @@ class Forcefield(models.Model):
                                 default=GROMACS) 
     description = models.TextField(blank=True)					
     reference = models.ManyToManyField('homepage.Reference') 
+    curator = models.ForeignKey(User,
+                                on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
 
     def __unicode__(self):
@@ -65,6 +55,7 @@ class Forcefield(models.Model):
 def _delete_file(path):
     if os.path.isfile(path):
         os.remove(path)
+
 
 @receiver(pre_delete, sender=Forcefield)
 def delete_file_pre_delete_ff(sender, instance, *args, **kwargs):

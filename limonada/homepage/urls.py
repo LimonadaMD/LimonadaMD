@@ -1,11 +1,14 @@
 from django.conf.urls import url 
-from .views import homepage, RefList, RefCreate, RefDelete, RefDetail, RefUpdate
+from django.contrib.auth.decorators import login_required
+from .views import homepage, RefList, RefCreate, RefDelete, RefUpdate, ReferenceAutocomplete, mail
+
 
 urlpatterns = [
     url(r'^$', homepage, name='homepage'),
-    url(r'^references/$', RefList.as_view(), name='reflist'),
-    url(r'^references/create/$', RefCreate.as_view(), name='refcreate'),
-    url(r'^references/(?P<pk>\d+)/$', RefDetail.as_view(), name='refdetail'),
-    url(r'^references/(?P<pk>\d+)/update/$', RefUpdate.as_view(), name='refupdate'),
-    url(r'^references/(?P<pk>\d+)/delete/$', RefDelete.as_view(), name='refdelete'),
+    url(r'^references/$', RefList, name='reflist'),
+    url(r'^references/create/$', RefCreate, name='refcreate'),
+    url(r'^references/(?P<pk>\d+)/update/$', RefUpdate, name='refupdate'),
+    url(r'^references/(?P<pk>\d+)/delete/$', login_required(RefDelete.as_view()), name='refdelete'),
+    url(r'^reference-autocomplete/$', ReferenceAutocomplete.as_view(), name='reference-autocomplete'),
+    url(r'^mail/$', mail, name='mail'),
 ]

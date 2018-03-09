@@ -1,62 +1,135 @@
 {% extends "homepage/layout.html" %}
 
+{% load homepage_extras %}
+
 {% block title %}Forcefields{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-11">
-            <h1>Forcefields</h1>
-        </div>
-        {% if user.is_authenticated %}
-            <div class="col">
-                <a href={% url 'ffcreate' %} class="btn btn-primary active" role="button" aria-pressed="true">Add</a>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-11">
+                <h1>Forcefields</h1>
             </div>
-        {% endif %}
+            {% if user.is_authenticated %}
+                <div class="col" align="right">
+                    <a href={% url 'ffcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
+                </div>
+            {% endif %}
+        </div>
     </div>
     <br>
     <div class="container">
-        <ol>
-            {% for forcefield in object_list %}
+        <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
+            <div class="col-2 align-self-start">
                 <div class="row">
-                    <div class="col">
-                        <li>{{ forcefield.forcefield_type }}</li>
-                    </div>
-                    <div class="col-10">
-                        <p>
-                            {{ forcefield.name }} (
-                            <a href="{{ forcefield.ff_file.url }}" target="blank">FF files</a>,
-                            <a href="{{ forcefield.mdp_file.url }}" target="blank">mdp files</a>)
-                        </p>
-                        <p><strong>Description:</strong> {{ forcefield.description }}</p>
-                        <div class="row">
-                            <div class="col-1">
-                                <p><strong>Reference:</strong>
-                            </div>
-                            <div class="col-9">
-                                <ul>
-                                {% for reference in forcefield.reference.all %}
-                                    <p>{{ reference.authors|truncatewords:"2" }} {{ reference.year }}
-                                    Doi:<a href="http://dx.doi.org/{{ reference.doi }}" target="blank">{{ reference.doi }}</a></p>
-                                {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                        <br>
-                    </div>
-                    <div class="col">
-                        <!--<p><a href={% url 'ffdetail' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Details</a><p>-->
-                        {% if user.is_authenticated %}
-                            <p><a href={% url 'ffupdate' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Update</a><p>
-                            <p><a href={% url 'ffdelete' forcefield.pk %} class="btn btn-primary btn-sm active" role="button" aria-pressed="true">Delete</a><p>
-                        {% endif %}
-                    </div>
+                    {% include 'per_page.html' %}
                 </div>
-            {% endfor %}
-        </ol>
+            </div>
+            <div class="col-9" id="collapseselect" {% if not params.software %}style="display: none"{% endif %}>
+                <form id="select_form" action="" method="get">
+                    <div class="row">
+                        {% for field in form_select %}
+                            <div class="col-0 p-1">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <br>
+                                    <small style="color: grey">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <br>
+                                    <p style="color: red">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <div class="col-1 p-1">
+                            <a onclick="url_replace('software','forcefield_type')" class="btn btn-primary btn-sm text-white">Select</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-0  align-self-start">
+                <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
+            </div>
+        </div>
+        <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
+            <div class="col-12">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th width="12%">
+                                {% if sort == "software" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="software" %}">Software<a/></th>
+                            <th width="18%">
+                                {% if sort == "forcefield_type" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="forcefield_type" %}">Type<a/></th>
+                            <th width="21%">
+                                {% if sort == "name" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="name" %}">Name<a/></th>
+                            <th width="45%">Files</th>
+                            {% if user.is_authenticated %}
+                                <th width="2%"></th>
+                                <th width="2%"></th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for forcefield in page_objects %}
+                            <tr>
+                                <td>{{ forcefield.get_software_display }}</td>
+                                <td>{{ forcefield.get_forcefield_type_display }}</td>
+                                <td id="{{ forcefield.pk }}">
+                                    <a class="text-info" data-toggle="collapse" href="#collapse{{ forcefield.pk }}" aria-expanded="true" aria-controls="collapse{{ forcefield.pk }}">{{ forcefield.name }}</a>
+                                </td>
+                                <td>
+                                    <a href="{{ forcefield.ff_file.url }}" class="text-success" target="blank">Forcefield</a>
+                                    <a href="{{ forcefield.mdp_file.url }}" class="text-success" target="blank">Parameters</a>
+                                </td>
+                                {% if user.is_authenticated %}
+                                    {% if user == forcefield.curator %}
+                                        <td><a href={% url 'ffupdate' forcefield.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
+                                        <td><a href={% url 'ffdelete' forcefield.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a></td>
+                                    {% else %}
+                                        <td></td>
+                                        <td><a href={% url 'mail' %}?ffid={{ forcefield.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
+                                    {% endif %}
+                                {% endif %}
+                            </tr>
+                            <tr id="collapse{{ forcefield.pk }}" class="collapse" data-parent="#{{ forcefield.pk }}">
+                                <td></td>
+                                <td colspan="3">
+                                    <div class="row">
+                                        <div class="col-2"><strong>Description:</strong></div>
+                                        <div class="col-10">{{ forcefield.description }}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2"><strong>References:</strong></div>
+                                        <div class="col-10">
+                                            {% for reference in forcefield.reference.all %}
+                                                <a class="text-success" href="http://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>
+                                                <i>{{ reference.journal }}</i>, {{ reference.volume }}.
+                                                {{ reference.title }}<br>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-2"><strong>Curator:</strong></div>
+                                        <div class="col-10"><a class="text-success" href={% url 'userdetail' forcefield.curator.pk %}>{{ forcefield.curator.get_full_name }}</a> on {{ forcefield.date }}</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row rounded-bottom border border-top-0 border-success p-3" style="background-color:#c2e5ca" >
+            {% include 'paginator.html' %}
+        </div>
     </div>
-    {% if ff_file_url %}
-        <p>File uploaded at: <a href="{{ ff_file_url }}">{{ ff_file_url }}</a></p>  
-    {% endif %}
+    <br>
 {% endblock %}
 
 
