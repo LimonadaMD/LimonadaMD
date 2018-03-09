@@ -193,7 +193,8 @@ def mail(request):
                 if param == 'lipid':
                    try:
                       obj = Lipid.objects.filter(id=i)
-                      name = obj.values_list('search_name', flat=True)[0]  
+                      name = obj.values_list('search_name', flat=True)[0]
+                      url = "#"
                    except:
                       pass
                 elif param == 'topid':
@@ -204,27 +205,31 @@ def mail(request):
                       lid = obj.values_list('lipid', flat=True)[0] 
                       lname = Lipid.objects.filter(id=lid).values_list('name', flat=True)[0] 
                       name = "%s_%s" % (lname, version)
+                      url = "#"
                    except:
                       pass
                 elif param == 'ffid':
                    try:
                       obj = Lipid.objects.filter(id=i)
                       obj = Forcefield.objects.filter(id=i)
-                      name = obj.values_list('name', flat=True)[0] 
+                      name = obj.values_list('name', flat=True)[0]
+                      url = "#"
                    except:
                       pass
                 elif param == 'memid':
                    try:
                       obj = Lipid.objects.filter(id=i)
                       obj = Membrane.objects.filter(id=i)
-                      name = obj.values_list('name', flat=True)[0] 
+                      name = obj.values_list('name', flat=True)[0]
+                      url = "#"
                    except:
                       pass
                 elif param == 'refid':
                    try:
                       obj = Lipid.objects.filter(id=i)
                       obj = Reference.objects.filter(id=i)
-                      name = obj.values_list('refid', flat=True)[0] 
+                      name = obj.values_list('refid', flat=True)[0]
+                      url = "#"
                    except:
                       pass
 
@@ -238,14 +243,17 @@ def mail(request):
         curator = "%s %s" % (firstname,lastname)
         email = User.objects.filter(id=curatorid).values_list('email', flat=True)[0]
         subject = "Request concerning a Limonada entry"
-        comment = "Dear Mr/Ms %s,\n\n%s %s is making the following comment on the %s entry (%s) for which you are the current curator.\n\n\nCould you please address these comments and/or reply him/her at %s?\nIf it is more convenient, the curation can also be changed.\n\nSincerely,\nThe Limonada Team" % (curator,request.user.first_name,request.user.last_name,objtype,name,email)
+        comment = "Dear Mr/Ms %s,\n\n%s %s is making the following comment on the %s entry (%s) for which you are the current curator.\n\n\nCould you please address these comments and/or reply him/her at %s?\nIf it is more convenient, the curation can also be changed.\n\nSincerely,\nThe Limonada Team" % (
+        curator, request.user.first_name, request.user.last_name, objtype, name, email)
     form = MailForm({'subject':subject,'comment':comment})
 
     data = {}
     data['homepage'] = True
     data['curator'] = curator
+    data['curator_id'] = curatorid
     data['objecttype'] = objtype
     data['name'] = name
+    data['object_url'] = url
     data['form'] = form
     data['params'] = params
 

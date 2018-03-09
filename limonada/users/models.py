@@ -17,7 +17,7 @@ class Profile(models.Model):
     utype = models.CharField(max_length=2,
                              choices=UTYPE_CHOICES,
                              default=ACADEMIC)
-    institute = models.CharField(max_length=200)
+    institution = models.CharField(max_length=200)
     position = models.CharField(max_length=30)
     address = models.TextField(null=True, blank=True)
 

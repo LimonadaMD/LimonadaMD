@@ -14,12 +14,12 @@ class SignUpForm(UserCreationForm):
     )
 
     utype = forms.ChoiceField(choices=UTYPE_CHOICES)
-    institute = forms.CharField(max_length=200)
+    institution = forms.CharField(max_length=200)
     position = forms.CharField(max_length=30)
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'utype','institute','position',)
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'utype','institution','position',)
 
 
 class UpdateForm(forms.ModelForm):

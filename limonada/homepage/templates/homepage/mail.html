@@ -11,7 +11,7 @@
             <div class="row p-1">
                 <div class="col-1"></div>
                 <div class="col-11">
-                    The {{ objecttype }} entry ({{ name }}) you want to edit is currently handled by {{ curator }}.
+                    The {{ objecttype }} entry (<a href="{{ object_url }}">{{ name }}</a>) you want to edit is currently handled by <a href="{% url 'userdetail' curator_id %}">{{ curator }}</a>.
                     You cannot directly update this entry but you can send your comments to the curator and/or ask to become the new curator.
                 </div>
             </div>
