@@ -1,29 +1,36 @@
+# -*- coding: utf-8 -*-
 from django.conf import settings
 from django import forms
 from django.forms import ModelForm, BaseInlineFormSet, fields
 from django.forms import formset_factory, inlineformset_factory
 from django.forms.widgets import TextInput, Select, Textarea, NumberInput
-from .models import MembraneTopol, Membrane, Composition
+from .models import MembraneTopol, Membrane, TopolComposition
 from django.forms.formsets import BaseFormSet
 from lipids.models import Lipid, Topology
 from dal import autocomplete
 from homepage.models import Reference
+from forcefields.choices import *
 
 
 class MembraneTopolForm(ModelForm):
 
-    #version      = forms.CharField(label="Name",
-    #                               required=False,
-    #                               help_text="YearAuthor")
+    name          = forms.CharField(label="Name",
+                                    widget=TextInput(attrs={'size': '33'}))
+    software     = forms.ChoiceField(choices=SFTYPE_CHOICES,
+                                     initial="GR",
+                                     widget=Select(attrs={'style': 'width: 340px'}))
+    temperature   = forms.IntegerField(label="Temperature (°K)",
+                                       widget=NumberInput(attrs={'style': 'width: 340px'}))
     equilibration = forms.IntegerField(label="Equilibration (ns)",
                                        widget=NumberInput(attrs={'style': 'width: 340px'}))
-    mem_file      = forms.FileField(label="Membrane file")
-    description   = forms.CharField(widget=Textarea(attrs={'style': 'width: 340px'}))
+    mem_file      = forms.FileField(label="Membrane file",
+                                    required=False)
+    description   = forms.CharField(widget=Textarea(attrs={'style': 'width: 340px'}),
+                                    required=False)
 
     class Meta:
         model = MembraneTopol
-        #fields = ['version','forcefield','equilibration','mem_file','description','reference']
-        fields = ['forcefield','equilibration','mem_file','description','reference']
+        fields = ['name','software','forcefield','temperature','equilibration','mem_file','description','reference']
         widgets = {
             'reference': autocomplete.ModelSelect2Multiple(
                 url='reference-autocomplete',
@@ -40,26 +47,32 @@ class MembraneTopolForm(ModelForm):
 
 class MembraneForm(ModelForm):
 
-    organism = forms.CharField(widget=TextInput(attrs={'size': '33'}))
-    organel  = forms.CharField(widget=TextInput(attrs={'size': '33'}))
-
     class Meta:
         model = Membrane
-        fields = ['organism','organel']
-
+        fields = ['tag']
+        widgets = {
+            'tag': autocomplete.ModelSelect2Multiple(
+                url='membranetagautocomplete',
+                attrs={'style': 'width: 340px'},
+            ),
+        }
 
 
 class CompositionForm(ModelForm):
 
-    number = forms.IntegerField(widget=NumberInput(attrs={'style': 'width: 100px',
-                                                          'step':"0.0001"}))
+    number = forms.IntegerField(widget=NumberInput(attrs={'style': 'width: 75px'}))
 
     class Meta:
-        model = Composition
-        fields = ['lipid','number','side']
+        model = TopolComposition
+        fields = ['lipid','topology','number','side']
         widgets = {
             'lipid': autocomplete.ModelSelect2(
-                url='lipid-autocomplete'
+                url='lipid-autocomplete',
+                attrs={'class':'dal-lipid',
+                       'style': 'width: 50px'},
+            ),
+            'topology': Select(
+                attrs={'style': 'width: 115px'},
             ),
         }
 

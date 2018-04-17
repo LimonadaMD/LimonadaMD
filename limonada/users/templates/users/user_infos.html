@@ -9,7 +9,7 @@
         <h2>{{ user.get_full_name }}</h2>
         <ul>
             <li>Username: {{ request.user.username }}</li>
-            <li>Institute: {{ request.user.profile.institute }}</li>
+            <li>Institute: {{ request.user.profile.institution }}</li>
         </ul>
     {% else %}
         <a href="{% url login %}">Login</a>

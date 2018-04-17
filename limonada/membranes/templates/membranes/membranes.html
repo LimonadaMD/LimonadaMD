@@ -79,7 +79,7 @@
                                 <td>{{ membrane.name }}</td>
                                 <td id="{{ membrane.pk }}">
                                     <a class="text-info" data-toggle="collapse" href="#collapse{{ membrane.pk }}" aria-expanded="true" aria-controls="collapse{{ membrane.pk }}">
-                                        {% lipidnames membrane.composition_set.all %}
+                                        {% lipidnames membrane.topolcomposition_set.all %}
                                     </a>
                                 </td>
                                 <td>{{ membrane.equilibration }}</td>
@@ -112,16 +112,16 @@
                                     <div class="row">
                                         <div class="col-2"></div>
                                         <div class="col-5">
-                                            {% query comps membrane=membrane side="LO" as compobjects %}
-                                            {% queryorder compobjects "number" "des" as orderedcompobjects %}
-                                            {% for lipid in orderedcompobjects %}
+                                            {% for lipid in membrane.topolcomposition_set.all %}
+                                                {% if lipid.side == "LO" %}
                                                     {{lipid.number}}
                                                     <a class="text-success" href={% url 'lipdetail' lipid.topology.lipid.slug %}>{{lipid.topology.lipid.name}}</a>
                                                     (<a class="text-success" href="{% url 'toplist' %}?topid={{lipid.topology.pk}}">{{lipid.topology.version}}</a>)<br> 
+                                                {% endif %}
                                             {% endfor %}
                                         </div>
                                         <div class="col-5">
-                                            {% for lipid in membrane.composition_set.all %}
+                                            {% for lipid in membrane.topolcomposition_set.all %}
                                                 {% if lipid.side == "UP" %}
                                                     {{lipid.number}}
                                                     <a class="text-success" href={% url 'lipdetail' lipid.topology.lipid.slug %}>{{lipid.topology.lipid.name}}</a>

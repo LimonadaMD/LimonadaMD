@@ -8,13 +8,23 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
 from django.contrib.auth.models import User
-from .models import MembraneTopol, Membrane, Composition
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+import simplejson
+from .models import MembraneTopol, TopolComposition, Membrane, Composition, MembraneTag
 from .forms import MembraneTopolForm, MembraneForm, CompositionForm, MemFormSet, SelectMembraneForm 
+from .functions import membraneanalysis 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from homepage.models import Reference
 from lipids.models import Lipid, Topology
+from forcefields.models import Forcefield
+from lipids.views import sf_ff_dict
 from django.db.models import Q
+from dal import autocomplete
 import operator
-
+import os, random
+import shutil
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 def display_data(request, data, **kwargs):
     return render(request, 'membranes/posted-data.html', dict(data=data, **kwargs))
@@ -110,102 +120,385 @@ def MemList(request):
     return render(request, 'membranes/membranes.html', data)
 
 
+def formsetdata(mem_file, ff):
+    fname = os.path.splitext(mem_file.name)[0]
+    ext = os.path.splitext(mem_file.name)[1]
+    rand = str(random.randrange(1000))
+    while os.path.isdir(os.path.join(settings.MEDIA_ROOT, "tmp", rand)): 
+       rand = random.randrange(1000)
+    dirname = os.path.join(settings.MEDIA_ROOT, "tmp", rand)
+    os.makedirs(dirname)
+    fs = FileSystemStorage(location=dirname)  
+    f = fs.save(mem_file.name, mem_file)
+
+    merrors = []
+    compo, membrane = membraneanalysis(mem_file.name, rand)
+    if membrane.prot == True: 
+        merrors.append("Upload of membranes containing proteins is not allowed at the moment.")
+    if len(membrane.unkres) > 0:
+        merrors.append("The following residues are not yet part of Limonada: %s." % ", ".join(membrane.unkres))
+    if membrane.nblf > 2:
+        merrors.append("Several membranes are present in the structure file.") 
+    if len(compo["unk"].keys()) > 0 and len(membrane.unkres) == 0:
+        merrors.append("Several lipids are not part of the membrane.") 
+
+    file_data = ""
+    if len(merrors) > 0:
+        data = {
+            'form-TOTAL_FORMS': 1,
+            'form-INITIAL_FORMS': '0',
+            'form-MAX_NUM_FORMS': '',
+        }
+    else:
+        nb = len(compo["up"].keys()) + len(compo["lo"].keys())
+        data = {
+            'form-TOTAL_FORMS': nb+1,
+            'form-INITIAL_FORMS': '0',
+            'form-MAX_NUM_FORMS': '',
+        }
+        i = 0
+        for lip in compo["up"].keys():
+            lid = Lipid.objects.filter(name=lip).values_list('id', flat=True)[0]
+            data['form-%d-lipid'%(i)] = lid
+            data['form-%d-topology'%(i)] = ""
+            if ff != "":
+                if Topology.objects.filter(lipid=lid,forcefield=ff).exists():
+                    topid = Topology.objects.filter(lipid=lid,forcefield=ff).values_list('id', flat=True)[0] 
+                    data['form-%d-topology'%(i)] = topid
+            data['form-%d-number'%(i)] = compo["up"][lip] 
+            data['form-%d-side'%(i)] = "UP"
+            i += 1
+        for lip in compo["lo"].keys():
+            lid = Lipid.objects.filter(name=lip).values_list('id', flat=True)[0]
+            data['form-%d-lipid'%(i)] = lid
+            data['form-%d-topology'%(i)] = ""
+            if ff != "":
+                if Topology.objects.filter(lipid=lid,forcefield=ff).exists():
+                    topid = Topology.objects.filter(lipid=lid,forcefield=ff).values_list('id', flat=True)[0] 
+                    data['form-%d-topology'%(i)] = topid
+            data['form-%d-number'%(i)] = compo["lo"][lip] 
+            data['form-%d-side'%(i)] = "LO"
+            i += 1
+        sortedgrofilepath = os.path.join(dirname, "%s_sorted.gro" % fname ) 
+        if os.path.isfile(sortedgrofilepath):
+            f = file("media/tmp/%s/%s_sorted.gro" % ( rand, fname ))
+            file_data = {'mem_file':SimpleUploadedFile(f.name,f.read())}
+
+    return merrors, data, file_data, rand, fname 
+
+
 @login_required
 #@transaction.atomic
 def MemCreate(request, formset_class, template):
-    if request.method == 'POST':
+    rand = ""
+    fname = ""
+    merrors = []
+    if request.method == 'POST' and 'add' in request.POST:
         topform = MembraneTopolForm(request.POST, request.FILES)
         memform = MembraneForm(request.POST)
         formset = formset_class(request.POST)
         if topform.is_valid() and memform.is_valid() and formset.is_valid():
-            m = memform.save(commit=False)
-            #m.curator = request.user
-            m.save()
-            comp = [] 
+            # Create a new MembraneTopol object
+            mt = topform.save(commit=False)
+            mt.curator = request.user
+            mt.save()
+            nb_lipids = 0 
+            nb_lipup = 0 
+            nb_liplo = 0 
+            topcomp = []
             for lip in formset:
                 lipid = lip.cleaned_data.get('lipid')
+                topology = lip.cleaned_data.get('topology')
                 number = lip.cleaned_data.get('number')
                 side = lip.cleaned_data.get('side')
                 if lipid:
-                    comp.append(Composition(membrane=m, lipid=lipid, number=number, side=side))
+                    nb_lipids += number
+                    if side == "UP":
+                        nb_lipup += number
+                    else:
+                        nb_liplo += number
+                    topcomp.append(TopolComposition(membrane=mt, lipid=lipid, topology=topology, number=number, side=side))
+            refs = topform.cleaned_data['reference']
+            for ref in refs:
+                mt.reference.add(ref)
+            mt.nb_lipids = nb_lipids
+
+            # Build a unique name based on the lipid composition
+            lipupnames = {}
+            liplonames = {}
+            liptypes = []
+            for lip in formset:
+                lipid = lip.cleaned_data.get('lipid')
+                if lipid:
+                    number = lip.cleaned_data.get('number')
+                    side = lip.cleaned_data.get('side')
+                    if side == "UP":
+                        nb = ("%7.4f" % (100*float(number)/nb_lipup)).rstrip('0').rstrip('.') 
+                        lipupnames[number] = "u" + lipid.name + nb 
+                    else:
+                        nb = ("%7.4f" % (100*float(number)/nb_liplo)).rstrip('0').rstrip('.') 
+                        liplonames[number] = "l" + lipid.name + nb
+                    if lipid not in liptypes:
+                        liptypes.append(lipid) 
+            name = ""
+            compodata = "[ leaflet_1 ]\n"
+            for key in sorted(lipupnames, reverse=True):
+               name += "-" + lipupnames[key]
+               compodata += "%10s%10s\n" % (lipupnames[key][1:5],lipupnames[key][5:])
+            compodata += "\n[ leaflet_2 ]\n"
+            for key in sorted(liplonames, reverse=True):
+               name += "-" + liplonames[key]
+               compodata += "%10s%10s\n" % (liplonames[key][1:5],liplonames[key][5:])
+
+            # Create a new Membrane object if it doesn't exists
+            if Membrane.objects.filter(name=name[1:]).exists():
+                m = Membrane.objects.get(name=name[1:]) 
+                tags = memform.cleaned_data['tag']
+                for tag in tags:
+                    if tag not in m.tag.all():
+                        m.tag.add(tag)
+                m.save()
+            else:
+                m = memform.save(commit=False)
+                m.name = name[1:] 
+                m.nb_liptypes = len(liptypes)
+                m.save()
+                tags = memform.cleaned_data['tag']
+                for tag in tags:
+                    m.tag.add(tag)
+                m.save()
+                comp = []
+                for lip in formset:
+                    lipid = lip.cleaned_data.get('lipid')
+                    number = lip.cleaned_data.get('number')
+                    side = lip.cleaned_data.get('side')
+                    if lipid:
+                        if side == "UP":
+                            comp.append(Composition(membrane=m, lipid=lipid, number=100*float(number)/nb_lipup, side=side))
+                        else:
+                            comp.append(Composition(membrane=m, lipid=lipid, number=100*float(number)/nb_liplo, side=side))
+                try:
+                    with transaction.atomic():
+                        Composition.objects.filter(membrane=m).delete()
+                        Composition.objects.bulk_create(comp)
+                        messages.success(request, 'You have updated your composition.')
+                except IntegrityError:
+                    messages.error(request, 'There was an error saving your composition.')
+
+            rand = request.POST['rand']
+            fname = request.POST['fname']
+            mempath = "media/tmp/%s/%s_sorted.gro" % ( rand, fname )
+            if not request.FILES and os.path.isfile(mempath):
+                newmempath = 'media/membranes/LIM{0}_{1}.gro'.format(mt.id,mt.name) 
+                shutil.copy(mempath, newmempath)
+                mt.mem_file = 'membranes/LIM{0}_{1}.gro'.format(mt.id,mt.name) 
+            if rand:
+                shutil.rmtree(os.path.join(settings.MEDIA_ROOT, "tmp", rand), ignore_errors=True)
+            compofile = open('media/membranes/LIM{0}_{1}.txt'.format(mt.id,mt.name),"w")
+            compofile.write(compodata)
+            compofile.close() 
+
+            mt.membrane = m
+            mt.save()
+
+            # Create the composition objects
             try:
                 with transaction.atomic():
-                    #Replace the old with the new
-                    Composition.objects.filter(membrane=m).delete()
-                    Composition.objects.bulk_create(comp)
-                    # And notify our users that it worked
+                    TopolComposition.objects.filter(membrane=mt).delete()
+                    TopolComposition.objects.bulk_create(topcomp)
                     messages.success(request, 'You have updated your composition.')
-            except IntegrityError: #If the transaction failed
+            except IntegrityError: 
                 messages.error(request, 'There was an error saving your composition.')
-            return render(request, 'membranes/membranes.html', {'membranes', True})
+
+            return HttpResponseRedirect(reverse('memlist'))
     else:
-        topform = MembraneTopolForm()
-        memform = MembraneForm()
-
-        #data = {
-        #    'form-TOTAL_FORMS': '10',
-        #    'form-INITIAL_FORMS': '0',
-        #    'form-MAX_NUM_FORMS': '',
-        #    }
-        #formset = formset_class(data)
-
-        formset = formset_class()
+        if request.method == 'POST':
+            topform = MembraneTopolForm(request.POST, request.FILES)
+            memform = MembraneForm(request.POST)
+            mem_file = request.FILES['mem_file']
+            ff = topform.data['forcefield']
+            merrors, data, file_data, rand, fname = formsetdata(mem_file, ff)
+            if file_data != "":
+                topform = MembraneTopolForm(request.POST, file_data)
+            formset = MemFormSet(data)
+        else:
+            topform = MembraneTopolForm()
+            memform = MembraneForm()
+            formset = formset_class()
     return render(request, template, {
         'topform': topform, 
         'memform': memform, 
         'formset': formset,
+        'sf_ff' : sf_ff_dict(),
+        'tops': Topology.objects.all(),
         'membranes': True,
-        'memcreate': True
+        'memcreate': True,
+        'merrors': merrors,
+        'rand': rand,
+        'fname': fname 
     })
 
 
 @login_required
 @transaction.atomic
 def MemUpdate(request, pk=None):
-    m = Membrane.objects.get(pk=pk)
-    if request.method == 'POST':
-        form = MembraneForm(request.POST, request.FILES, instance=m)
+    rand = ""
+    fname = ""
+    merrors = []
+    mt = MembraneTopol.objects.get(pk=pk)
+    if request.method == 'POST' and 'add' in request.POST:
+        topform = MembraneTopolForm(request.POST, request.FILES, instance=mt)
+        memform = MembraneForm(request.POST, instance=mt.membrane)
         formset = MemFormSet(request.POST) #, instance=m)
-        if form.is_valid() and formset.is_valid():
-            m = form.save()
-            comp = []
+        if topform.is_valid() and memform.is_valid() and formset.is_valid():
+            # Update the MembraneTopol object
+            mt = topform.save()
+            nb_lipids = 0
+            nb_lipup = 0
+            nb_liplo = 0
+            topcomp = []
             for lip in formset:
-                topology = lip.cleaned_data.get('topology')
-                number = lip.cleaned_data.get('number')
-                side = lip.cleaned_data.get('side')
-                if topology:
-                   comp.append(Composition(membrane=m, topology=topology, number=number, side=side))
+                lipid = lip.cleaned_data.get('lipid')
+                if lipid:
+                    topology = lip.cleaned_data.get('topology')
+                    number = lip.cleaned_data.get('number')
+                    side = lip.cleaned_data.get('side')
+                    if lipid:
+                        nb_lipids += number
+                        if side == "UP":
+                            nb_lipup += number
+                        else:
+                            nb_liplo += number
+                        topcomp.append(TopolComposition(membrane=mt, lipid=lipid, topology=topology, number=number, side=side))
+            mt.nb_lipids = nb_lipids
+
+            # Build a unique name based on the lipid composition
+            lipupnames = {}
+            liplonames = {}
+            liptypes = []
+            for lip in formset:
+                lipid = lip.cleaned_data.get('lipid')
+                if lipid:
+                    number = lip.cleaned_data.get('number')
+                    side = lip.cleaned_data.get('side')
+                    if side == "UP":
+                        nb = ("%7.4f" % (100*float(number)/nb_lipup)).rstrip('0').rstrip('.')
+                        lipupnames[number] = "u" + lipid.name + nb
+                    else:
+                        nb = ("%7.4f" % (100*float(number)/nb_liplo)).rstrip('0').rstrip('.')
+                        liplonames[number] = "l" + lipid.name + nb
+                    if lipid not in liptypes:
+                        liptypes.append(lipid)
+            name = ""
+            compodata = "[ leaflet_1 ]\n"
+            for key in sorted(lipupnames, reverse=True):
+               name += "-" + lipupnames[key]
+               compodata += "%10s%10s\n" % (lipupnames[key][1:5],lipupnames[key][5:])
+            compodata += "\n[ leaflet_2 ]\n"
+            for key in sorted(liplonames, reverse=True):
+               name += "-" + liplonames[key]
+               compodata += "%10s%10s\n" % (liplonames[key][1:5],liplonames[key][5:])
+
+            # Create a new Membrane object if it changed and doesn't exists
+            if Membrane.objects.filter(name=name[1:]).exists():
+                m = Membrane.objects.filter(name=name[1:])
+                tags = memform.cleaned_data['tag']
+                for tag in tags:
+                    if tag not in m.tag.all():
+                        m.tag.add(tag)
+                m.save()
+            else:
+                m = memform.save(commit=False)
+                m.name = name[1:]
+                m.nb_liptypes = len(liptypes)
+                m.save()
+                tags = memform.cleaned_data['tag']
+                for tag in tags:
+                    m.tag.add(tag)
+                m.save()
+                comp = []
+                for lip in formset:
+                    lipid = lip.cleaned_data.get('lipid')
+                    if lipid:
+                        number = lip.cleaned_data.get('number')
+                        side = lip.cleaned_data.get('side')
+                        if lipid:
+                            if side == "UP":
+                                comp.append(Composition(membrane=m, lipid=lipid, number=100*float(number)/nb_lipup, side=side))
+                            else:
+                                comp.append(Composition(membrane=m, lipid=lipid, number=100*float(number)/nb_liplo, side=side))
+                try:
+                    with transaction.atomic():
+                        Composition.objects.filter(membrane=m).delete()
+                        Composition.objects.bulk_create(comp)
+                        messages.success(request, 'You have updated your composition.')
+                except IntegrityError:
+                    messages.error(request, 'There was an error saving your composition.')
+
+            rand = request.POST['rand']
+            fname = request.POST['fname']
+            mempath = "media/tmp/%s/%s_sorted.gro" % ( rand, fname )
+            if not request.FILES and os.path.isfile(mempath):
+                newmempath = 'media/membranes/LIM{0}_{1}.gro'.format(mt.id,mt.name)
+                shutil.copy(mempath, newmempath)
+                mt.mem_file = 'membranes/LIM{0}_{1}.gro'.format(mt.id,mt.name)
+            if rand:
+                shutil.rmtree(os.path.join(settings.MEDIA_ROOT, "tmp", rand), ignore_errors=True)
+            compofile = open('media/membranes/LIM{0}_{1}.txt'.format(mt.id,mt.name),"w")
+            compofile.write(compodata)
+            compofile.close()
+
+            mt.membrane = m
+            mt.save()
+
+            # Create the composition objects
             try:
                 with transaction.atomic():
-                    #Replace the old with the new
-                    m = Membrane.objects.get(pk=pk)
-                    Composition.objects.filter(membrane=m).delete()
-                    Composition.objects.bulk_create(comp)
-                    # And notify our users that it worked
+                    TopolComposition.objects.filter(membrane=mt).delete()
+                    TopolComposition.objects.bulk_create(topcomp)
                     messages.success(request, 'You have updated your composition.')
-            except IntegrityError: #If the transaction failed
+            except IntegrityError: 
                 messages.error(request, 'There was an error saving your composition.')
-                #return redirect(reverse('profile-settings'))
+
             return HttpResponseRedirect(reverse('memlist'))
     else:
-        form = MembraneForm(instance=m)
-        c = Composition.objects.filter(membrane=m)
-        data = {
-           'form-TOTAL_FORMS': len(c)+1,
-           'form-INITIAL_FORMS': '0',
-           'form-MAX_NUM_FORMS': '',
-        }
-        i = 0
-        for lip in c:
-           data['form-%d-topology'%(i)] = lip.topology
-           data['form-%d-number'%(i)] = lip.number
-           data['form-%d-side'%(i)] = lip.side
-           i += 1
-        formset = MemFormSet(data)
+        if request.method == 'POST':
+            topform = MembraneTopolForm(request.POST, request.FILES)
+            memform = MembraneForm(request.POST)
+            file_data = ""
+            mem_file = request.FILES['mem_file']
+            ff = topform.data['forcefield']
+            merrors, data, file_data, rand, fname = formsetdata(mem_file, ff)
+            if file_data != "":
+                topform = MembraneTopolForm(request.POST, file_data)
+            formset = MemFormSet(data)
+        else:
+            topform = MembraneTopolForm(instance=mt)
+            memform = MembraneForm(instance=mt.membrane)
+            c = TopolComposition.objects.filter(membrane=mt)
+            data = {
+               'form-TOTAL_FORMS': len(c)+1,
+               'form-INITIAL_FORMS': '0',
+               'form-MAX_NUM_FORMS': '',
+            }
+            i = 0
+            for lip in c:
+               data['form-%d-lipid'%(i)] = lip.lipid
+               data['form-%d-topology'%(i)] = lip.topology
+               data['form-%d-number'%(i)] = lip.number
+               data['form-%d-side'%(i)] = lip.side
+               i += 1
+            formset = MemFormSet(data)
     return render(request, 'membranes/mem_form.html', {
-        'form': form,
+        'topform': topform,
+        'memform': memform,
         'formset': formset,
-        'membranes' : True
+        'sf_ff' : sf_ff_dict(),
+        'tops': Topology.objects.all(),
+        'membranes': True,
+        'merrors': merrors,
+        'rand': rand,
+        'fname': fname
     })
 
 
@@ -222,11 +515,25 @@ class MemDelete(DeleteView):
         return context_data
 
 
-def TestAutocomplete(request):
+def GetLipTops(request):
+    lipid_id = request.GET['lip']
+    ff_id = request.GET['ff']
+    topologies = []
+    if lipid_id and ff_id:
+        if Lipid.objects.filter(id=lipid_id).exists() and Forcefield.objects.filter(id=ff_id).exists():
+            topologies = Topology.objects.filter(lipid=Lipid.objects.get(id=lipid_id),forcefield=Forcefield.objects.get(id=ff_id))
+    result_set = []
+    for top in topologies:
+        result_set.append({'value': top.id, 'name': top.version})
+    return HttpResponse(simplejson.dumps(result_set), content_type='application/json')
 
-    data = {}
-    data['autocomplete_url'] = reverse('lipid-autocomplete')
 
-    return render(request, 'membranes/example_form.html', data)
+class MembraneTagAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        qs = MembraneTag.objects.all()
+        if self.q:
+            qs = qs.filter(tag__icontains=self.q)
+        return qs
 
 

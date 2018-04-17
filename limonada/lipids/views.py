@@ -215,7 +215,10 @@ def LipCreate(request):
             args = shlex.split("obabel %s.mol -O %s.png -xC -xh 1200 -xw 1000 -x0 molfile -xd --title" % (filename,filename))
             process = subprocess.Popen(args, stdout=subprocess.PIPE)
             process.communicate()
-            lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name=lm_data['com_name'], img="tmp/%s.png" % lm_data['lmid'])
+            if 'com_name' in lm_data.keys():
+                lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name=lm_data['com_name'], img="tmp/%s.png" % lm_data['lmid'])
+            else:
+                lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name="temp", img="tmp/%s.png" % lm_data['lmid'])
             file_data = { 'img': lipid.img }
             if os.path.isfile("%s_rot.mol" % filename): 
                 os.remove("%s_rot.mol" % filename)
@@ -243,7 +246,7 @@ def LipCreate(request):
                 except KeyError:
                     pass
             form_add = LipidForm(lm_data, file_data)
-            return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'imgpath': "tmp/%s.png" % lm_data['lmid'] })
+            return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'liindex': liindex, 'imgpath': "tmp/%s.png" % lm_data['lmid'] })
     elif request.method == 'POST' and 'add' in request.POST:
         lmclass, lmdict = LM_class() 
         form_search = LmidForm()

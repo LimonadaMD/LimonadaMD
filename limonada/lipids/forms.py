@@ -112,6 +112,20 @@ class TopologyForm(forms.ModelForm):
         }
 
 
+class TopologyAdminForm(forms.ModelForm):
+    class Meta:
+        model = Topology
+        fields = ('__all__')
+        widgets = {
+            'lipid': autocomplete.ModelSelect2(
+                url='lipid-autocomplete',
+            ),
+            'reference': autocomplete.ModelSelect2Multiple(
+                url='reference-autocomplete',
+            ),
+        }
+
+
 class SelectTopologyForm(forms.Form):
 
     software = forms.ChoiceField(required=False)

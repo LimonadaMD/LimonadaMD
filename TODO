@@ -21,21 +21,9 @@ Concatenate a file with all topologies per forcefield that can be downloaded fro
 
 Limit the lipid name to 4 or max length to 5 (gro)?
 
-When uploading a file, relpace the existing file if it exist (as it is done for lipid picture) 
-
 Validation of new topologies with gromacs and the forcefields files for gromacs
 
-Fill composition fields when a gro file is uploaded
-
-Save a composition file, that can be downloaded or uploaded afterwards. eg.,  
-     POPC   90.50000   UP
-     CHOL    9.50000   UP
-     DPPC  100.00000   LO
-
-Create a unique membrane composition field
-     uPOPC90.5uCHOL9.5lDPPC100
-
-Rethink about the best way to handle membranes (two add buttons, top choicefield if gro file, reoder lipid according to %, ...)
+Problem with delete membrane files
 
 Add biophisical parameters according to membrane composition
 

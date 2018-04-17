@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
@@ -15,8 +15,10 @@ def signup(request):
             user = form.save()
             user.refresh_from_db()  # load the profile instance created by the signal
             user.profile.utype = form.cleaned_data.get('utype')
-            user.profile.institute = form.cleaned_data.get('institute') 
+            user.profile.institution = form.cleaned_data.get('institution') 
             user.profile.position = form.cleaned_data.get('position')
+            #permission = Permission.objects.get(name='MembraneTag')
+            #user.user_permissions.add(permission) 
             user.save()
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=user.username, password=raw_password)
@@ -40,7 +42,7 @@ def update(request):
             user.last_name = form.cleaned_data.get('last_name')
             user.email = form.cleaned_data.get('email')
             user.profile.utype = form.cleaned_data.get('utype')
-            user.profile.institute = form.cleaned_data.get('institute') 
+            user.profile.institution = form.cleaned_data.get('institution') 
             user.profile.position = form.cleaned_data.get('position')
             user.save()
             messages.success(request, _('Your profile was successfully updated!'))
@@ -51,9 +53,9 @@ def update(request):
         if request.user.is_authenticated(): 
             instance = request.user
             utype = request.user.profile.utype 
-            institute = request.user.profile.institute 
+            institution = request.user.profile.institution 
             position = request.user.profile.position 
-            form = UpdateForm(instance=instance, initial={'utype': utype, 'institute': institute, 'position': position})
+            form = UpdateForm(instance=instance, initial={'utype': utype, 'institution': institution, 'position': position})
     return render(request, 'users/update.html', {'form': form, 'homepage': True})
 
 

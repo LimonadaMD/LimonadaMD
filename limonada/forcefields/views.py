@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.decorators import method_decorator
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
@@ -91,6 +93,7 @@ def FfList(request):
     return render(request, 'forcefields/forcefields.html', data)
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class FfCreate(CreateView):
     model = Forcefield
     form_class = ForcefieldForm
@@ -112,6 +115,7 @@ class FfCreate(CreateView):
         return context_data
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class FfUpdate(UpdateView):
     model = Forcefield
     form_class = ForcefieldForm
@@ -128,6 +132,7 @@ class FfUpdate(UpdateView):
         return context_data
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class FfDelete(DeleteView):
     model = Forcefield
     template_name = 'forcefields/ff_delete.html'

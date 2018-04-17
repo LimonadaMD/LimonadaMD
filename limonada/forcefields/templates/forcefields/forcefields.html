@@ -11,7 +11,7 @@
             <div class="col-11">
                 <h1>Forcefields</h1>
             </div>
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and user.is_staff %}
                 <div class="col" align="right">
                     <a href={% url 'ffcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
                 </div>
@@ -68,7 +68,7 @@
                                 {% if sort == "name" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="name" %}">Name<a/></th>
                             <th width="45%">Files</th>
-                            {% if user.is_authenticated %}
+                            {% if user.is_authenticated and user.is_staff %}
                                 <th width="2%"></th>
                                 <th width="2%"></th>
                             {% endif %}
@@ -86,7 +86,7 @@
                                     <a href="{{ forcefield.ff_file.url }}" class="text-success" target="blank">Forcefield</a>
                                     <a href="{{ forcefield.mdp_file.url }}" class="text-success" target="blank">Parameters</a>
                                 </td>
-                                {% if user.is_authenticated %}
+                                {% if user.is_authenticated and user.is_staff %}
                                     {% if user == forcefield.curator %}
                                         <td><a href={% url 'ffupdate' forcefield.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
                                         <td><a href={% url 'ffdelete' forcefield.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a></td>

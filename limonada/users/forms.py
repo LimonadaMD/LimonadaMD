@@ -32,12 +32,12 @@ class UpdateForm(forms.ModelForm):
     )
 
     utype = forms.ChoiceField(choices=UTYPE_CHOICES)
-    institute = forms.CharField(max_length=200)
+    institution = forms.CharField(max_length=200)
     position = forms.CharField(max_length=30)
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'utype','institute','position',)
+        fields = ('first_name', 'last_name', 'email', 'utype','institution','position',)
 
 
 class LoginForm(AuthenticationForm):

@@ -35,6 +35,17 @@ class ForcefieldForm(forms.ModelForm):
         }
 
 
+class ForcefieldAdminForm(forms.ModelForm):
+    class Meta:
+        model = Forcefield
+        fields = ('__all__')
+        widgets = {
+            'reference': autocomplete.ModelSelect2Multiple(
+                url='reference-autocomplete',
+            ),
+        }
+
+
 class SelectForcefieldForm(forms.Form):
 
     software = forms.ChoiceField(choices=SFTYPE_CHOICES,
