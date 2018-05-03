@@ -15,20 +15,25 @@ Limit access to Update and delete views to curators in views.py with decorators
 
 Replace Version field of Topology by the refid or the request.user and the date ...
 
-Potential problem with the size of objects passed as context 
+Potential problem with the size of objects passed as context (change LM_class and LI_index by Ajax functions) 
 
 Concatenate a file with all topologies per forcefield that can be downloaded from forcefield page
 
 Limit the lipid name to 4 or max length to 5 (gro)?
 
-Validation of new topologies with gromacs and the forcefields files for gromacs
-
 Problem with delete membrane files
 
 Add biophisical parameters according to membrane composition
 
+Problem with info box, disappear when the mouse move and cannot click on ref link or copy text
 
+Color LI links in orange in the lipid table (put LI entries at the end or without taking LM/LI into account)
 
+Cron job to remove old files in media/tmp
+
+Add infobox for top and mem forms
+
+Add field for the selection of membranes
 
 
 

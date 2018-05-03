@@ -24,22 +24,29 @@ def validate_name(value):
 
 
 def validate_lmid(value):
-    try:
-        lm_response = requests.get("http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json" % value)
-        lm_data_raw = lm_response.json()
-        if lm_data_raw == [] or int(value[-4:]) == 0:
+    if value[:2] == "LM":
+        try:
+            lm_response = requests.get("http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json" % value)
+            lm_data_raw = lm_response.json()
+            if lm_data_raw == [] or int(value[-4:]) == 0:
+                raise ValidationError(
+                    _('Invalid LMID'),
+                    code='invalid',
+                    params={'value': value},
+                )
+        except:
             raise ValidationError(
                 _('Invalid LMID'),
                 code='invalid',
                 params={'value': value},
             )
-    except:
+    elif value[:2] != "LI": 
         raise ValidationError(
             _('Invalid LMID'),
             code='invalid',
             params={'value': value},
         )
-    
+ 
 
 def validate_file_extension(value):
   ext = os.path.splitext(value.name)[1]
@@ -58,7 +65,7 @@ def img_path(instance, filename):
 
 def file_path(instance, filename):
     ext = os.path.splitext(filename)[1]    
-    #ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro,map,png} (we assume gromacs for now)
+    #ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro,png} (we assume gromacs for now)
     filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software,instance.forcefield,instance.lipid.name,instance.version,ext)	
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
        os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
@@ -88,7 +95,8 @@ class Lipid(models.Model):
     sub_class = models.CharField(max_length=200,   
                                  null=True)   					 	
     l4_class = models.CharField(max_length=200,   
-                                 null=True)   					 	
+                                null=True, 
+                                blank=True)   					 	
     img = models.ImageField(upload_to=img_path,          			
                            validators=[validate_file_extension],
                            null=True)
@@ -115,7 +123,6 @@ class Topology(models.Model):                                       # If not in 
                               on_delete=models.CASCADE)
     itp_file = models.FileField(upload_to=file_path)			 
     gro_file = models.FileField(upload_to=file_path)  			 
-    map_file = models.FileField(upload_to=file_path)  			 
     version = models.CharField(max_length=30,
                                help_text="YearAuthor")
     description = models.TextField(blank=True)
@@ -148,8 +155,6 @@ def delete_file_pre_delete_top(sender, instance, *args, **kwargs):
          _delete_file(instance.itp_file.path)
     if instance.gro_file:
          _delete_file(instance.gro_file.path)
-    if instance.map_file:
-         _delete_file(instance.map_file.path)
 
 
 

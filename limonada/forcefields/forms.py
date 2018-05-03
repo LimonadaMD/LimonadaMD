@@ -19,7 +19,8 @@ class ForcefieldForm(forms.ModelForm):
     software           = forms.ChoiceField(choices=SFTYPE_CHOICES,
                                            initial="GR",
                                            widget=Select(attrs={'style': 'width: 340px'}))
-    description        = forms.CharField(widget=Textarea(attrs={'style': 'width: 340px'}))
+    description        = forms.CharField(widget=Textarea(attrs={'style': 'width: 340px'}),
+                                         required=False)
 
     class Meta:
         model = Forcefield

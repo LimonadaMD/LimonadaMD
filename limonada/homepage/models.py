@@ -35,8 +35,8 @@ class Reference(models.Model):
     refid = models.CharField(max_length=200,
                              help_text="Format: AuthorYear[Index]",
                              unique=True)
-    authors = models.CharField(max_length=200)
-    title = models.CharField(max_length=200)
+    authors = models.CharField(max_length=500)
+    title = models.CharField(max_length=500)
     journal = models.CharField(max_length=200)
     volume = models.CharField(max_length=30,
                               null=True)

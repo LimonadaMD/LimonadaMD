@@ -4,11 +4,16 @@ from .models import validate_lmid, validate_name
 from forcefields.models import Forcefield 
 from homepage.models import Reference 
 from dal import autocomplete
-from django.core.exceptions import ValidationError
+#from django.core.exceptions import ValidationError
+from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from django.forms.widgets import TextInput, NumberInput, Select, Textarea
 from .models import validate_file_extension
+from .functions import gmxrun
 from forcefields.choices import *
+from django.utils.safestring import mark_safe
+import os
+from django.conf import settings
 
 
 class LmidForm(forms.Form):
@@ -89,14 +94,14 @@ class TopologyForm(forms.ModelForm):
                                      widget=Select(attrs={'style': 'width: 340px'}))
     itp_file     = forms.FileField(label="Topology file")
     gro_file     = forms.FileField(label="Structure file")
-    map_file     = forms.FileField(label="Mapping file")
     version      = forms.CharField(widget=TextInput(attrs={'style': 'width: 340px'}),
                                    help_text="Format: AuthorYear[Index]",)
-    description  = forms.CharField(widget=Textarea(attrs={'style': 'width: 340px'}))  
+    description  = forms.CharField(widget=Textarea(attrs={'style': 'width: 340px'}),
+                                   required=False)  
 
     class Meta:
         model = Topology
-        fields = ['software','forcefield','lipid','itp_file','gro_file','map_file','version','description','reference']
+        fields = ['software','forcefield','lipid','itp_file','gro_file','version','description','reference']
         widgets = {
             'lipid': autocomplete.ModelSelect2(
                 url='lipid-autocomplete',
@@ -110,6 +115,33 @@ class TopologyForm(forms.ModelForm):
         labels = {
             'reference': 'References'
         }
+
+    #def clean_version(self):
+    #    version = self.cleaned_data['version']
+    #    test = True
+    #    if test:
+    #        raise ValidationError('%s is not valid' % software)
+    #    return version        
+
+    def clean(self):
+        cleaned_data = super(TopologyForm, self).clean()
+        ff = cleaned_data.get("forcefield")
+        lipid = cleaned_data.get("lipid")
+        version = cleaned_data.get("version")
+
+        if lipid and ff and version:
+            if Topology.objects.filter(lipid=lipid,forcefield=ff,version=version).exclude(pk=self.instance.id).exists():
+                self.add_error('version', mark_safe('This version name is already taken by another topology entry for this lipid and forcefield.'))
+
+        if lipid and ff and 'itp_file' in self.files and 'gro_file' in self.files:
+            itp_file = self.files['itp_file']
+            gro_file = self.files['gro_file']
+            error, rand = gmxrun(lipid.name,ff.ff_file.url,ff.mdp_file.url,itp_file,gro_file)
+            if error:
+                #raise ValidationError('Topology file is not valid. See gromacs.log')
+                #logpath = os.path.join("media", "tmp", rand, "gromacs.log")
+                logpath = "/media/tmp/%s/gromacs.log" % rand
+                self.add_error('itp_file', mark_safe('Topology file is not valid. See <a class="text-success" href="%s">gromacs.log</a>' % logpath))
 
 
 class TopologyAdminForm(forms.ModelForm):

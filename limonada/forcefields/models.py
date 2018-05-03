@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from .choices import *
 
 
@@ -16,11 +17,17 @@ def validate_file_extension(value):
 
 
 def ff_path(instance, filename):
-    return 'forcefields/Gromacs/{0}.ff.zip'.format(instance.name)						
+    filepath = 'forcefields/Gromacs/{0}.ff.zip'.format(instance.name) 
+    if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
+       os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
+    return filepath
 
 
 def mdp_path(instance, filename):
-    return 'forcefields/Gromacs/{0}.mdp.zip'.format(instance.name)						
+    filepath = 'forcefields/Gromacs/{0}.mdp.zip'.format(instance.name) 
+    if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
+       os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
+    return filepath
 
 
 class Forcefield(models.Model):									

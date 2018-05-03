@@ -10,11 +10,9 @@ FFTYPE_CHOICES = (
 AMBER   = "AM"
 CHARMM  = "CH"
 GROMACS = "GR"
-NAMD    = "NA"
 SFTYPE_CHOICES = (
     (AMBER, 'Amber'),
     (CHARMM, 'Charmm'),
     (GROMACS, 'Gromacs'),
-    (NAMD, 'NAMD'),
 )
 

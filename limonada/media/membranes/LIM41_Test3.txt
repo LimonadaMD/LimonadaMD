@@ -1,6 +1,0 @@
-[ leaflet_1 ]
-      DPPC   36.5079
-      POPC    31.746
-
-[ leaflet_2 ]
-      DPPC       100

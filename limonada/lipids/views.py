@@ -85,13 +85,22 @@ def LI_index():
                 if lipid[2:l+2] == grp:
                    if grp in liindex.keys():
                        if int(liindex[grp][l+2:]) <= int(lipid[l+2:]): 
-                           liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
+                           if l == 4:
+                               liindex[grp] = "LI%s00%04d" % (grp,int(lipid[l+2:])+1) 
+                           else:
+                               liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
                        liid.remove(lipid)
                    else: 
-                       liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
+                       if l == 4:
+                           liindex[grp] = "LI%s00%04d" % (grp,int(lipid[l+2:])+1) 
+                       else:
+                           liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
                        liid.remove(lipid)
             if grp not in liindex.keys(): 
-                liindex[grp] = "LI%s%04d" % (grp,1)
+                if l == 4:
+                    liindex[grp] = "LI%s00%04d" % (grp,1)
+                else:
+                    liindex[grp] = "LI%s%04d" % (grp,1)
     return liindex
 
 
@@ -114,7 +123,7 @@ def LipList(request):
 
     lmclass, lmdict = LM_class() 
 
-    lipid_list = Lipid.objects.all()
+    lipid_list = Lipid.objects.all().order_by("lmid")
 
     params = request.GET.copy()
 
@@ -154,14 +163,14 @@ def LipList(request):
         else:
             lipheaders[sort] = "des"
 
-    per_page = 4
+    per_page = 25
     if 'per_page' in request.GET.keys():
         try:
             per_page = int(request.GET['per_page'])
         except:
-            per_page = 4
-    if per_page not in [4,10,25]:
-        per_page = 4
+            per_page = 25
+    if per_page not in [10,25,100]:
+        per_page = 25
     paginator = Paginator(lipid_list, per_page)
 
     page = request.GET.get('page')
@@ -271,6 +280,8 @@ def LipCreate(request):
             if not request.FILES and os.path.isfile(imgpath):
                 shutil.copy(imgpath, "media/lipids/%s.png" % lmid) 
                 lipid.img = "lipids/%s.png" % lmid 
+            else:
+                lipid.img = form_add.cleaned_data['img']
             if os.path.isfile(imgpath):
                 os.remove(imgpath)
             lipid.slug = slugify('%s' % (lmid), allow_unicode=True)
@@ -399,14 +410,14 @@ def TopList(request):
         else:
             topheaders[sort] = "des"
 
-    per_page = 4
+    per_page = 25
     if 'per_page' in request.GET.keys():
         try:
             per_page = int(request.GET['per_page'])
         except:
-            per_page = 4
-    if per_page not in [4,10,25]:
-        per_page = 4
+            per_page = 25
+    if per_page not in [10,25,100]:
+        per_page = 25
     paginator = Paginator(top_list, per_page)
 
     page = request.GET.get('page')

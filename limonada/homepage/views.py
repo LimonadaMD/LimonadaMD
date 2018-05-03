@@ -50,14 +50,14 @@ def RefList(request):
         else:
             headers[sort] = "des"
 
-    per_page = 4
+    per_page = 25
     if 'per_page' in request.GET.keys():
         try:
             per_page = int(request.GET['per_page'])
         except:
-            per_page = 4
-    if per_page not in [4,10,25]:
-        per_page = 4
+            per_page = 25
+    if per_page not in [10,25,100]:
+        per_page = 25
     paginator = Paginator(ref_list, per_page) 
 
     page = request.GET.get('page')

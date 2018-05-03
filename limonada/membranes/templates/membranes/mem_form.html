@@ -21,7 +21,7 @@
                 <div class="col">
                     {% if field.name == "mem_file" %}
                         <label class="custom-file">
-                            <input type="file" accept=".gro,.pdb" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" 
+                            <input type="file" accept=".gro" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" 
                                    onchange="$('#mem_filetext').text($(this).val().split('\\').slice(-1)[0]);readfile($(this));">
                             <span id="{{ field.name }}text" class="custom-file-control" style="width: 340px">{{ field.value|basename }}</span>
                         </label>
