@@ -9,3 +9,4 @@ requests
 openbabel
 gromacs
 fatslim
+django-verified-email-field

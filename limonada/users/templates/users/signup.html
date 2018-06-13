@@ -6,16 +6,26 @@
     <form method="post">
         {% csrf_token %}
         {% for field in form %}
-            <div class="row p-1">
+            <div class="row p-1 align-items-center">
                 <div class="col-1">
                 </div>
                 <div class="col-2">
                     {{ field.label_tag }}<br>
                 </div>
-                <div class="col">
-                    {{ field }}
+                <div class="col-4">
+                    {% if field.name == "utype" %}
+                        <select id="id_utype" name="utype" class="form-control">
+                            <option value="AC">Academic</option>
+                            <option value="CO">Commercial</option>
+                        </select>
+                    {% elif field.name == "password1" %}
+                        <input id="id_password1" name="password1" type="password" class="form-control" />
+                    {% elif field.name == "password2" %}
+                        <input id="id_password2" name="password2" type="password" class="form-control" />
+                    {% else %}
+                       {{ field }}
+                    {% endif %}
                     {% if field.help_text %}
-                        <br>
                         <small style="color: grey">{{ field.help_text|safe }}</small>
                     {% endif %}
                     {% for error in field.errors %}
@@ -34,5 +44,9 @@
         </div>
     </form>
     <br>
+{% endblock %}
+
+{% block script %}
+    {{ form.media.js }}
 {% endblock %}
 

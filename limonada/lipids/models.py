@@ -114,9 +114,9 @@ class Lipid(models.Model):
 
 class Topology(models.Model):                                       # If not in CG recommend use of CGtools  
 
-    software = models.CharField(max_length=2,
+    software = models.CharField(max_length=4,
                                 choices=SFTYPE_CHOICES,
-                                default=GROMACS)
+                                default=GROMACS50)
     forcefield = models.ForeignKey('forcefields.Forcefield', 
                                    on_delete=models.CASCADE)
     lipid = models.ForeignKey(Lipid,                                 

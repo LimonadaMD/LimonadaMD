@@ -1,0 +1,358 @@
+
+;************************************
+; When using these toplogies, please cite
+; F.J. van Eerden, D.H. de Jong, A.H. de Vries, T. A. Wassenaar, S.J. Marrink, Characterization of thylakoid lipid membranes from cyanobacteria and higher plants by molecular dynamics simulations, BBA-Biomembranes, 1848:1319–1330, 2015
+;http://dx.doi.org/10.1016/j.bbamem.2015.02.025
+;************************************
+
+
+;
+;	File 'topol.top' was generated
+;	By user: onbekend (0)
+;	On host: onbekend
+;	At date: Fri Oct  5 12:03:34 2012
+;
+;	This is a standalone topology file
+;
+;	It was generated using program:
+;	pdb2gmx - VERSION 4.5.5
+;
+;	Command line was:
+;	pdb2gmx -f POP.pdb 
+;
+;	Force field was read from current directory or a relative path - path added.
+;
+
+
+[ moleculetype ]
+; Name            nrexcl
+OPPG       3
+
+[ atoms ]
+;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
+; residue   1OPPG rtpOPPG  q  0.0
+     1        CH2      1   OPPG   CGS1      1       0.24     14.027   ; qtot 0.24
+     2         OE      1   OPPG   OGS1      2      -0.36    15.9994   ; qtot -0.12
+     3          C      1   OPPG   CES1      3       0.58     12.011   ; qtot 0.46
+     4          O      1   OPPG   OES1      4      -0.46    15.9994   ; qtot 0
+     5        CH2      1   OPPG   C102      5          0     14.027   ; qtot 0
+     6        CH2      1   OPPG   C103      6          0     14.027   ; qtot 0
+     7        CH2      1   OPPG   C104      7          0     14.027   ; qtot 0
+     8        CH2      1   OPPG   C105      8          0     14.027   ; qtot 0
+     9        CH2      1   OPPG   C106      9          0     14.027   ; qtot 0
+    10        CH2      1   OPPG   C107     10          0     14.027   ; qtot 0
+    11        CH2      1   OPPG   C108     11          0     14.027   ; qtot 0
+    12        CR1      1   OPPG   C109     12          0     13.019   ; qtot 0
+    13        CR1      1   OPPG   C110     13          0     13.019   ; qtot 0
+    14        CH2      1   OPPG   C111     14          0     14.027   ; qtot 0
+    15        CH2      1   OPPG   C112     15          0     14.027   ; qtot 0
+    16        CH2      1   OPPG   C113     16          0     14.027   ; qtot 0
+    17        CH2      1   OPPG   C114     17          0     14.027   ; qtot 0
+    18        CH2      1   OPPG   C115     18          0     14.027   ; qtot 0
+    19        CH2      1   OPPG   C116     19          0     14.027   ; qtot 0
+    20        CH2      1   OPPG   C117     20          0     14.027   ; qtot 0
+    21        CH3      1   OPPG   C118     21          0     15.035   ; qtot 0
+; residue   1OPPG rtpOPPG  q +0.2
+    22        CH1      1   OPPG   CGS2     22        0.2     13.019   ; qtot 0.2
+    23         OE      1   OPPG   OGS2     23       -0.4    15.9994   ; qtot -0.2
+    24          C      1   OPPG   CES2     24       0.58     12.011   ; qtot 0.38
+    25          O      1   OPPG   OES2     25      -0.46    15.9994   ; qtot -0.08
+    26        CH2      1   OPPG   C202     26          0     14.027   ; qtot -0.08
+    27        CH2      1   OPPG   C203     27          0     14.027   ; qtot -0.08
+    28        CH2      1   OPPG   C204     28          0     14.027   ; qtot -0.08
+    29        CH2      1   OPPG   C205     29          0     14.027   ; qtot -0.08
+    30        CH2      1   OPPG   C206     30          0     14.027   ; qtot -0.08
+    31        CH2      1   OPPG   C207     31          0     14.027   ; qtot -0.08
+    32        CH2      1   OPPG   C208     32          0     14.027   ; qtot -0.08
+    33        CH2      1   OPPG   C209     33          0     14.027   ; qtot -0.08
+    34        CH2      1   OPPG   C210     34          0     14.027   ; qtot -0.08
+    35        CH2      1   OPPG   C211     35          0     14.027   ; qtot -0.08
+    36        CH2      1   OPPG   C212     36          0     14.027   ; qtot -0.08
+    37        CH2      1   OPPG   C213     37          0     14.027   ; qtot -0.08
+    38        CH2      1   OPPG   C214     38          0     14.027   ; qtot -0.08
+    39        CH2      1   OPPG   C215     39          0     14.027   ; qtot -0.08
+    40        CH3      1   OPPG   C216     40          0     15.035   ; qtot -0.08
+    41        CH2      1   OPPG   CGS3     41       0.28     14.027   ; qtot 0.2
+; residue   1 PG  rtp PG   q -1.2
+    42         OE      1   OPPG   OGS3     42      -0.61    15.9994   ; qtot -0.41
+    43          P      1   OPPG    PPG     43       1.48    30.9738   ; qtot 1.07
+    44         OM      1   OPPG   OPG1     44      -0.88    15.9994   ; qtot 0.19
+    45         OM      1   OPPG   OPG2     45      -0.88    15.9994   ; qtot -0.69
+    46         OE      1   OPPG   OPG3     46      -0.61    15.9994   ; qtot -1.3
+    47        CH2      1   OPPG   CPG1     47       0.25     14.027   ; qtot -1.05
+    48        CH1      1   OPPG   CPG2     48       0.28     13.019   ; qtot -0.77
+    49         OA      1   OPPG   OPG4     49      -0.64    15.9994   ; qtot -1.41
+    50          H      1   OPPG   HPG4     50       0.41      1.008   ; qtot -1
+    51        CH2      1   OPPG   CPG3     51       0.23     14.027   ; qtot -0.77
+    52         OA      1   OPPG   OPG5     52      -0.64    15.9994   ; qtot -1.41
+    53          H      1   OPPG   HPG5     53       0.41      1.008   ; qtot -1
+
+[ bonds ]
+;  ai    aj funct            c0            c1            c2            c3
+    1     2     2    gb_18
+    1    22     2    gb_27
+    2     3     2    gb_13
+    3     4     2    gb_5
+    3     5     2    gb_27
+    5     6     2    gb_27
+    6     7     2    gb_27
+    7     8     2    gb_27
+    8     9     2    gb_27
+    9    10     2    gb_27
+   10    11     2    gb_27
+   11    12     2    gb_25
+   12    13     2    gb_10
+   13    14     2    gb_25
+   14    15     2    gb_27
+   15    16     2    gb_27
+   16    17     2    gb_27
+   17    18     2    gb_27
+   18    19     2    gb_27
+   19    20     2    gb_27
+   20    21     2    gb_27
+   22    23     2    gb_18
+   22    41     2    gb_27
+   23    24     2    gb_13
+   24    25     2    gb_5
+   24    26     2    gb_27
+   26    27     2    gb_27
+   27    28     2    gb_27
+   28    29     2    gb_27
+   29    30     2    gb_27
+   30    31     2    gb_27
+   31    32     2    gb_27
+   32    33     2    gb_27
+   33    34     2    gb_27
+   34    35     2    gb_27
+   35    36     2    gb_27
+   36    37     2    gb_27
+   37    38     2    gb_27
+   38    39     2    gb_27
+   39    40     2    gb_27
+   41    42     2    gb_18
+   42    43     2    gb_46
+   43    44     2    gb_24
+   43    45     2    gb_24
+   43    46     2    gb_46
+   46    47     2    gb_18
+   47    48     2    gb_27
+   48    49     2    gb_18
+   48    51     2    gb_27
+   49    50     2    gb_1
+   51    52     2    gb_18
+   52    53     2    gb_1
+
+[ pairs ]
+;  ai    aj funct            c0            c1            c2            c3
+    1     4     1 
+    1     5     1 
+    1    24     1 
+    1    42     1 
+    2     6     1 
+    2    23     1 
+    2    41     1 
+    3     7     1 
+    3    22     1 
+    4     6     1 
+    5     8     1 
+    6     9     1 
+    7    10     1 
+    8    11     1 
+    9    12     1 
+   10    13     1 
+   11    14     1 
+   12    15     1 
+   13    16     1 
+   14    17     1 
+   15    18     1 
+   16    19     1 
+   17    20     1 
+   18    21     1 
+   22    25     1 
+   22    26     1 
+   22    43     1 
+   23    27     1 
+   23    42     1 
+   24    28     1 
+   24    41     1 
+   25    27     1 
+   26    29     1 
+   27    30     1 
+   28    31     1 
+   29    32     1 
+   30    33     1 
+   31    34     1 
+   32    35     1 
+   33    36     1 
+   34    37     1 
+   35    38     1 
+   36    39     1 
+   37    40     1 
+   41    44     1 
+   41    45     1 
+   41    46     1 
+   42    47     1 
+   43    48     1 
+   44    47     1 
+   45    47     1 
+   46    49     1 
+   46    51     1 
+   47    50     1 
+   47    52     1 
+   48    53     1 
+   49    52     1 
+   50    51     1 
+
+[ angles ]
+;  ai    aj    ak funct            c0            c1            c2            c3
+    2     1    22     2    ga_13
+    1     2     3     2    ga_12
+    2     3     4     2    ga_33
+    2     3     5     2    ga_19
+    4     3     5     2    ga_30
+    3     5     6     2    ga_15
+    5     6     7     2    ga_15
+    6     7     8     2    ga_15
+    7     8     9     2    ga_15
+    8     9    10     2    ga_15
+    9    10    11     2    ga_15
+   10    11    12     2    ga_16
+   11    12    13     2    ga_33
+   12    13    14     2    ga_33
+   13    14    15     2    ga_16
+   14    15    16     2    ga_15
+   15    16    17     2    ga_15
+   16    17    18     2    ga_15
+   17    18    19     2    ga_15
+   18    19    20     2    ga_15
+   19    20    21     2    ga_15
+    1    22    23     2    ga_13
+    1    22    41     2    ga_13
+   23    22    41     2    ga_13
+   22    23    24     2    ga_12
+   23    24    25     2    ga_33
+   23    24    26     2    ga_19
+   25    24    26     2    ga_30
+   24    26    27     2    ga_15
+   26    27    28     2    ga_15
+   27    28    29     2    ga_15
+   28    29    30     2    ga_15
+   29    30    31     2    ga_15
+   30    31    32     2    ga_15
+   31    32    33     2    ga_15
+   32    33    34     2    ga_15
+   33    34    35     2    ga_15
+   34    35    36     2    ga_15
+   35    36    37     2    ga_15
+   36    37    38     2    ga_15
+   37    38    39     2    ga_15
+   38    39    40     2    ga_15
+   22    41    42     2    ga_13
+   41    42    43     2    ga_12
+   42    43    44     2    ga_14
+   42    43    45     2    ga_14
+   42    43    46     2    ga_1
+   44    43    45     2    ga_29
+   44    43    46     2    ga_14
+   45    43    46     2    ga_14
+   43    46    47     2    ga_12
+   46    47    48     2    ga_13
+   47    48    49     2    ga_13
+   47    48    51     2    ga_13
+   49    48    51     2    ga_13
+   48    49    50     2    ga_12
+   48    51    52     2    ga_13
+   51    52    53     2    ga_12
+
+[ dihedrals ]
+;  ai    aj    ak    al funct            c0            c1            c2            c3            c4            c5
+   22     1     2     3     1    gd_8
+    2     1    22    23     1    gd_19
+    2     1    22    23     1    gd_35
+    2     1    22    23     1    0.0  11.0  1
+    1     2     3     5     1    gd_13
+    2     3     5     6     1    gd_40
+    3     5     6     7     1    gd_34
+    5     6     7     8     1    gd_34
+    6     7     8     9     1    gd_34
+    7     8     9    10     1    gd_34
+    8     9    10    11     1    gd_34
+    9    10    11    12     1    gd_34
+   10    11    12    13     1    gd_53
+   10    11    12    13     1    gd_54
+   10    11    12    13     1    gd_55
+   11    12    13    14     1    gd_52
+   12    13    14    15     1    gd_53
+   12    13    14    15     1    gd_54
+   12    13    14    15     1    gd_55
+   13    14    15    16     1    gd_34
+   14    15    16    17     1    gd_34
+   15    16    17    18     1    gd_34
+   16    17    18    19     1    gd_34
+   17    18    19    20     1    gd_34
+   18    19    20    21     1    gd_34
+    1    22    23    24     1    gd_8
+   23    22    41    42     1    gd_18
+   22    23    24    26     1    gd_13
+   23    24    26    27     1    gd_40
+   24    26    27    28     1    gd_34
+   26    27    28    29     1    gd_34
+   27    28    29    30     1    gd_34
+   28    29    30    31     1    gd_34
+   29    30    31    32     1    gd_34
+   30    31    32    33     1    gd_34
+   31    32    33    34     1    gd_34
+   32    33    34    35     1    gd_34
+   33    34    35    36     1    gd_34
+   34    35    36    37     1    gd_34
+   35    36    37    38     1    gd_34
+   36    37    38    39     1    gd_34
+   37    38    39    40     1    gd_34
+   22    41    42    43     1    gd_23
+   41    42    43    46     1    gd_8
+   41    42    43    46     1    gd_19
+   41    42    43    46     1    gd_22
+   42    43    46    47     1    gd_8
+   42    43    46    47     1    gd_19
+   42    43    46    47     1    gd_22
+   43    46    47    48     1    gd_23
+   46    47    48    49     1    gd_18
+   47    48    49    50     1    gd_18
+   47    48    51    52     1    gd_18
+   48    51    52    53     1    gd_18
+
+[ dihedrals ]
+;  ai    aj    ak    al funct            c0            c1            c2            c3
+    3     2     5     4     2    gi_1
+   22     1    41    23     2    gi_2
+   24    23    26    25     2    gi_1
+   48    47    51    49     2    gi_2
+
+;[ mapping ]
+;
+;1	47	48	49	50	51	52	53
+;2	42	43	44	45	46	
+;3	22	23	24	25	41
+;4	1	2	3	4
+;5	26	27	28	29
+;6	30	31	32	33
+;7	34	35	36	37
+;8	38	39	40	
+;9	5	6	7	8	9
+;10	10	11	12	13	
+;11	14	15	16	17	
+;12	18	19	20	21	
+	
+
+; Include Position restraint file
+;#ifdef POSRES
+;#include "posre.itp"
+;#endif
+
+;[ system ]
+; Name
+;POP (PG-Oleoyl-Palmitoyl) lipid
+
+;[ molecules ]
+; Compound        #mols
+;Other_chain_A       1

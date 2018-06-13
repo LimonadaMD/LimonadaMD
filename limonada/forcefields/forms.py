@@ -17,7 +17,7 @@ class ForcefieldForm(forms.ModelForm):
     mdp_file           = forms.FileField(label="Parameters files")
                                          #help_text="Use a zip file containing the mdps for the version X of Gromacs as in <link>")
     software           = forms.ChoiceField(choices=SFTYPE_CHOICES,
-                                           initial="GR",
+                                           initial="GR50",
                                            widget=Select(attrs={'style': 'width: 340px'}))
     description        = forms.CharField(widget=Textarea(attrs={'style': 'width: 340px'}),
                                          required=False)

@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
-from .views import MemList, MemCreate, MemDelete, MemUpdate, GetLipTops, MembraneTagAutocomplete
+from .views import MemList, MemCreate, MemDelete, MemUpdate, GetLipTops, GetFiles, MembraneTagAutocomplete
 from .forms import MemFormSet
 
 urlpatterns = [
@@ -9,5 +9,7 @@ urlpatterns = [
     url(r'^membranes/(?P<pk>\w+)/update/$', MemUpdate, name='memupdate'),
     url(r'^membranes/(?P<pk>\w+)/delete/$', login_required(MemDelete.as_view()), name='memdelete'),
     url(r'^getliptops/$', GetLipTops, name='getliptops'),
-    url(r'^tag-autocomplete/$', MembraneTagAutocomplete.as_view(create_field='tag'), name='membranetagautocomplete'),
+    url(r'^getfiles/$', GetFiles, name='getfiles'),
+    url(r'^membranetag-autocomplete/$', MembraneTagAutocomplete.as_view(create_field='tag'), name='membranetagautocomplete'),
+    url(r'^tag-autocomplete/$', MembraneTagAutocomplete.as_view(), name='tag-autocomplete'),
 ]

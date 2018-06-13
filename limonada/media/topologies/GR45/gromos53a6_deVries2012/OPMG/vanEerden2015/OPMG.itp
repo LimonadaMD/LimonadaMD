@@ -1,0 +1,413 @@
+
+;************************************
+; When using these toplogies, please cite
+; F.J. van Eerden, D.H. de Jong, A.H. de Vries, T. A. Wassenaar, S.J. Marrink, Characterization of thylakoid lipid membranes from cyanobacteria and higher plants by molecular dynamics simulations, BBA-Biomembranes, 1848:1319–1330, 2015
+;http://dx.doi.org/10.1016/j.bbamem.2015.02.025
+;************************************
+;
+;	File 'topol.top' was generated
+;	By user: onbekend (0)
+;	On host: onbekend
+;	At date: Fri Oct  5 12:16:51 2012
+;
+;	This is a standalone topology file
+;
+;	It was generated using program:
+;	pdb2gmx - VERSION 4.5.5
+;
+;	Command line was:
+;	pdb2gmx -f MOP.pdb 
+;
+;	Force field was read from current directory or a relative path - path added.
+;
+
+;To prevent excessive spinning of hydrogens in the sugar alcohol groups, 3 u was transferred from the oxygen to the hydrogen in this group, giving rise to an oxygen mass of 12.9994 u and a hydrogen mass of 4.008 u.
+
+[ moleculetype ]
+; Name            nrexcl
+OPMG        3
+
+[ atoms ]
+;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
+; residue   1OPMG rtpOPMG  q  0.0
+     1        CH2      1   OPMG   CGS1      1       0.24     14.027   ; qtot 0.24
+     2         OE      1   OPMG   OGS1      2      -0.36    15.9994   ; qtot -0.12
+     3          C      1   OPMG   CES1      3       0.58     12.011   ; qtot 0.46
+     4          O      1   OPMG   OES1      4      -0.46    15.9994   ; qtot 0
+     5        CH2      1   OPMG   C102      5          0     14.027   ; qtot 0
+     6        CH2      1   OPMG   C103      6          0     14.027   ; qtot 0
+     7        CH2      1   OPMG   C104      7          0     14.027   ; qtot 0
+     8        CH2      1   OPMG   C105      8          0     14.027   ; qtot 0
+     9        CH2      1   OPMG   C106      9          0     14.027   ; qtot 0
+    10        CH2      1   OPMG   C107     10          0     14.027   ; qtot 0
+    11        CH2      1   OPMG   C108     11          0     14.027   ; qtot 0
+    12        CR1      1   OPMG   C109     12          0     13.019   ; qtot 0
+    13        CR1      1   OPMG   C110     13          0     13.019   ; qtot 0
+    14        CH2      1   OPMG   C111     14          0     14.027   ; qtot 0
+    15        CH2      1   OPMG   C112     15          0     14.027   ; qtot 0
+    16        CH2      1   OPMG   C113     16          0     14.027   ; qtot 0
+    17        CH2      1   OPMG   C114     17          0     14.027   ; qtot 0
+    18        CH2      1   OPMG   C115     18          0     14.027   ; qtot 0
+    19        CH2      1   OPMG   C116     19          0     14.027   ; qtot 0
+    20        CH2      1   OPMG   C117     20          0     14.027   ; qtot 0
+    21        CH3      1   OPMG   C118     21          0     15.035   ; qtot 0
+; residue   1OPMG rtpOPMG  q +0.2
+    22        CH1      1   OPMG   CGS2     22        0.2     13.019   ; qtot 0.2
+    23         OE      1   OPMG   OGS2     23       -0.4    15.9994   ; qtot -0.2
+    24          C      1   OPMG   CES2     24       0.58     12.011   ; qtot 0.38
+    25          O      1   OPMG   OES2     25      -0.46    15.9994   ; qtot -0.08
+    26        CH2      1   OPMG   C202     26          0     14.027   ; qtot -0.08
+    27        CH2      1   OPMG   C203     27          0     14.027   ; qtot -0.08
+    28        CH2      1   OPMG   C204     28          0     14.027   ; qtot -0.08
+    29        CH2      1   OPMG   C205     29          0     14.027   ; qtot -0.08
+    30        CH2      1   OPMG   C206     30          0     14.027   ; qtot -0.08
+    31        CH2      1   OPMG   C207     31          0     14.027   ; qtot -0.08
+    32        CH2      1   OPMG   C208     32          0     14.027   ; qtot -0.08
+    33        CH2      1   OPMG   C209     33          0     14.027   ; qtot -0.08
+    34        CH2      1   OPMG   C210     34          0     14.027   ; qtot -0.08
+    35        CH2      1   OPMG   C211     35          0     14.027   ; qtot -0.08
+    36        CH2      1   OPMG   C212     36          0     14.027   ; qtot -0.08
+    37        CH2      1   OPMG   C213     37          0     14.027   ; qtot -0.08
+    38        CH2      1   OPMG   C214     38          0     14.027   ; qtot -0.08
+    39        CH2      1   OPMG   C215     39          0     14.027   ; qtot -0.08
+    40        CH3      1   OPMG   C216     40          0     15.035   ; qtot -0.08
+    41        CH2      1   OPMG   CGS3     41       0.28     14.027   ; qtot 0.2
+; residue   1 OPMG rtp OPMG q -0.2
+    42         OA      1   OPMG     O4     42     -0.642    12.9994   ; qtot -0.442
+    43          H      1   OPMG    HO4     43       0.41      4.008   ; qtot -0.032
+    44        CH1      1   OPMG     C4     44      0.232     13.019   ; qtot 0.2
+    45        CH1      1   OPMG     C3     45      0.232     13.019   ; qtot 0.432
+    46         OA      1   OPMG     O3     46     -0.642    12.9994   ; qtot -0.21
+    47          H      1   OPMG    HO3     47       0.41      4.008   ; qtot 0.2
+    48        CH1      1   OPMG     C2     48      0.232     13.019   ; qtot 0.432
+    49         OA      1   OPMG     O2     49     -0.642    12.9994   ; qtot -0.21
+    50          H      1   OPMG    HO2     50       0.41      4.008   ; qtot 0.2
+    51        CH2      1   OPMG     C6     51      0.232     14.027   ; qtot 0.432
+    52         OA      1   OPMG     O6     52     -0.642    12.9994   ; qtot -0.21
+    53          H      1   OPMG    HO6     53       0.41      4.008   ; qtot 0.2
+    54        CH1      1   OPMG     C5     54      0.376     13.019   ; qtot 0.576
+    55         OA      1   OPMG     O5     55      -0.48    15.9994   ; qtot 0.096
+    56        CH1      1   OPMG     C1     56      0.232     13.019   ; qtot 0.328
+    57         OA      1   OPMG     O1     57     -0.328    15.9994   ; qtot 0
+
+[ bonds ]
+;  ai    aj funct            c0            c1            c2            c3
+    1     2     2    gb_18
+    1    22     2    gb_27
+    2     3     2    gb_13
+    3     4     2    gb_5
+    3     5     2    gb_27
+    5     6     2    gb_27
+    6     7     2    gb_27
+    7     8     2    gb_27
+    8     9     2    gb_27
+    9    10     2    gb_27
+   10    11     2    gb_27
+   11    12     2    gb_25
+   12    13     2    gb_10
+   13    14     2    gb_25
+   14    15     2    gb_27
+   15    16     2    gb_27
+   16    17     2    gb_27
+   17    18     2    gb_27
+   18    19     2    gb_27
+   19    20     2    gb_27
+   20    21     2    gb_27
+   22    23     2    gb_18
+   22    41     2    gb_27
+   23    24     2    gb_13
+   24    25     2    gb_5
+   24    26     2    gb_27
+   26    27     2    gb_27
+   27    28     2    gb_27
+   28    29     2    gb_27
+   29    30     2    gb_27
+   30    31     2    gb_27
+   31    32     2    gb_27
+   32    33     2    gb_27
+   33    34     2    gb_27
+   34    35     2    gb_27
+   35    36     2    gb_27
+   36    37     2    gb_27
+   37    38     2    gb_27
+   38    39     2    gb_27
+   39    40     2    gb_27
+   41    57     2    gb_20
+   42    43     2    gb_1
+   42    44     2    gb_20
+   44    45     2    gb_26
+   44    54     2    gb_26
+   45    46     2    gb_20
+   45    48     2    gb_26
+   46    47     2    gb_1
+   48    49     2    gb_20
+   48    56     2    gb_26
+   49    50     2    gb_1
+   51    52     2    gb_20
+   51    54     2    gb_26
+   52    53     2    gb_1
+   54    55     2    gb_20
+   55    56     2    gb_20
+   56    57     2    gb_20
+
+[ pairs ]
+;  ai    aj funct            c0            c1            c2            c3
+    1     4     1 
+    1     5     1 
+    1    24     1 
+    1    57     1 
+    2     6     1 
+    2    23     1 
+    2    41     1 
+    3     7     1 
+    3    22     1 
+    4     6     1 
+    5     8     1 
+    6     9     1 
+    7    10     1 
+    8    11     1 
+    9    12     1 
+   10    13     1 
+   11    14     1 
+   12    15     1 
+   13    16     1 
+   14    17     1 
+   15    18     1 
+   16    19     1 
+   17    20     1 
+   18    21     1 
+   22    25     1 
+   22    26     1 
+   22    56     1 
+   23    27     1 
+   23    57     1 
+   24    28     1 
+   24    41     1 
+   25    27     1 
+   26    29     1 
+   27    30     1 
+   28    31     1 
+   29    32     1 
+   30    33     1 
+   31    34     1 
+   32    35     1 
+   33    36     1 
+   34    37     1 
+   35    38     1 
+   36    39     1 
+   37    40     1 
+   41    48     1 
+   41    55     1 
+   42    46     1 
+   42    48     1 
+   42    51     1 
+   42    55     1 
+   43    45     1 
+   43    54     1 
+   44    47     1 
+   44    49     1 
+   44    52     1 
+   44    56     1 
+   45    50     1 
+   45    51     1 
+   45    55     1 
+   45    57     1 
+   46    49     1 
+   46    54     1 
+   46    56     1 
+   47    48     1 
+   48    54     1 
+   49    55     1 
+   49    57     1 
+   50    56     1 
+   51    56     1 
+   52    55     1 
+   53    54     1 
+   54    57     1 
+
+[ angles ]
+;  ai    aj    ak funct            c0            c1            c2            c3
+    2     1    22     2    ga_13
+    1     2     3     2    ga_12
+    2     3     4     2    ga_33
+    2     3     5     2    ga_19
+    4     3     5     2    ga_30
+    3     5     6     2    ga_15
+    5     6     7     2    ga_15
+    6     7     8     2    ga_15
+    7     8     9     2    ga_15
+    8     9    10     2    ga_15
+    9    10    11     2    ga_15
+   10    11    12     2    ga_16
+   11    12    13     2    ga_33
+   12    13    14     2    ga_33
+   13    14    15     2    ga_16
+   14    15    16     2    ga_15
+   15    16    17     2    ga_15
+   16    17    18     2    ga_15
+   17    18    19     2    ga_15
+   18    19    20     2    ga_15
+   19    20    21     2    ga_15
+    1    22    23     2    ga_13
+    1    22    41     2    ga_13
+   23    22    41     2    ga_13
+   22    23    24     2    ga_12
+   23    24    25     2    ga_33
+   23    24    26     2    ga_19
+   25    24    26     2    ga_30
+   24    26    27     2    ga_15
+   26    27    28     2    ga_15
+   27    28    29     2    ga_15
+   28    29    30     2    ga_15
+   29    30    31     2    ga_15
+   30    31    32     2    ga_15
+   31    32    33     2    ga_15
+   32    33    34     2    ga_15
+   33    34    35     2    ga_15
+   34    35    36     2    ga_15
+   35    36    37     2    ga_15
+   36    37    38     2    ga_15
+   37    38    39     2    ga_15
+   38    39    40     2    ga_15
+   22    41    57     2    ga_13
+   43    42    44     2    ga_12
+   42    44    45     2    ga_9
+   42    44    54     2    ga_9
+   45    44    54     2    ga_8
+   44    45    46     2    ga_9
+   44    45    48     2    ga_8
+   46    45    48     2    ga_9
+   45    46    47     2    ga_12
+   45    48    49     2    ga_9
+   45    48    56     2    ga_8
+   49    48    56     2    ga_9
+   48    49    50     2    ga_12
+   52    51    54     2    ga_9
+   51    52    53     2    ga_12
+   44    54    51     2    ga_8
+   44    54    55     2    ga_9
+   51    54    55     2    ga_9
+   54    55    56     2    ga_10
+   48    56    55     2    ga_9
+   48    56    57     2    ga_9
+   55    56    57     2    ga_9
+   41    57    56     2    ga_10
+
+[ dihedrals ]
+;  ai    aj    ak    al funct            c0            c1            c2            c3            c4            c5
+   22     1     2     3     1    gd_8
+    2     1    22    23     1    gd_19
+    2     1    22    23     1    gd_35
+    2     1    22    23     1    0.0  11.0  1
+    1     2     3     5     1    gd_13
+    2     3     5     6     1    gd_40
+    3     5     6     7     1    gd_34
+    5     6     7     8     1    gd_34
+    6     7     8     9     1    gd_34
+    7     8     9    10     1    gd_34
+    8     9    10    11     1    gd_34
+    9    10    11    12     1    gd_34
+   10    11    12    13     1    gd_53
+   10    11    12    13     1    gd_54
+   10    11    12    13     1    gd_55
+   11    12    13    14     1    gd_52
+   12    13    14    15     1    gd_53
+   12    13    14    15     1    gd_54
+   12    13    14    15     1    gd_55
+   13    14    15    16     1    gd_34
+   14    15    16    17     1    gd_34
+   15    16    17    18     1    gd_34
+   16    17    18    19     1    gd_34
+   17    18    19    20     1    gd_34
+   18    19    20    21     1    gd_34
+    1    22    23    24     1    gd_8
+    1    22    41    57     1    gd_8
+   22    23    24    26     1    gd_13
+   23    24    26    27     1    gd_40
+   24    26    27    28     1    gd_34
+   26    27    28    29     1    gd_34
+   27    28    29    30     1    gd_34
+   28    29    30    31     1    gd_34
+   29    30    31    32     1    gd_34
+   30    31    32    33     1    gd_34
+   31    32    33    34     1    gd_34
+   32    33    34    35     1    gd_34
+   33    34    35    36     1    gd_34
+   34    35    36    37     1    gd_34
+   35    36    37    38     1    gd_34
+   36    37    38    39     1    gd_34
+   37    38    39    40     1    gd_34
+   22    41    57    56     1    gd_29
+   43    42    44    45     1    gd_30
+   42    44    45    46     1    gd_18
+   42    44    45    48     1    gd_17
+   54    44    45    46     1    gd_17
+   54    44    45    48     1    gd_34
+   42    44    54    51     1    gd_17
+   45    44    54    55     1    gd_17
+   45    44    54    55     1    gd_34
+   48    45    46    47     1    gd_30
+   44    45    48    49     1    gd_17
+   44    45    48    56     1    gd_34
+   46    45    48    49     1    gd_18
+   46    45    48    56     1    gd_17
+   56    48    49    50     1    gd_30
+   45    48    56    55     1    gd_17
+   45    48    56    55     1    gd_34
+   45    48    56    57     1    gd_17
+   49    48    56    57     1    gd_18
+   54    51    52    53     1    gd_30
+   52    51    54    55     1    gd_5
+   52    51    54    55     1    gd_37
+   44    54    55    56     1    gd_29
+   54    55    56    48     1    gd_29
+   55    56    57    41     1    gd_2
+   55    56    57    41     1    gd_32
+
+[ dihedrals ]
+;  ai    aj    ak    al funct            c0            c1            c2            c3
+    3     2     5     4     2    gi_1
+   22     1    41    23     2    gi_2
+   24    23    26    25     2    gi_1
+   44    48    46    45     2    gi_2
+   44    42    45    54     2    gi_2
+   44    51    55    54     2    gi_2
+   48    49    45    56     2    gi_2
+   48    55    57    56     2    gi_2
+
+[ dihedral_restraints ]
+43      44      47      50      1  1  300  0  1  2 ; C1 C2 C3 C4
+44      47      50      53      1  1   60  0  1  2 ; C2 C3 C4 C5
+47      50      53      54      1  1  300  0  1  2 ; C3 C4 C5 O5
+50      53      54      43      1  1   60  0  1  2 ; C4 C5 O5 C1
+
+
+
+;[ mapping ]
+;
+;1	42	43	44	45	46	47
+;2	51	52	53	54	55	
+;3	48	49	50	56	57	
+;4	22	23	24	25	41
+;5	1	2	3	4
+;6	26	27	28	29
+;7	30	31	32	33
+;8	34	35	36	37
+;9	38	39	40	
+;10	5	6	7	8	9
+;11	10	11	12	13	
+;12	14	15	16	17	
+;13	18	19	20	21	
+
+; Include Position restraint file
+;#ifdef POSRES
+;#include "posre.itp"
+;#endif
+
+;[ system ]
+; Name
+;MOP (MGDG-Oleoyl-Palmitoyl) lipid
+
+;[ molecules ]
+; Compound        #mols
+;Other_chain_A       1

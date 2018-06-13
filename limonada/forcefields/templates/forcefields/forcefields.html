@@ -17,8 +17,8 @@
                 </div>
             {% endif %}
         </div>
+        <br><i><b>N.B.:</b> If you use the following files in your work, please cite the primary source. (see Description field)</i>
     </div>
-    <br>
     <div class="container">
         <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
             <div class="col-2 align-self-start">
@@ -112,10 +112,6 @@
                                                 {{ reference.title }}<br>
                                             {% endfor %}
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-2"><strong>Curator:</strong></div>
-                                        <div class="col-10"><a class="text-success" href={% url 'userdetail' forcefield.curator.pk %}>{{ forcefield.curator.get_full_name }}</a> on {{ forcefield.date }}</div>
                                     </div>
                                 </td>
                                 <td></td>

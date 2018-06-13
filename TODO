@@ -1,16 +1,6 @@
 Search query instead of icontains
 	https://docs.djangoproject.com/en/1.11/releases/1.10/#search-lookup-replacement
 
-When the user is not the curator, redirect to a page allowing to send an email to the current curator 
-	with a description of the problem and the possibility to change the curator 
-
-Register a domain and implement an email service (Who is paying? Where will be the website?)
-	https://simpleisbetterthancomplex.com/tutorial/2016/06/13/how-to-send-email.html
-	https://simpleisbetterthancomplex.com/tutorial/2016/09/19/how-to-create-password-reset-view.html
-	https://pythonprogramming.net/django-web-server-publish-tutorial/?completed=/finished-blog-django-python-tutorial/
-
-Where to put the website? (DigitalOcean before builder?)
-
 Limit access to Update and delete views to curators in views.py with decorators
 
 Replace Version field of Topology by the refid or the request.user and the date ...
@@ -19,21 +9,27 @@ Potential problem with the size of objects passed as context (change LM_class an
 
 Concatenate a file with all topologies per forcefield that can be downloaded from forcefield page
 
-Limit the lipid name to 4 or max length to 5 (gro)?
-
-Problem with delete membrane files
-
 Add biophisical parameters according to membrane composition
 
 Problem with info box, disappear when the mouse move and cannot click on ref link or copy text
 
-Color LI links in orange in the lipid table (put LI entries at the end or without taking LM/LI into account)
+Arrange lipid entries according to their lmid (without taking LM/LI into account)
 
 Cron job to remove old files in media/tmp
 
 Add infobox for top and mem forms
 
-Add field for the selection of membranes
+Prob with lipid image when zoom, picture out of the grid
+
+Prob with lipid pictures, the picture used at creation cannot be replaced, except by changing ext ...
+
+Move top files when Software of forcefield change, add check
+
+Change membrane file name if name field is updated
+
+Remove space in file names?
+
+
 
 
 

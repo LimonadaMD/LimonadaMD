@@ -1,4 +1,5 @@
-from django.shortcuts import render
+# -*- coding: utf-8 -*-
+from django.shortcuts import render, redirect
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -15,6 +16,7 @@ from forcefields.models import Forcefield
 from membranes.models import Membrane
 import json, requests, string, re, urllib
 from dal import autocomplete
+from django.core.mail import send_mail
 
 
 def homepage(request):
@@ -260,11 +262,19 @@ def mail(request):
     if request.method == 'POST':
         form = MailForm(request.POST)
         if form.is_valid():
-            test = ""
-            return render(request, 'homepage/mail.html', data)
+            #send_mail(subject, comment, 'limonada@limonadamd.eu', [email,])
+            send_mail(subject, comment, settings.VERIFIED_EMAIL_MAIL_FROM, [email,])
+            if 'lipid' in request.GET.keys():
+                return redirect('liplist')
+            if 'topid' in request.GET.keys():
+                return redirect('toplist')
+            if 'ffid' in request.GET.keys():
+                return redirect('fflist')
+            if 'memid' in request.GET.keys():
+                return redirect('memlist')
+            if 'refid' in request.GET.keys():
+                return redirect('reflist')
     return render(request, 'homepage/mail.html', data)
-
-
 
 
 

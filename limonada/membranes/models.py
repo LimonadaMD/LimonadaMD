@@ -39,9 +39,12 @@ class MembraneTopol(models.Model):
                                 validators=[validate_file_extension],
                                 blank=True, 
                                 null=True)
-    software = models.CharField(max_length=2,
+    compo_file = models.FileField(upload_to=directory_path,		
+                                  blank=True, 
+                                  null=True)
+    software = models.CharField(max_length=4,
                                 choices=SFTYPE_CHOICES,
-                                default=GROMACS)
+                                default=GROMACS50)
     forcefield = models.ForeignKey('forcefields.Forcefield',                     
                                    on_delete=models.CASCADE)
     nb_lipids = models.PositiveIntegerField(null=True) 
@@ -135,5 +138,7 @@ def _delete_file(path):
 def delete_file_pre_delete_mem(sender, instance, *args, **kwargs):
     if instance.mem_file:
          _delete_file(instance.mem_file.path)
+    if instance.compo_file:
+         _delete_file(instance.compo_file.path)
 
 

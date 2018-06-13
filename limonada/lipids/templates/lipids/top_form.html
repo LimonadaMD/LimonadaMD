@@ -33,7 +33,7 @@
                         {% if form.software.value %}
                             {% query ffs software=form.software.value as ffobjects %}
                         {% else %}
-                            {% query ffs software="GR" as ffobjects %}
+                            {% query ffs software="GR50" as ffobjects %}
                         {% endif %}
                         {% for ff in ffobjects %}
                             {% if form.forcefield.value %}

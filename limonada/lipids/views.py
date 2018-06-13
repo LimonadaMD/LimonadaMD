@@ -38,7 +38,7 @@ def molsize(filename):
     for j in range(4,nb+4):
         X.append(float(mol[j].split()[0]))
         Y.append(float(mol[j].split()[1]))
-        rotmol.write(" %s%s %s" % (mol[j][11:20],mol[j][0:10],mol[j][21:]))
+        rotmol.write("%10.4f%s %s" % (-float(mol[j][11:20]),mol[j][0:10],mol[j][21:]))
     for line in mol[j+1:]:
         rotmol.write("%s" % line)
     rotmol.close()
@@ -81,26 +81,18 @@ def LI_index():
     for grp in lmdict.keys():
         if grp not in lmclass.keys(): 
             l = len(grp)
+            if l == 4:
+                liindex[grp] = "LI%s00%04d" % (grp,1)
+            else:
+                liindex[grp] = "LI%s%04d" % (grp,1)
             for lipid in liid:
                 if lipid[2:l+2] == grp:
-                   if grp in liindex.keys():
-                       if int(liindex[grp][l+2:]) <= int(lipid[l+2:]): 
-                           if l == 4:
-                               liindex[grp] = "LI%s00%04d" % (grp,int(lipid[l+2:])+1) 
-                           else:
-                               liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
-                       liid.remove(lipid)
-                   else: 
+                   if int(liindex[grp][l+2:]) <= int(lipid[l+2:]): 
+                       print grp
                        if l == 4:
                            liindex[grp] = "LI%s00%04d" % (grp,int(lipid[l+2:])+1) 
                        else:
                            liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
-                       liid.remove(lipid)
-            if grp not in liindex.keys(): 
-                if l == 4:
-                    liindex[grp] = "LI%s00%04d" % (grp,1)
-                else:
-                    liindex[grp] = "LI%s%04d" % (grp,1)
     return liindex
 
 
@@ -123,7 +115,7 @@ def LipList(request):
 
     lmclass, lmdict = LM_class() 
 
-    lipid_list = Lipid.objects.all().order_by("lmid")
+    lipid_list = Lipid.objects.all().order_by("main_class")
 
     params = request.GET.copy()
 
@@ -224,11 +216,8 @@ def LipCreate(request):
             args = shlex.split("obabel %s.mol -O %s.png -xC -xh 1200 -xw 1000 -x0 molfile -xd --title" % (filename,filename))
             process = subprocess.Popen(args, stdout=subprocess.PIPE)
             process.communicate()
-            if 'com_name' in lm_data.keys():
-                lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name=lm_data['com_name'], img="tmp/%s.png" % lm_data['lmid'])
-            else:
-                lipid = Lipid(name="temp", lmid=lm_data['lmid'], com_name="temp", img="tmp/%s.png" % lm_data['lmid'])
-            file_data = { 'img': lipid.img }
+            f = file("media/tmp/%s.png" % lm_data['lmid'])
+            file_data = {'img':SimpleUploadedFile(f.name,f.read())}
             if os.path.isfile("%s_rot.mol" % filename): 
                 os.remove("%s_rot.mol" % filename)
             if os.path.isfile("%s.mol" % filename): 
@@ -305,6 +294,7 @@ def LipUpdate(request, slug=None):
                 name = form_add.cleaned_data['name']
                 lmid = form_add.cleaned_data['lmid']
                 com_name = form_add.cleaned_data['com_name']
+                lipid.img = form_add.cleaned_data['img']
                 lipid.search_name = '%s - %s - %s' % (name,lmid,com_name)
                 lipid.slug = slugify('%s' % (lmid), allow_unicode=True)
                 lipid.save()
@@ -464,6 +454,7 @@ class TopCreate(CreateView):
         context_data = super(TopCreate, self).get_context_data(**kwargs)
         context_data['ffs'] = Forcefield.objects.all()
         context_data['sf_ff'] = sf_ff_dict() 
+        context_data['sfchoices'] = SFTYPE_CHOICES
         context_data['topologies'] = True
         context_data['topcreate'] = True
         return context_data

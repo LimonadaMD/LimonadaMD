@@ -90,7 +90,7 @@ class SelectLipidForm(forms.Form):
 class TopologyForm(forms.ModelForm):
 
     software     = forms.ChoiceField(choices=SFTYPE_CHOICES,
-                                     initial="GR",  
+                                     initial="GR50",  
                                      widget=Select(attrs={'style': 'width: 340px'}))
     itp_file     = forms.FileField(label="Topology file")
     gro_file     = forms.FileField(label="Structure file")
@@ -125,6 +125,7 @@ class TopologyForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(TopologyForm, self).clean()
+        software = cleaned_data.get("software")
         ff = cleaned_data.get("forcefield")
         lipid = cleaned_data.get("lipid")
         version = cleaned_data.get("version")
@@ -133,13 +134,12 @@ class TopologyForm(forms.ModelForm):
             if Topology.objects.filter(lipid=lipid,forcefield=ff,version=version).exclude(pk=self.instance.id).exists():
                 self.add_error('version', mark_safe('This version name is already taken by another topology entry for this lipid and forcefield.'))
 
-        if lipid and ff and 'itp_file' in self.files and 'gro_file' in self.files:
+        if lipid and ff and software and 'itp_file' in self.files and 'gro_file' in self.files:
             itp_file = self.files['itp_file']
             gro_file = self.files['gro_file']
-            error, rand = gmxrun(lipid.name,ff.ff_file.url,ff.mdp_file.url,itp_file,gro_file)
+            error, rand = gmxrun(lipid.name,ff.ff_file.url,ff.mdp_file.url,itp_file,gro_file,software)
             if error:
                 #raise ValidationError('Topology file is not valid. See gromacs.log')
-                #logpath = os.path.join("media", "tmp", rand, "gromacs.log")
                 logpath = "/media/tmp/%s/gromacs.log" % rand
                 self.add_error('itp_file', mark_safe('Topology file is not valid. See <a class="text-success" href="%s">gromacs.log</a>' % logpath))
 

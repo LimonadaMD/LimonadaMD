@@ -47,7 +47,7 @@ class MailForm(Form):
                                required=False)
     comment  = forms.CharField(widget=Textarea(),
                                required=False)
-    curation = forms.BooleanField(required=False,
-                                  label="Request to become the new curator:")
+    #curation = forms.BooleanField(required=False,
+    #                              label="Request to become the new curator:")
 
 

@@ -43,9 +43,9 @@ class Forcefield(models.Model):
     mdp_file = models.FileField(upload_to=mdp_path,
                                validators=[validate_file_extension],			  
                                help_text="Use a zip file containing the mdps for the version X of Gromacs as in <link>")
-    software = models.CharField(max_length=2,     					
+    software = models.CharField(max_length=4,     					
                                 choices=SFTYPE_CHOICES,
-                                default=GROMACS) 
+                                default=GROMACS50) 
     description = models.TextField(blank=True)					
     reference = models.ManyToManyField('homepage.Reference') 
     curator = models.ForeignKey(User,

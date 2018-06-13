@@ -7,12 +7,14 @@ FFTYPE_CHOICES = (
     (COARSEGRAINED, 'Coarse grained')
 )
 
-AMBER   = "AM"
-CHARMM  = "CH"
-GROMACS = "GR"
+AMBER     = "AM"
+CHARMM    = "CH"
+GROMACS45 = "GR45"
+GROMACS50 = "GR50"
 SFTYPE_CHOICES = (
     (AMBER, 'Amber'),
     (CHARMM, 'Charmm'),
-    (GROMACS, 'Gromacs'),
+    (GROMACS45, 'Gromacs 4.5'),
+    (GROMACS50, 'Gromacs 5.0'),
 )
 

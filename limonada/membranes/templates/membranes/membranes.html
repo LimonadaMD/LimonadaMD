@@ -18,8 +18,8 @@
                 {% endif %}
             </div>
         </div>
+        <br><i><b>N.B.:</b> If you use the following files in your work, please cite the primary source. (see Description field)</i>
     </div>
-    <br>
     <div class="container">
         <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
             <div class="col-2 align-self-start">
@@ -31,7 +31,7 @@
                 <form id="select_form" action="" method="get">
                     <div class="row">
                         {% for field in form_select %}
-                            <div class="{% if field.name == 'lipid' %}col-12{% else %}col-0{% endif %} p-1">
+                            <div class="col-6 p-1">
                                 {{ field.label_tag }}
                                 {{ field }}
                                 {% if field.help_text %}
@@ -45,7 +45,7 @@
                             </div>
                         {% endfor %}
                         <div class="col-1 p-1">
-                            <a onclick="url_replace('equilibration','lipid')" class="btn btn-primary btn-sm text-white">Select</a> 
+                            <a onclick="url_replace('equilibration','lipid','tags','nbliptypes','nblipids')" class="btn btn-primary btn-sm text-white">Select</a> 
                         </div>
                     </div>
                 </form>
@@ -85,7 +85,8 @@
                                 <td>{{ membrane.equilibration }}</td>
                                 <td>
                                     <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">Membrane</a>
-                                    <a href="" class="text-success" target="blank">Composition</a>
+                                    <a href="{{ membrane.compo_file.url }}" class="text-success" target="blank">Composition</a>
+                                    <a href="{% url 'getfiles' %}?memid={{ membrane.pk }}" class="text-success">Files<a/></th>
                                 </td>
                                 {% if user.is_authenticated %}
                                     {% if user == membrane.curator %}
@@ -112,7 +113,7 @@
                                     <div class="row">
                                         <div class="col-2"></div>
                                         <div class="col-5">
-                                            {% for lipid in membrane.topolcomposition_set.all %}
+                                            {% for lipid in membrane.topolcomposition_set.all|dictsortreversed:"number" %}
                                                 {% if lipid.side == "LO" %}
                                                     {{lipid.number}}
                                                     <a class="text-success" href={% url 'lipdetail' lipid.topology.lipid.slug %}>{{lipid.topology.lipid.name}}</a>
@@ -121,7 +122,7 @@
                                             {% endfor %}
                                         </div>
                                         <div class="col-5">
-                                            {% for lipid in membrane.topolcomposition_set.all %}
+                                            {% for lipid in membrane.topolcomposition_set.all|dictsortreversed:"number" %}
                                                 {% if lipid.side == "UP" %}
                                                     {{lipid.number}}
                                                     <a class="text-success" href={% url 'lipdetail' lipid.topology.lipid.slug %}>{{lipid.topology.lipid.name}}</a>
@@ -139,10 +140,6 @@
                                                 {{ reference.title }}<br>
                                             {% endfor %}
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-2"><strong>Curator:</strong></div>
-                                        <div class="col-10"><a class="text-success" href={% url 'userdetail' membrane.curator.pk %}>{{ membrane.curator.get_full_name }}</a> on {{ membrane.date }}</div>
                                     </div>
                                 </td>
                                 <td></td>

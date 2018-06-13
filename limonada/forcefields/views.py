@@ -23,7 +23,7 @@ def FfList(request):
 
     params = request.GET.copy()
 
-    selectparams = {'software':'GR'}
+    selectparams = {}
     for param in ['software','forcefield_type']:
         if param in request.GET.keys():
             if request.GET[param] != "":

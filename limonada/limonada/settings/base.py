@@ -40,6 +40,7 @@ PREREQ_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
     'corsheaders',
+    'verified_email_field',
 ]
 
 PROJECT_APPS = [
@@ -181,6 +182,9 @@ MEDIA_URL = '/media/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+DEFAULT_FROM_EMAIL = 'Limonada Team <contact@limonadamd.eu>'
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 # Allow Django from all hosts. This snippet is installed from
 # /var/lib/digitalocean/allow_hosts.py
@@ -204,5 +208,8 @@ ALLOWED_HOSTS = ip_addresses()
 
 INTERNAL_IPS = ['127.0.0.1']
 
+#settings of django-verified-email-field
+VERIFIED_EMAIL_CODE_LENGTH = 10
+VERIFIED_EMAIL_MAIL_FROM = "contact@limonadamd.eu"
 
 

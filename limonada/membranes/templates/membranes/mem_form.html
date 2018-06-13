@@ -20,16 +20,31 @@
                 </div>
                 <div class="col">
                     {% if field.name == "mem_file" %}
-                        <label class="custom-file">
-                            <input type="file" accept=".gro" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" 
-                                   onchange="$('#mem_filetext').text($(this).val().split('\\').slice(-1)[0]);readfile($(this));">
-                            <span id="{{ field.name }}text" class="custom-file-control" style="width: 340px">{{ field.value|basename }}</span>
-                        </label>
+                        <div class="row">
+                            <div class="col-5">
+                                <label class="custom-file">
+                                    <input type="file" accept=".gro" id="id_{{ field.name }}" name="{{ field.name }}" class="custom-file-input" 
+                                           onchange="$('#mem_filetext').text($(this).val().split('\\').slice(-1)[0]);">
+                                    <span id="{{ field.name }}text" class="custom-file-control" style="width: 340px">{{ field.value|basename }}</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-basic" onclick="readfile();">Analize</button>
+                            </div>
+                        </div>
                     {% elif field.name == 'forcefield' %}
                         <select id="id_forcefield" name="forcefield" style="width: 340px">
-                        {% ff_select "GR" as ffobjects %}
-                        {% for value,name in ffobjects %}
-                            <option value="{{ value }}" {% if value|slugify == params.forcefield %}selected="selected"{% endif %}>{{ name }}</option>
+                        {% if topform.software.value %}
+                            {% query ffs software=topform.software.value as ffobjects %}
+                        {% else %}
+                            {% query ffs software="GR50" as ffobjects %}
+                        {% endif %}
+                        {% for ff in ffobjects %}
+                            {% if topform.forcefield.value %}
+                                <option value="{{ ff.id }}" {% if ff.name == topform.forcefield.value %}selected="selected"{% endif %}>{{ ff.name }}</option>
+                            {% else %}
+                                <option value="{{ ff.id }}" {% if ff.name == "charmm36" %}selected="selected"{% endif %}>{{ ff.name }}</option>
+                            {% endif %}
                         {% endfor %}
                         </select>
                     {% else %}
@@ -306,7 +321,7 @@
             });
         }
 
-        function readfile(mem_file) {
+        function readfile() {
            if ($('#mem_filetext').text().split('.').pop() == 'gro') {
                $('#mem_filetext').closest('form').submit();
            }

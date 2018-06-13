@@ -18,7 +18,7 @@
                 {% endif %}
             </div>
         </div>
-        <br>
+        <br><i><b>N.B.:</b> If you use the following files in your work, please cite the primary source. (see Description field)</i>
     </div>
     <div class="container">
         <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
@@ -41,13 +41,13 @@
                                         {% if params.software %} 
                                             <option value="{{ value }}" {% if value == params.software %}selected="selected"{% endif %}>{{ name }}</option>
                                         {% else %}
-                                            <option value="{{ value }}" {% if value == "GR" %}selected="selected"{% endif %}>{{ name }}</option>
+                                            <option value="{{ value }}" {% if value == "GR50" %}selected="selected"{% endif %}>{{ name }}</option>
                                         {% endif %}
                                     {% endfor %}
                                     </select>
                                 {% elif field.name == 'forcefield' %}
                                     <select id="id_forcefield" name="forcefield">
-                                    {% if params.software %}{% ff_select params.software as ffobjects %}{% else %}{% ff_select "GR" as ffobjects %}{% endif %} 
+                                    {% if params.software %}{% ff_select params.software as ffobjects %}{% else %}{% ff_select "GR50" as ffobjects %}{% endif %} 
                                     {% if ffobjects %} 
                                         {% for value,name in ffobjects %}
                                             <option value="{{ value }}" {% if value|slugify == params.forcefield %}selected="selected"{% endif %}>{{ name }}</option>
@@ -84,7 +84,7 @@
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th width="10%">
+                            <th width="15%">
                                 {% if sort == "software" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="software" %}">Software<a/></th>
                             <th width="15%">
@@ -93,10 +93,10 @@
                             <th width="28%">
                                 {% if sort == "lipid" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="lipid" %}">Lipid<a/></th>
-                            <th width="18%">
+                            <th width="16%">
                                 {% if sort == "version" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="version" %}">Version<a/></th>
-                            <th width="25%">Files</th>
+                            <th width="22%">Files</th>
                             {% if user.is_authenticated %}
                                 <th width="2%"></th>
                                 <th width="2%"></th>
@@ -152,10 +152,6 @@
                                                 <a class="text-success" href="{% url 'memlist' %}?memid={{ mem.pk }}">{{ mem.version }}</a><br> 
                                             {% endfor %}
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-2"><strong>Curator:</strong></div>
-                                        <div class="col-10"><a class="text-success" href={% url 'userdetail' topology.curator.pk %}>{{ topology.curator.get_full_name }}</a> on {{ topology.date }}</div>
                                     </div>
                                 </td>
                                 <td></td>

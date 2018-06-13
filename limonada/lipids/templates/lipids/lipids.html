@@ -129,8 +129,13 @@
                     <tbody>
                         {% for lipid in page_objects %}
                             <tr>
-                                <td><a class="text-success" href={% url 'lipdetail' lipid.slug %}>{{ lipid.name }}</a></td> 
-                                <td><a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">{{ lipid.lmid }}<a/></td>
+                                {% if lipid.lmid|substring:"0,2" == "LM" %}
+                                    <td><a class="text-success" href={% url 'lipdetail' lipid.slug %}>{{ lipid.name }}</a></td> 
+                                    <td><a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">{{ lipid.lmid }}<a/></td>
+                                {% else %}
+                                    <td><a class="text-warning" href={% url 'lipdetail' lipid.slug %}>{{ lipid.name }}</a></td> 
+                                    <td class="text-warning">{{ lipid.lmid }}</td>
+                                {% endif %}
                                 <td>{{ lipid.com_name }}</td>
                                 <td>{{ lipid.sys_name }}</td>
                                 {% if user.is_authenticated %}
