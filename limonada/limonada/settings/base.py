@@ -25,8 +25,7 @@ SECRET_KEY = 'l8aqdipf^nyb9@w+fye8wikf8^muj8qxxkv$n30(hv$%$z4+wg'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]','www.limonadamd.eu']
 
 # Application definition
 PREREQ_APPS = [
@@ -204,12 +203,20 @@ def ip_addresses():
     return ip_list
 
 # Discover our IP address
-ALLOWED_HOSTS = ip_addresses()
+#ALLOWED_HOSTS = ip_addresses()
 
 INTERNAL_IPS = ['127.0.0.1']
 
 #settings of django-verified-email-field
 VERIFIED_EMAIL_CODE_LENGTH = 10
 VERIFIED_EMAIL_MAIL_FROM = "contact@limonadamd.eu"
+
+
+#User configuration
+GROMACS_50_PATH = "/home/jmcrowet/Software/gmx507/build/bin/"
+GROMACS_45_PATH = "/home/jmcrowet/Software/gmx457/build/bin/"
+
+
+
 
 

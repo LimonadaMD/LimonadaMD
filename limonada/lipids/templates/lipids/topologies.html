@@ -22,7 +22,7 @@
     </div>
     <div class="container">
         <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
-            <div class="col-2 align-self-start">
+            <div class="col align-self-start">
                 <div class="row">
                     {% include 'per_page.html' %}
                 </div>
@@ -84,18 +84,18 @@
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th width="15%">
-                                {% if sort == "software" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="software" %}">Software<a/></th>
+                            <th width="16%">
+                                {% if sort == "version" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="version" %}">Name<a/></th>
                             <th width="15%">
                                 {% if sort == "forcefield" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="forcefield" %}">Forcefield<a/></th>
                             <th width="28%">
                                 {% if sort == "lipid" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="lipid" %}">Lipid<a/></th>
-                            <th width="16%">
-                                {% if sort == "version" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="version" %}">Version<a/></th>
+                            <th width="15%">
+                                {% if sort == "software" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
+                                <a href="?{% url_replace sort="software" %}">Software<a/></th>
                             <th width="22%">Files</th>
                             {% if user.is_authenticated %}
                                 <th width="2%"></th>
@@ -106,15 +106,18 @@
                     <tbody>
                         {% for topology in page_objects %}
                             <tr>
-                                <td>{{ topology.get_software_display }}</td>
+                                <td id="{{ topology.pk }}">
+                                    <a class="text-success" href={% url 'topdetail' topology.pk %}>{{ topology.version }}_{{ topology.lipid.name }}</a>
+                                    <!--
+                                    <a class="text-info" data-toggle="collapse" href="#collapse{{ topology.pk }}" aria-expanded="true" aria-controls="collapse{{ topology.pk }}">{{ topology.version }}</a>
+                                    -->
+                                </td>
                                 <td><a class="text-success" href="{% url 'fflist' %}?ffid={{ topology.forcefield.pk }}">{{ topology.forcefield }}</a></td>
                                 <td><a class="text-success" href={% url 'lipdetail' topology.lipid.slug %}>{{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a></td>
-                                <td id="{{ topology.pk }}">
-                                    <a class="text-info" data-toggle="collapse" href="#collapse{{ topology.pk }}" aria-expanded="true" aria-controls="collapse{{ topology.pk }}">{{ topology.version }}</a>
-                                </td>
+                                <td>{{ topology.get_software_display }}</td>
                                 <td>
-                                    <a href="{{ topology.gro_file.url }}" class="text-success" target="blank">Structure</a>
-                                    <a href="{{ topology.itp_file.url }}" class="text-success" target="blank">Topology</a>
+                                    <a href="{{ topology.gro_file.url }}" class="text-success" target="blank">{{ topology.gro_file.url|basename }}</a>, 
+                                    <a href="{{ topology.itp_file.url }}" class="text-success" target="blank">{{ topology.itp_file.url|basename }}</a>
                                 </td>
                                 {% if user.is_authenticated %}
                                     {% if user == topology.curator %}
@@ -146,11 +149,7 @@
                                     <div class="row">
                                         <div class="col-2"><strong>Membranes:</strong></div>
                                         <div class="col-10">
-                                            {% query mems lipids=topology.lipid as memobjects %}
-                                            {% query memtops membrane=memobjects forcefield=topology.forcefield as memobjects %}
-                                            {% for mem in memobjects %}
-                                                <a class="text-success" href="{% url 'memlist' %}?memid={{ mem.pk }}">{{ mem.version }}</a><br> 
-                                            {% endfor %}
+                                             <a class="text-success" href={% url 'memlist' %}?topid={{ topology.pk }}>Available Membranes</a>
                                         </div>
                                     </div>
                                 </td>

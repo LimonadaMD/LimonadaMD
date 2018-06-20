@@ -12,6 +12,7 @@ from django.conf import settings
 import requests, re
 import simplejson as json
 from forcefields.choices import *
+import unicodedata
 
 
 def validate_name(value):
@@ -65,8 +66,9 @@ def img_path(instance, filename):
 
 def file_path(instance, filename):
     ext = os.path.splitext(filename)[1]    
+    version = unicodedata.normalize('NFKD', instance.version).encode('ascii','ignore').replace(" ", "_")
     #ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro,png} (we assume gromacs for now)
-    filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software,instance.forcefield,instance.lipid.name,instance.version,ext)	
+    filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software,instance.forcefield,instance.lipid.name,version,ext)	
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
        os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath

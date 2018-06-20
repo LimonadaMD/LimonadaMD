@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.contrib import messages
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError, transaction
 from django.contrib.auth.decorators import login_required
@@ -29,6 +29,7 @@ import shutil, zipfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from string import ascii_lowercase as abc
 import codecs
+import unicodedata
 
 
 def zipdir(path, ziph):
@@ -52,8 +53,7 @@ def display_data(request, data, **kwargs):
     return render(request, 'membranes/posted-data.html', dict(data=data, **kwargs))
 
 
-headers = {'name': 'asc',
-           'equilibration':  'asc',}
+headers = {'name': 'asc',}
 
 
 def MemList(request):
@@ -62,14 +62,15 @@ def MemList(request):
 
     params = request.GET.copy()
 
+    form_select = SelectMembraneForm()
     selectparams = {}
-    for param in ['equilibration','lipid','tags','nbliptypes','nblipids']:
+    for param in ['equilibration','lipids','tags','nbliptypes','nblipids']:
         if param in request.GET.keys():
             if request.GET[param] != "":
-                if param == 'lipid':
+                if param == 'lipids':
                     liplist = request.GET[param].split(',')
-                    selectparams['lipid'] = liplist
-                if param == 'tags':
+                    selectparams['lipids'] = liplist
+                elif param == 'tags':
                     taglist = request.GET[param].split(',')
                     selectparams['tags'] = taglist
                 else:
@@ -78,7 +79,7 @@ def MemList(request):
     if form_select.is_valid():
         if 'equilibration' in selectparams.keys():
             mem_list = mem_list.filter(equilibration__gte=selectparams['equilibration'])
-        if 'lipid' in selectparams.keys():
+        if 'lipids' in selectparams.keys():
             querylist = []
             for i in liplist:
                 querylist.append(Q(lipids=Lipid.objects.filter(id=i)))
@@ -100,6 +101,14 @@ def MemList(request):
             memid = 0
         if memid > 0:
             mem_list = mem_list.filter(id=memid)
+
+    if 'topid' in request.GET.keys():  
+        try:
+            topid = int(request.GET['topid'])
+        except:
+            topid = 0
+        if topid > 0:
+             mem_list = mem_list.filter(topolcomposition__topology=topid).distinct()
 
     if 'curator' in request.GET.keys():
         try:
@@ -328,14 +337,15 @@ def MemCreate(request, formset_class, template):
             rand = request.POST['rand']
             fname = request.POST['fname']
             mempath = "media/tmp/%s/%s_sorted.gro" % ( rand, fname )
+            memname = unicodedata.normalize('NFKD', mt.name).encode('ascii','ignore').replace(" ", "_")
             if not request.FILES and os.path.isfile(mempath):
-                newmempath = 'media/membranes/LIM{0}_{1}.gro'.format(mt.id,mt.name) 
+                newmempath = 'media/membranes/LIM{0}_{1}.gro'.format(mt.id,memname) 
                 shutil.copy(mempath, newmempath)
-                mt.mem_file = 'membranes/LIM{0}_{1}.gro'.format(mt.id,mt.name) 
-            compofile = open('media/membranes/LIM{0}_{1}.txt'.format(mt.id,mt.name),"w")
+                mt.mem_file = 'membranes/LIM{0}_{1}.gro'.format(mt.id,memname) 
+            compofile = open('media/membranes/LIM{0}_{1}.txt'.format(mt.id,memname),"w")
             compofile.write(compodata)
             compofile.close() 
-            mt.compo_file = 'membranes/LIM{0}_{1}.txt'.format(mt.id,mt.name) 
+            mt.compo_file = 'membranes/LIM{0}_{1}.txt'.format(mt.id,memname) 
 
             mt.membrane = m
             mt.save()
@@ -354,7 +364,7 @@ def MemCreate(request, formset_class, template):
 
             return HttpResponseRedirect(reverse('memlist'))
     else:
-        if request.method == 'POST':
+        if request.method == 'POST' and 'mem_file' in request.FILES.keys():
             topform = MembraneTopolForm(request.POST, request.FILES)
             memform = MembraneForm(request.POST)
             mem_file = request.FILES['mem_file']
@@ -395,6 +405,8 @@ def MemUpdate(request, pk=None):
     fname = ""
     merrors = []
     mt = MembraneTopol.objects.get(pk=pk)
+    if mt.curator != request.user:
+        return redirect('homepage')
     if request.method == 'POST' and 'add' in request.POST:
         topform = MembraneTopolForm(request.POST, request.FILES, instance=mt)
         memform = MembraneForm(request.POST, instance=mt.membrane)
@@ -495,14 +507,15 @@ def MemUpdate(request, pk=None):
             rand = request.POST['rand']
             fname = request.POST['fname']
             mempath = "media/tmp/%s/%s_sorted.gro" % ( rand, fname )
+            memname = unicodedata.normalize('NFKD', mt.name).encode('ascii','ignore').replace(" ", "_")
             if not request.FILES and os.path.isfile(mempath):
-                newmempath = 'media/membranes/LIM{0}_{1}.gro'.format(mt.id,mt.name)
+                newmempath = 'media/membranes/LIM{0}_{1}.gro'.format(mt.id,memname)
                 shutil.copy(mempath, newmempath)
-                mt.mem_file = 'membranes/LIM{0}_{1}.gro'.format(mt.id,mt.name)
-            compofile = open('media/membranes/LIM{0}_{1}.txt'.format(mt.id,mt.name),"w")
+                mt.mem_file = 'membranes/LIM{0}_{1}.gro'.format(mt.id,memname)
+            compofile = open('media/membranes/LIM{0}_{1}.txt'.format(mt.id,memname),"w")
             compofile.write(compodata)
             compofile.close()
-            mt.compo_file = 'membranes/LIM{0}_{1}.txt'.format(mt.id,mt.name) 
+            mt.compo_file = 'membranes/LIM{0}_{1}.txt'.format(mt.id,memname) 
 
             mt.membrane = m
             mt.save()
@@ -521,7 +534,7 @@ def MemUpdate(request, pk=None):
 
             return HttpResponseRedirect(reverse('memlist'))
     else:
-        if request.method == 'POST':
+        if request.method == 'POST' and 'mem_file' in request.FILES.keys():
             topform = MembraneTopolForm(request.POST, request.FILES)
             memform = MembraneForm(request.POST)
             file_data = ""
@@ -568,6 +581,16 @@ def MemUpdate(request, pk=None):
     })
 
 
+class MemDetail(DetailView):
+    model = MembraneTopol
+    template_name = 'membranes/mem_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super(MemDetail, self).get_context_data(**kwargs)
+        context_data['membranes'] = True
+        return context_data
+
+
 class MemDelete(DeleteView):
     model = MembraneTopol
     template_name = 'membranes/mem_delete.html'
@@ -601,12 +624,13 @@ def GetFiles(request):
         if memid != "":
             if MembraneTopol.objects.filter(id=memid).exists():
                 mem = MembraneTopol.objects.get(id=memid)
+                memname = unicodedata.normalize('NFKD', mem.name).encode('ascii','ignore').replace(" ", "_")
 
                 mediadir = settings.MEDIA_ROOT
                 rand = str(random.randrange(1000))
                 while os.path.isdir(os.path.join(mediadir, "tmp", rand)):
                    rand = random.randrange(1000)
-                dirname = os.path.join(mediadir, "tmp", rand, mem.name)
+                dirname = os.path.join(mediadir, "tmp", rand, memname)
                 os.makedirs(dirname)
                 topdir = os.path.join(dirname, "toppar")  
                 os.makedirs(topdir)
@@ -652,16 +676,16 @@ def GetFiles(request):
                     topfile.write("%-6s%10s\n" % (tops[lip.topology.id],lip.number))
                 topfile.close()
 
-                zipf = zipfile.ZipFile('%s.zip' % os.path.join(mediadir, "tmp", rand, mem.name), 'w', zipfile.ZIP_DEFLATED)
+                zipf = zipfile.ZipFile('%s.zip' % os.path.join(mediadir, "tmp", rand, memname), 'w', zipfile.ZIP_DEFLATED)
                 with cd(os.path.join(mediadir, "tmp", rand)):
-                    zipdir(mem.name, zipf)
-                    image_data = open('%s.zip' % mem.name, "rb").read() 
+                    zipdir(memname, zipf)
+                    image_data = open('%s.zip' % memname, "rb") 
                 zipf.close()
 
                 shutil.rmtree(os.path.join(mediadir, "tmp", rand), ignore_errors=True)
 
-    response = HttpResponse(image_data, content_type="text/plain")
-    response['Content-Disposition'] = 'attachment; filename=%s.zip' % mem.name 
+    response = HttpResponse(image_data, content_type="application/zip")
+    response['Content-Disposition'] = 'attachment; filename=%s.zip' % memname 
     return response
 
 

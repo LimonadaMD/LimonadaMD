@@ -22,12 +22,12 @@
     </div>
     <div class="container">
         <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
-            <div class="col-2 align-self-start">
+            <div class="col align-self-start">
                 <div class="row">
                     {% include 'per_page.html' %}
                 </div>
             </div>
-            <div class="col-9" id="collapseselect" {% if not params.equilibration and not params.lipid %}style="display: none"{% endif %}>
+            <div class="col-9" id="collapseselect" {% if not params.equilibration and not params.lipids and not params.tags and not params.nbliptypes and not params.nblipids %}style="display: none"{% endif %}>
                 <form id="select_form" action="" method="get">
                     <div class="row">
                         {% for field in form_select %}
@@ -45,7 +45,7 @@
                             </div>
                         {% endfor %}
                         <div class="col-1 p-1">
-                            <a onclick="url_replace('equilibration','lipid','tags','nbliptypes','nblipids')" class="btn btn-primary btn-sm text-white">Select</a> 
+                            <a onclick="url_replace('equilibration','lipids','tags','nbliptypes','nblipids')" class="btn btn-primary btn-sm text-white">Select</a> 
                         </div>
                     </div>
                 </form>
@@ -62,11 +62,9 @@
                             <th width="15%">
                                 {% if sort == "name" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
                                 <a href="?{% url_replace sort="name" %}">Name<a/></th>
-                            <th width="41%">Lipids<a/></th>
-                            <th width="15%">
-                                {% if sort == "equilibration" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="com_name" %}">Equilibration<a/></th>
-                            <th width="25%">Files<a/></th>
+                            <th width="31%">Lipids</th>
+                            <th width="25%">Tags</th>
+                            <th width="25%">Files</th>
                             {% if user.is_authenticated %}
                                 <th width="2%"></th>
                                 <th width="2%"></th>
@@ -76,17 +74,22 @@
                     <tbody>
                         {% for membrane in page_objects %}
                             <tr>
-                                <td>{{ membrane.name }}</td>
+                                <td><a class="text-success" href={% url 'memdetail' membrane.pk %}>{{ membrane.name }}</a></td>
                                 <td id="{{ membrane.pk }}">
+                                    {% lipidnames membrane.topolcomposition_set.all as lipids %}
+                                    {% for lip in lipids %}
+                                        <a class="text-success" href={% url 'lipdetail' lip.slug %}>{{ lip.name }}{% if not forloop.last %},{% endif %}</a>
+                                    {% endfor %}                                    
+                                    <!--
                                     <a class="text-info" data-toggle="collapse" href="#collapse{{ membrane.pk }}" aria-expanded="true" aria-controls="collapse{{ membrane.pk }}">
                                         {% lipidnames membrane.topolcomposition_set.all %}
                                     </a>
+                                    -->
                                 </td>
-                                <td>{{ membrane.equilibration }}</td>
+                                <td>{{ membrane.membrane.tag.all|join:", " }}</td>
                                 <td>
-                                    <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">Membrane</a>
-                                    <a href="{{ membrane.compo_file.url }}" class="text-success" target="blank">Composition</a>
-                                    <a href="{% url 'getfiles' %}?memid={{ membrane.pk }}" class="text-success">Files<a/></th>
+                                    <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">{{ membrane.mem_file.url|basename }}</a>
+                                    <a href="{{ membrane.compo_file.url }}" class="text-success" target="blank">{{ membrane.compo_file.url|basename }}</a>
                                 </td>
                                 {% if user.is_authenticated %}
                                     {% if user == membrane.curator %}

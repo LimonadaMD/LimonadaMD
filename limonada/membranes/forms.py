@@ -82,9 +82,9 @@ MemFormSet = formset_factory(CompositionForm)
 
 class SelectMembraneForm(forms.Form):
 
-    lipid = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(),
-                                           widget=autocomplete.ModelSelect2Multiple(url='lipid-autocomplete'),
-                                           required=False)
+    lipids = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(),
+                                            widget=autocomplete.ModelSelect2Multiple(url='lipid-autocomplete'),
+                                            required=False)
     tags = forms.ModelMultipleChoiceField(queryset=MembraneTag.objects.all(),
                                           widget=autocomplete.ModelSelect2Multiple(url='tag-autocomplete'),
                                           required=False)

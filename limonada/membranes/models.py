@@ -6,6 +6,7 @@ from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from forcefields.choices import *
+import unicodedata
 
 
 def validate_file_extension(value):
@@ -17,7 +18,8 @@ def validate_file_extension(value):
 
 def directory_path(instance, filename):
     ext = os.path.splitext(filename)[1]
-    filepath = 'membranes/LIM{0}_{1}{2}'.format(instance.id,instance.name,ext)
+    name = unicodedata.normalize('NFKD', instance.name).encode('ascii','ignore').replace(" ", "_")
+    filepath = 'membranes/LIM{0}_{1}{2}'.format(instance.id,name,ext)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
        os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath

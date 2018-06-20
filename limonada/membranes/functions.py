@@ -111,8 +111,6 @@ def membraneanalysis(filename,rand):
     args = shlex.split("fatslim membranes --conf %s --output-index-hg %s -n %s" % (grofilepath,fatslimfilepath,ndxfilepath)) 
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,env=env)
     out, err = process.communicate()
-    #print out
-    #print err
 
     ndx = {}
     ndxfile = open(fatslimfilepath + "_0000.ndx").readlines()
