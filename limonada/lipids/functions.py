@@ -7,7 +7,7 @@ import zipfile
 from contextlib import contextmanager 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from os.path import expanduser
+
 
 @contextmanager
 def cd(newdir):
@@ -24,9 +24,10 @@ def gmxrun(lipname,ff_file,mdp_file,itp_file,gro_file,software):
     mediadir = settings.MEDIA_ROOT
     error = False
 
-    home = expanduser("~")
-    softcmd = {"GR45":"gmx457","GR50":"gmx507"} 
-    softdir = "%s/Software/%s/build/bin/" % (home,softcmd[software])
+    if software == "GR45":
+       softdir = settings.GROMACS_45_PATH
+    elif software == "GR50":
+       softdir = settings.GROMACS_50_PATH
 
     rand = str(random.randrange(1000))
     while os.path.isdir(os.path.join(mediadir, "tmp", rand)):

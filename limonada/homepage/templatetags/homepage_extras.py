@@ -48,6 +48,14 @@ def split(value):
     return str(value).split("/")[-1]  
 
 
+@register.filter(name='dirname')
+def dirname(value):
+    return os.path.dirname(value)   
+
+
+
+
+
 
 
 

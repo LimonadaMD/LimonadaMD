@@ -13,7 +13,7 @@ from .models import Reference
 from .forms import DoiForm, ReferenceForm, SelectForm, MailForm
 from lipids.models import Lipid, Topology
 from forcefields.models import Forcefield
-from membranes.models import Membrane
+from membranes.models import MembraneTopol
 import json, requests, string, re, urllib
 from dal import autocomplete
 from django.core.mail import send_mail
@@ -201,7 +201,6 @@ def mail(request):
                       pass
                 elif param == 'topid':
                    try:
-                      obj = Lipid.objects.filter(id=i)
                       obj = Topology.objects.filter(id=i)
                       version = obj.values_list('version', flat=True)[0] 
                       lid = obj.values_list('lipid', flat=True)[0] 
@@ -212,7 +211,6 @@ def mail(request):
                       pass
                 elif param == 'ffid':
                    try:
-                      obj = Lipid.objects.filter(id=i)
                       obj = Forcefield.objects.filter(id=i)
                       name = obj.values_list('name', flat=True)[0]
                       url = "#"
@@ -220,15 +218,13 @@ def mail(request):
                       pass
                 elif param == 'memid':
                    try:
-                      obj = Lipid.objects.filter(id=i)
-                      obj = Membrane.objects.filter(id=i)
+                      obj = MembraneTopol.objects.filter(id=i)
                       name = obj.values_list('name', flat=True)[0]
                       url = "#"
                    except:
                       pass
                 elif param == 'refid':
                    try:
-                      obj = Lipid.objects.filter(id=i)
                       obj = Reference.objects.filter(id=i)
                       name = obj.values_list('refid', flat=True)[0]
                       url = "#"
@@ -245,8 +241,9 @@ def mail(request):
         curator = "%s %s" % (firstname,lastname)
         email = User.objects.filter(id=curatorid).values_list('email', flat=True)[0]
         subject = "Request concerning a Limonada entry"
-        comment = "Dear Mr/Ms %s,\n\n%s %s is making the following comment on the %s entry (%s) for which you are the current curator.\n\n\nCould you please address these comments and/or reply him/her at %s?\nIf it is more convenient, the curation can also be changed.\n\nSincerely,\nThe Limonada Team" % (
-        curator, request.user.first_name, request.user.last_name, objtype, name, email)
+        curation = "\nIf it is more convenient, the curation can also be changed."
+        comment = "Dear Mr/Ms %s,\n\n%s %s is making the following comment on the %s entry (%s) for which you are the current curator.\n\n\nCould you please address these comments and/or reply him/her at %s?\n%s\n\nSincerely,\nThe Limonada Team" % (
+        curator, request.user.first_name, request.user.last_name, objtype, name, email, curation)
     form = MailForm({'subject':subject,'comment':comment})
 
     data = {}
@@ -262,8 +259,10 @@ def mail(request):
     if request.method == 'POST':
         form = MailForm(request.POST)
         if form.is_valid():
-            #send_mail(subject, comment, 'limonada@limonadamd.eu', [email,])
-            send_mail(subject, comment, settings.VERIFIED_EMAIL_MAIL_FROM, [email,])
+            if request.POST["curation"]:
+                send_mail(subject, comment, settings.VERIFIED_EMAIL_MAIL_FROM, [email,"jean-marc.crowet@univ-reims.fr"]) 
+            else:
+                send_mail(subject, comment, settings.VERIFIED_EMAIL_MAIL_FROM, [email,])
             if 'lipid' in request.GET.keys():
                 return redirect('liplist')
             if 'topid' in request.GET.keys():

@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
@@ -88,7 +88,6 @@ def LI_index():
             for lipid in liid:
                 if lipid[2:l+2] == grp:
                    if int(liindex[grp][l+2:]) <= int(lipid[l+2:]): 
-                       print grp
                        if l == 4:
                            liindex[grp] = "LI%s00%04d" % (grp,int(lipid[l+2:])+1) 
                        else:
@@ -198,7 +197,7 @@ def LipCreate(request):
             lm_data = {}
             lm_data['lmid'] = form_search.cleaned_data['lmidsearch']
             lm_response = requests.get("http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json" % lm_data['lmid'])
-            lm_data_raw = lm_response.json()
+            lm_data_raw = lm_response.json()["Row1"]
             for key in ["pubchem_cid", "name", "sys_name","formula","abbrev_chains"]:
                 if key == "name" and 'name' in lm_data_raw.keys():
                     lm_data['com_name'] = lm_data_raw[key]
@@ -287,6 +286,8 @@ def LipCreate(request):
 def LipUpdate(request, slug=None):
     if Lipid.objects.filter(slug=slug).exists():
         lipid = Lipid.objects.get(slug=slug)
+        if lipid.curator != request.user:
+            return redirect('homepage')         
         if request.method == 'POST':
             form_add = LipidForm(request.POST, request.FILES, instance=lipid)
             if form_add.is_valid():
@@ -436,6 +437,16 @@ def TopList(request):
     return render(request, 'lipids/topologies.html', data)
 
 
+class TopDetail(DetailView):
+    model = Topology
+    template_name = 'lipids/top_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super(TopDetail, self).get_context_data(**kwargs)
+        context_data['topologies'] = True
+        return context_data
+
+
 class TopCreate(CreateView):
     model = Topology
     form_class = TopologyForm
@@ -476,6 +487,18 @@ class TopUpdate(UpdateView):
         context_data['sf_ff'] = sf_ff_dict() 
         context_data['topologies'] = True
         return context_data
+
+    def user_passes_test(self, request):
+        if request.user.is_authenticated():
+            self.object = self.get_object()
+            return self.object.curator == request.user
+        return False
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.user_passes_test(request):
+            return redirect('homepage')
+        return super(TopUpdate, self).dispatch(
+            request, *args, **kwargs)
 
 
 class TopDelete(DeleteView):

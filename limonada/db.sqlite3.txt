@@ -223,8 +223,8 @@ INSERT INTO "auth_permission" VALUES(52,18,'add_membranetag','Can add membrane t
 INSERT INTO "auth_permission" VALUES(53,18,'change_membranetag','Can change membrane tag');
 INSERT INTO "auth_permission" VALUES(54,18,'delete_membranetag','Can delete membrane tag');
 CREATE TABLE "auth_user" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "password" varchar(128) NOT NULL, "last_login" datetime NULL, "is_superuser" bool NOT NULL, "first_name" varchar(30) NOT NULL, "last_name" varchar(30) NOT NULL, "email" varchar(254) NOT NULL, "is_staff" bool NOT NULL, "is_active" bool NOT NULL, "date_joined" datetime NOT NULL, "username" varchar(30) NOT NULL UNIQUE);
-INSERT INTO "auth_user" VALUES(1,'pbkdf2_sha256$24000$av86kGOh2pIc$gZ+fiGag06lw0o5qUAATyl/o/G2BSG/w20dnFRUelX8=','2018-06-13 11:37:27.394451',1,'firstname','lastname','user1@mail.com',1,1,'2017-10-22 21:14:47','user1');
-INSERT INTO "auth_user" VALUES(23,'pbkdf2_sha256$24000$av86kGOh2pIc$gZ+fiGag06lw0o5qUAATyl/o/G2BSG/w20dnFRUelX8=','2018-06-13 07:51:54.409171',0,'firstname','lastname','user23@mail.com',0,1,'2018-06-12 20:23:29.165309','user23');
+INSERT INTO "auth_user" VALUES(1,'pbkdf2_sha256$24000$av86kGOh2pIc$gZ+fiGag06lw0o5qUAATyl/o/G2BSG/w20dnFRUelX8=','2018-06-20 12:13:55.075278',1,'firstname','lastname','user1@mail.com',1,1,'2017-10-22 21:14:47','user1');
+INSERT INTO "auth_user" VALUES(23,'pbkdf2_sha256$24000$av86kGOh2pIc$gZ+fiGag06lw0o5qUAATyl/o/G2BSG/w20dnFRUelX8=','2018-06-20 12:15:19.876945',0,'firstname','lastname','user23@mail.com',0,1,'2018-06-12 20:23:29.165309','user23');
 CREATE TABLE "forcefields_forcefield_reference" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "forcefield_id" integer NOT NULL REFERENCES "forcefields_forcefield" ("id"), "reference_id" integer NOT NULL REFERENCES "homepage_reference" ("id"));
 INSERT INTO "forcefields_forcefield_reference" VALUES(4,1,5);
 INSERT INTO "forcefields_forcefield_reference" VALUES(6,1,13);
@@ -266,6 +266,7 @@ INSERT INTO "django_session" VALUES('cs9tj1hsksjymbfg1b95lm0h2wn9629k','N2I2Yzdj
 INSERT INTO "django_session" VALUES('e6r9uiebdzixklk4puksfrmrg9kod2kp','N2I2YzdjNDQxYTUzZTVlMGE5ZTA2MjZlNjIxN2Y0YTFhZWVmN2FkZTp7Il9hdXRoX3VzZXJfaGFzaCI6IjhmZWNlNTBiMGE2MDMyNmI4YThlYTY1OWU1MGJhZmZlMGU3OWNhMGYiLCJfYXV0aF91c2VyX2JhY2tlbmQiOiJkamFuZ28uY29udHJpYi5hdXRoLmJhY2tlbmRzLk1vZGVsQmFja2VuZCIsIl9hdXRoX3VzZXJfaWQiOiIxIn0=','2018-05-02 12:14:51.238816');
 INSERT INTO "django_session" VALUES('5nmaslkg597sinuceanw5s979a1hnivr','N2I2YzdjNDQxYTUzZTVlMGE5ZTA2MjZlNjIxN2Y0YTFhZWVmN2FkZTp7Il9hdXRoX3VzZXJfaGFzaCI6IjhmZWNlNTBiMGE2MDMyNmI4YThlYTY1OWU1MGJhZmZlMGU3OWNhMGYiLCJfYXV0aF91c2VyX2JhY2tlbmQiOiJkamFuZ28uY29udHJpYi5hdXRoLmJhY2tlbmRzLk1vZGVsQmFja2VuZCIsIl9hdXRoX3VzZXJfaWQiOiIxIn0=','2018-05-16 13:27:08.103278');
 INSERT INTO "django_session" VALUES('29ii9tpyvavjgd6gyf2kq3qy4p4lfbmk','MDdkNTkwNzM1ZmE1MjAyZWYxMTA3ZWE5ZDUzMTQzYzI2OGUxZGI0Yzp7Il9hdXRoX3VzZXJfaGFzaCI6IjA3NjMzMGFmMjIyNjc0YTg2NjE3ZDQ2MjlmM2M3YmMxMjU0MThiNGEiLCJfYXV0aF91c2VyX2JhY2tlbmQiOiJkamFuZ28uY29udHJpYi5hdXRoLmJhY2tlbmRzLk1vZGVsQmFja2VuZCIsIl9hdXRoX3VzZXJfaWQiOiIxIn0=','2018-06-27 09:29:32.237240');
+INSERT INTO "django_session" VALUES('npln8zr9vxh2ia3vadehpy9xourzcfnx','NjFhMzVmZTQ1NDZmZjc3NDk1Y2JiNGM4OWJiN2Q4NTc2OWVkMDgwZjp7Il9hdXRoX3VzZXJfaGFzaCI6IjViNTEzZWUzZWRiYjEwMmJiNTljOWY3MTYzODZhZjU3ZjQ4MmEyOGIiLCJfYXV0aF91c2VyX2JhY2tlbmQiOiJkamFuZ28uY29udHJpYi5hdXRoLmJhY2tlbmRzLk1vZGVsQmFja2VuZCIsIl9hdXRoX3VzZXJfaWQiOiIyMyJ9','2018-07-04 12:15:19.934911');
 CREATE TABLE "registration_registrationprofile" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "activation_key" varchar(40) NOT NULL, "user_id" integer NOT NULL UNIQUE REFERENCES "auth_user" ("id"));
 CREATE TABLE "lipids_lipid" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(4) NOT NULL UNIQUE, "lmid" varchar(20) NOT NULL UNIQUE, "com_name" varchar(200) NOT NULL UNIQUE, "sys_name" varchar(200) NULL, "iupac_name" varchar(500) NULL, "formula" varchar(30) NULL, "main_class" varchar(200) NULL, "sub_class" varchar(200) NULL, "img" varchar(100) NULL, "date" date NOT NULL, "slug" varchar(50) NOT NULL, "curator_id" integer NOT NULL REFERENCES "auth_user" ("id"), "search_name" varchar(300) NULL, "core" varchar(200) NULL, "l4_class" varchar(200) NULL);
 INSERT INTO "lipids_lipid" VALUES(2,'POPC','LMGP01010005','PC(16:0/18:1(9Z))','1-hexadecanoyl-2-(9Z-octadecenoyl)-sn-glycero-3-phosphocholine','[(2R)-3-hexadecanoyloxy-2-[(Z)-octadec-9-enoyl]oxypropyl] 2-(trimethylazaniumyl)ethyl phosphate','C42H82NO8P','Glycerophosphocholines [GP01]','Diacylglycerophosphocholines [GP0101]','lipids/LMGP01010005.png','2018-05-07','lmgp01010005',1,'POPC - LMGP01010005 - PC(16:0/18:1(9Z))','Glycerophospholipids [GP]','');
@@ -279,7 +280,7 @@ INSERT INTO "lipids_lipid" VALUES(27,'SJSM','LMSP03010005','SM(d18:1/20:0)','N-(
 INSERT INTO "lipids_lipid" VALUES(28,'CHOL','LMST01010001','Cholesterol','cholest-5-en-3beta-ol','(3S,8S,9S,10R,13R,14S,17R)-10,13-dimethyl-17-[(2R)-6-methylheptan-2-yl]-2,3,4,7,8,9,11,12,14,15,16,17-dodecahydro-1H-cyclopenta[a]phenanthren-3-ol','C27H46O','Sterols [ST01]','Cholesterol and derivatives [ST0101]','lipids/LMST01010001.jpg','2018-05-07','lmst01010001',1,'CHOL - LMST01010001 - Cholesterol','Sterol Lipids [ST]','');
 INSERT INTO "lipids_lipid" VALUES(29,'BSIT','LMST01040250','beta-sitosterol','(8S,9S,10R,13R,14S,17R)-17-[(1R,4R)-4-ethyl-1,5-dimethyl-hexyl]-10,13-dimethyl-2,3,4,7,8,9,11,12,14,15,16,17-dodecahydro-1H-cyclopenta[a]phenanthren-3-ol','(8S,9S,10R,13R,14S,17R)-17-[(2R,5S)-5-ethyl-6-methylheptan-2-yl]-10,13-dimethyl-2,3,4,7,8,9,11,12,14,15,16,17-dodecahydro-1H-cyclopenta[a]phenanthren-3-ol','C29H50O','Sterols [ST01]','Stigmasterols and C24-ethyl derivatives [ST0104]','lipids/LMST01040250.jpg','2018-05-07','lmst01040250',1,'BSIT - LMST01040250 - beta-sitosterol','Sterol Lipids [ST]','');
 INSERT INTO "lipids_lipid" VALUES(30,'STIG','LMST01040123','Stigmasterol','stigmasta-5,22E-dien-3beta-ol','(3S,8S,9S,10R,13R,14S,17R)-17-[(E,2R,5S)-5-ethyl-6-methylhept-3-en-2-yl]-10,13-dimethyl-2,3,4,7,8,9,11,12,14,15,16,17-dodecahydro-1H-cyclopenta[a]phenanthren-3-ol','C29H48O','Sterols [ST01]','Stigmasterols and C24-ethyl derivatives [ST0104]','lipids/LMST01040123.jpg','2018-05-07','lmst01040123',1,'STIG - LMST01040123 - Stigmasterol','Sterol Lipids [ST]','');
-INSERT INTO "lipids_lipid" VALUES(31,'CHOA','LMST04010001','Cholic acid','3Alpha,7Alpha,12Alpha-trihydroxy-5Beta-cholan-24-oic acid','(4R)-4-[(3R,5S,7R,8R,9S,10S,12S,13R,14S,17R)-3,7,12-trihydroxy-10,13-dimethyl-2,3,4,5,6,7,8,9,11,12,14,15,16,17-tetradecahydro-1H-cyclopenta[a]phenanthren-17-yl]pentanoic acid','C24H40O5','Bile acids and derivatives [ST04]','C24 bile acids, alcohols, and derivatives [ST0401]','lipids/LMST04010001.jpg','2018-05-07','lmst04010001',1,'CHOA - LMST04010001 - Cholic acid','Sterol Lipids [ST]','');
+INSERT INTO "lipids_lipid" VALUES(31,'CHOA','LMST04010001','Cholic acid','3Alpha,7Alpha,12Alpha-trihydroxy-5Beta-cholan-24-oic acid','(4R)-4-[(3R,5S,7R,8R,9S,10S,12S,13R,14S,17R)-3,7,12-trihydroxy-10,13-dimethyl-2,3,4,5,6,7,8,9,11,12,14,15,16,17-tetradecahydro-1H-cyclopenta[a]phenanthren-17-yl]pentanoic acid','C24H40O5','Bile acids and derivatives [ST04]','C24 bile acids, alcohols, and derivatives [ST0401]','lipids/LMST04010001.jpg','2018-06-20','lmst04010001',1,'CHOA - LMST04010001 - Cholic acid','Sterol Lipids [ST]','');
 INSERT INTO "lipids_lipid" VALUES(32,'CHYO','LMST01020003','18:1 Cholesteryl ester','cholest-5-en-3b-yl (9Z-octadecenoate)','[(3S,8S,9S,10R,13R,14S,17R)-10,13-dimethyl-17-[(2R)-6-methylheptan-2-yl]-2,3,4,7,8,9,11,12,14,15,16,17-dodecahydro-1H-cyclopenta[a]phenanthren-3-yl] (Z)-octadec-9-enoate','C45H78O2','Sterols [ST01]','Steryl esters [ST0102]','lipids/LMST01020003.jpg','2018-05-07','lmst01020003',1,'CHYO - LMST01020003 - 18:1 Cholesteryl ester','Sterol Lipids [ST]','');
 INSERT INTO "lipids_lipid" VALUES(33,'HBHT','LMPR04000004','bacteriohopane-32,33,34,35-tetrol',NULL,'(2S,4R)-7-[(5aR,5bR,11aS,13bS)-5a,5b,8,8,11a,13b-hexamethyl-1,2,3,3a,4,5,6,7,7a,9,10,11,11b,12,13,13a-hexadecahydrocyclopenta[a]chrysen-3-yl]octane-1,2,3,4-tetrol','C35H62O4','Hopanoids [PR04]',NULL,'lipids/LMPR04000004.jpg','2018-05-07','lmpr04000004',1,'HBHT - LMPR04000004 - bacteriohopane-32,33,34,35-tetrol','Prenol Lipids [PR]','');
 INSERT INTO "lipids_lipid" VALUES(34,'HDPT','LMPR04000001','Diploptene','Hop-22(29)-ene','(3S,3aS,5aR,5bR,7aS,11aS,11bR,13aR,13bS)-5a,5b,8,8,11a,13b-hexamethyl-3-prop-1-en-2-yl-1,2,3,3a,4,5,6,7,7a,9,10,11,11b,12,13,13a-hexadecahydrocyclopenta[a]chrysene','C30H50','Hopanoids [PR04]',NULL,'lipids/LMPR04000001.jpg','2018-05-07','lmpr04000001',1,'HDPT - LMPR04000001 - Diploptene','Prenol Lipids [PR]','');
@@ -399,16 +400,16 @@ INSERT INTO "membranes_membranetag" VALUES(1,'cyanobacteria');
 INSERT INTO "membranes_membranetag" VALUES(2,'thylakoid');
 INSERT INTO "membranes_membranetag" VALUES(3,'Thermosynechococcus vulcanus');
 CREATE TABLE "membranes_topolcomposition" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "number" integer unsigned NOT NULL, "side" varchar(2) NOT NULL, "lipid_id" integer NOT NULL REFERENCES "lipids_lipid" ("id"), "membrane_id" integer NOT NULL REFERENCES "membranes_membranetopol" ("id"), "topology_id" integer NOT NULL REFERENCES "lipids_topology" ("id"));
-INSERT INTO "membranes_topolcomposition" VALUES(121,8,'UP',144,7,19);
-INSERT INTO "membranes_topolcomposition" VALUES(122,20,'UP',142,7,15);
-INSERT INTO "membranes_topolcomposition" VALUES(123,32,'UP',143,7,16);
-INSERT INTO "membranes_topolcomposition" VALUES(124,12,'UP',140,7,18);
-INSERT INTO "membranes_topolcomposition" VALUES(125,8,'UP',141,7,17);
-INSERT INTO "membranes_topolcomposition" VALUES(126,8,'LO',144,7,19);
-INSERT INTO "membranes_topolcomposition" VALUES(127,20,'LO',142,7,15);
-INSERT INTO "membranes_topolcomposition" VALUES(128,32,'LO',143,7,16);
-INSERT INTO "membranes_topolcomposition" VALUES(129,12,'LO',140,7,18);
-INSERT INTO "membranes_topolcomposition" VALUES(130,8,'LO',141,7,17);
+INSERT INTO "membranes_topolcomposition" VALUES(171,8,'UP',144,7,19);
+INSERT INTO "membranes_topolcomposition" VALUES(172,20,'UP',142,7,15);
+INSERT INTO "membranes_topolcomposition" VALUES(173,32,'UP',143,7,16);
+INSERT INTO "membranes_topolcomposition" VALUES(174,12,'UP',140,7,18);
+INSERT INTO "membranes_topolcomposition" VALUES(175,8,'UP',141,7,17);
+INSERT INTO "membranes_topolcomposition" VALUES(176,8,'LO',144,7,19);
+INSERT INTO "membranes_topolcomposition" VALUES(177,20,'LO',142,7,15);
+INSERT INTO "membranes_topolcomposition" VALUES(178,32,'LO',143,7,16);
+INSERT INTO "membranes_topolcomposition" VALUES(179,12,'LO',140,7,18);
+INSERT INTO "membranes_topolcomposition" VALUES(180,8,'LO',141,7,17);
 CREATE TABLE "membranes_membrane_tag" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "membrane_id" integer NOT NULL REFERENCES "membranes_membrane" ("id"), "membranetag_id" integer NOT NULL REFERENCES "membranes_membranetag" ("id"));
 INSERT INTO "membranes_membrane_tag" VALUES(1,5,1);
 INSERT INTO "membranes_membrane_tag" VALUES(2,5,2);
@@ -447,19 +448,19 @@ INSERT INTO "homepage_reference" VALUES(18,'Pandit Kunal R., Klauda Jeffery B.',
 INSERT INTO "homepage_reference" VALUES(19,'Oostenbrink Chris, Villa Alessandra, Mark Alan E., Van Gunsteren Wilfred F.','Journal of Computational Chemistry','25',2004,'10.1002/jcc.20090',1,'2018-06-07','Oostenbrink2004','A biomolecular force field based on the free enthalpy of hydration and solvation: The GROMOS force-field parameter sets 53A5 and 53A6');
 INSERT INTO "homepage_reference" VALUES(20,'van Eerden Floris J., de Jong Djurre H., de Vries Alex H., Wassenaar Tsjerk A., Marrink Siewert J.','Biochimica et Biophysica Acta (BBA) - Biomembranes','1848',2015,'10.1016/j.bbamem.2015.02.025',1,'2018-06-07','vanEerden2015','Characterization of thylakoid lipid membranes from cyanobacteria and higher plants by molecular dynamics simulations');
 CREATE TABLE "forcefields_forcefield" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(30) NOT NULL UNIQUE, "forcefield_type" varchar(2) NOT NULL, "ff_file" varchar(100) NOT NULL, "mdp_file" varchar(100) NOT NULL, "description" text NOT NULL, "date" date NOT NULL, "curator_id" integer NOT NULL REFERENCES "auth_user" ("id"), "software" varchar(4) NOT NULL);
-INSERT INTO "forcefields_forcefield" VALUES(1,'charmm36','AA','forcefields/Gromacs/charmm36.ff.zip','forcefields/Gromacs/charmm36.mdp.zip','charmm36-jul2017.ff available on http://mackerell.umaryland.edu/charmm_ff.shtml','2018-06-07',1,'GR50');
-INSERT INTO "forcefields_forcefield" VALUES(2,'martini','CG','forcefields/Gromacs/Martini.ff.zip','forcefields/Gromacs/Martini.mdp.zip','','2018-06-07',1,'GR50');
+INSERT INTO "forcefields_forcefield" VALUES(1,'charmm36','AA','forcefields/Gromacs/charmm36.ff.zip','forcefields/Gromacs/charmm36.mdp.zip','Primary source: charmm36-jul2017.ff is available on http://mackerell.umaryland.edu/charmm_ff.shtml','2018-06-15',1,'GR50');
+INSERT INTO "forcefields_forcefield" VALUES(2,'martini','CG','forcefields/Gromacs/Martini.ff.zip','forcefields/Gromacs/Martini.mdp.zip','Primary source: http://cgmartini.nl/index.php/force-field-parameters/particle-definitions','2018-06-15',1,'GR50');
 INSERT INTO "forcefields_forcefield" VALUES(3,'gromos53a6_deVries2012','UA','forcefields/Gromacs/gromos53a6_deVries2012.ff.zip','forcefields/Gromacs/gromos53a6_deVries2012.mdp.zip','Primary source: http://cgmartini.nl/index.php/example-applications2/lipid-membranes','2018-06-11',1,'GR45');
 CREATE TABLE "lipids_topology" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "itp_file" varchar(100) NOT NULL, "gro_file" varchar(100) NOT NULL, "version" varchar(30) NOT NULL, "description" text NOT NULL, "date" date NOT NULL, "forcefield_id" integer NOT NULL REFERENCES "forcefields_forcefield" ("id"), "lipid_id" integer NOT NULL REFERENCES "lipids_lipid" ("id"), "curator_id" integer NOT NULL REFERENCES "auth_user" ("id"), "software" varchar(4) NOT NULL);
-INSERT INTO "lipids_topology" VALUES(2,'topologies/GR/charmm36/POPC/Klauda2010/POPC.itp','topologies/GR/charmm36/POPC/Klauda2010/POPC.gro','Klauda2010','','2018-06-07',1,2,1,'GR50');
-INSERT INTO "lipids_topology" VALUES(3,'topologies/GR/charmm36/DPPC/Klauda2010/DPPC.itp','topologies/GR/charmm36/DPPC/Klauda2010/DPPC.gro','Klauda2010','','2018-06-07',1,3,1,'GR50');
-INSERT INTO "lipids_topology" VALUES(5,'topologies/GR/charmm36/DMPC/Klauda2010/DMPC.itp','topologies/GR/charmm36/DMPC/Klauda2010/DMPC.gro','Klauda2010','','2018-06-07',1,53,1,'GR50');
-INSERT INTO "lipids_topology" VALUES(6,'topologies/GR/charmm36/DLPC/Klauda2010/DLPC.itp','topologies/GR/charmm36/DLPC/Klauda2010/DLPC.gro','Klauda2010','','2018-06-07',1,52,1,'GR50');
-INSERT INTO "lipids_topology" VALUES(7,'topologies/GR/charmm36/DOPC/Klauda2010/DOPC.itp','topologies/GR/charmm36/DOPC/Klauda2010/DOPC.gro','Klauda2010','','2018-06-07',1,20,1,'GR50');
-INSERT INTO "lipids_topology" VALUES(8,'topologies/GR/charmm36/POPE/Klauda2010/POPE.itp','topologies/GR/charmm36/POPE/Klauda2010/POPE.gro','Klauda2010','','2018-06-07',1,23,1,'GR50');
-INSERT INTO "lipids_topology" VALUES(9,'topologies/GR/charmm36/SPSM/Venable2014/SPSM.itp','topologies/GR/charmm36/SPSM/Venable2014/SPSM.gro','Venable2014','','2018-06-07',1,26,1,'GR50');
-INSERT INTO "lipids_topology" VALUES(10,'topologies/GR/charmm36/SSSM/Venable2014/SSSM.itp','topologies/GR/charmm36/SSSM/Venable2014/SSSM.gro','Venable2014','','2018-06-07',1,24,1,'GR50');
-INSERT INTO "lipids_topology" VALUES(11,'topologies/GR/charmm36/CHOL/Wu2014/CHOL.itp','topologies/GR/charmm36/CHOL/Wu2014/CHOL.gro','Wu2014','','2018-06-07',1,28,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(2,'topologies/GR/charmm36/POPC/Klauda2010/POPC.itp','topologies/GR/charmm36/POPC/Klauda2010/POPC.gro','Klauda2010','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-15',1,2,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(3,'topologies/GR/charmm36/DPPC/Klauda2010/DPPC.itp','topologies/GR/charmm36/DPPC/Klauda2010/DPPC.gro','Klauda2010','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-20',1,3,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(5,'topologies/GR/charmm36/DMPC/Klauda2010/DMPC.itp','topologies/GR/charmm36/DMPC/Klauda2010/DMPC.gro','Klauda2010','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-15',1,53,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(6,'topologies/GR/charmm36/DLPC/Klauda2010/DLPC.itp','topologies/GR/charmm36/DLPC/Klauda2010/DLPC.gro','Klauda2010','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-15',1,52,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(7,'topologies/GR/charmm36/DOPC/Klauda2010/DOPC.itp','topologies/GR/charmm36/DOPC/Klauda2010/DOPC.gro','Klauda2010','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-15',1,20,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(8,'topologies/GR/charmm36/POPE/Klauda2010/POPE.itp','topologies/GR/charmm36/POPE/Klauda2010/POPE.gro','Klauda2010','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-15',1,23,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(9,'topologies/GR/charmm36/SPSM/Venable2014/SPSM.itp','topologies/GR/charmm36/SPSM/Venable2014/SPSM.gro','Venable2014','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-15',1,26,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(10,'topologies/GR/charmm36/SSSM/Venable2014/SSSM.itp','topologies/GR/charmm36/SSSM/Venable2014/SSSM.gro','Venable2014','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-15',1,24,1,'GR50');
+INSERT INTO "lipids_topology" VALUES(11,'topologies/GR/charmm36/CHOL/Wu2014/CHOL.itp','topologies/GR/charmm36/CHOL/Wu2014/CHOL.gro','Wu2014','Primary source: http://charmm-gui.org/?doc=input/membrane_only&step=1','2018-06-15',1,28,1,'GR50');
 INSERT INTO "lipids_topology" VALUES(15,'topologies/GR45/gromos53a6_deVries2012/OPGG/vanEerden2015/OPGG.itp','topologies/GR45/gromos53a6_deVries2012/OPGG/vanEerden2015/OPGG.gro','vanEerden2015','Primary source: http://cgmartini.nl/index.php/example-applications2/lipid-membranes
 The lipid and residues names have been modified to match with the database and correspond to the names used with the Martini forcefield','2018-06-11',3,142,1,'GR45');
 INSERT INTO "lipids_topology" VALUES(16,'topologies/GR45/gromos53a6_deVries2012/OPMG/vanEerden2015/OPMG.itp','topologies/GR45/gromos53a6_deVries2012/OPMG/vanEerden2015/OPMG.gro','vanEerden2015','Primary source: http://cgmartini.nl/index.php/example-applications2/lipid-membranes
@@ -471,8 +472,9 @@ The lipid and residues names have been modified to match with the database and c
 INSERT INTO "lipids_topology" VALUES(19,'topologies/GR45/gromos53a6_deVries2012/OPSG/vanEerden2015/OPSG.itp','topologies/GR45/gromos53a6_deVries2012/OPSG/vanEerden2015/OPSG.gro','vanEerden2015','Primary source: http://cgmartini.nl/index.php/example-applications2/lipid-membranes
 The lipid and residues names have been modified to match with the database and correspond to the names used with the Martini forcefield','2018-06-11',3,144,1,'GR45');
 CREATE TABLE "membranes_membranetopol" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "equilibration" integer unsigned NOT NULL, "mem_file" varchar(100) NULL, "nb_lipids" integer unsigned NULL, "description" text NOT NULL, "date" date NOT NULL, "curator_id" integer NOT NULL REFERENCES "auth_user" ("id"), "forcefield_id" integer NOT NULL REFERENCES "forcefields_forcefield" ("id"), "membrane_id" integer NULL REFERENCES "membranes_membrane" ("id"), "temperature" integer unsigned NOT NULL, "name" varchar(30) NOT NULL, "software" varchar(4) NOT NULL, "compo_file" varchar(100) NULL);
-INSERT INTO "membranes_membranetopol" VALUES(7,1200,'membranes/LIM7_cyano thylakoid.gro',160,'Primary source: http://cgmartini.nl/index.php/example-applications2/lipid-membranes
-Lipid names and residues have been modified to match with the database and correspond to the names used with the Martini forcefield','2018-06-11',1,3,5,300,'cyano thylakoid','GR45','membranes/LIM7_cyano thylakoid.txt');
+INSERT INTO "membranes_membranetopol" VALUES(7,1200,'membranes/LIM7_cyano_thylakoid.gro',160,'Primary source: http://cgmartini.nl/index.php/example-applications2/lipid-membranes
+Lipid names and residues have been modified to match with the database and correspond to the names used with the Martini forcefield
+Salt concentration: 88mM','2018-06-15',1,3,5,300,'cyano thylakoid','GR45','membranes/LIM7_cyano_thylakoid.txt');
 DELETE FROM sqlite_sequence;
 INSERT INTO "sqlite_sequence" VALUES('django_migrations',81);
 INSERT INTO "sqlite_sequence" VALUES('django_admin_log',61);
@@ -480,15 +482,15 @@ INSERT INTO "sqlite_sequence" VALUES('django_content_type',18);
 INSERT INTO "sqlite_sequence" VALUES('auth_permission',54);
 INSERT INTO "sqlite_sequence" VALUES('auth_user',23);
 INSERT INTO "sqlite_sequence" VALUES('forcefields_forcefield_reference',10);
-INSERT INTO "sqlite_sequence" VALUES('lipids_topology_reference',34);
+INSERT INTO "sqlite_sequence" VALUES('lipids_topology_reference',36);
 INSERT INTO "sqlite_sequence" VALUES('lipids_lipid',144);
-INSERT INTO "sqlite_sequence" VALUES('membranes_topolcomposition',130);
+INSERT INTO "sqlite_sequence" VALUES('membranes_topolcomposition',180);
 INSERT INTO "sqlite_sequence" VALUES('membranes_composition',173);
 INSERT INTO "sqlite_sequence" VALUES('membranes_membrane',5);
 INSERT INTO "sqlite_sequence" VALUES('users_profile',5);
 INSERT INTO "sqlite_sequence" VALUES('homepage_reference',20);
 INSERT INTO "sqlite_sequence" VALUES('forcefields_forcefield',3);
-INSERT INTO "sqlite_sequence" VALUES('lipids_topology',19);
+INSERT INTO "sqlite_sequence" VALUES('lipids_topology',21);
 INSERT INTO "sqlite_sequence" VALUES('membranes_membranetopol_reference',10);
 INSERT INTO "sqlite_sequence" VALUES('membranes_membranetopol',7);
 INSERT INTO "sqlite_sequence" VALUES('membranes_membranetag',3);
