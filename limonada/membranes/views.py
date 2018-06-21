@@ -174,6 +174,8 @@ def formsetdata(mem_file, ff):
 
     merrors = []
     compo, membrane = membraneanalysis(mem_file.name, rand)
+    if len(compo.keys()) == 1:
+        merrors.append("There is a problem with fatslim.")
     if membrane.prot == True: 
         merrors.append("Upload of membranes containing proteins is not allowed at the moment.")
     if len(membrane.unkres) > 0:

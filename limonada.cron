@@ -1,0 +1,5 @@
+#!/bin/bash
+
+find /path/limonada/media/tmp/ -mmin +60 -exec rm -rf {} \;
+
+

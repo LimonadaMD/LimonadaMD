@@ -57,9 +57,12 @@ def gmxrun(lipname,ff_file,mdp_file,itp_file,gro_file,software):
     topfile.close()    
 
     with cd(dirname):
-        args = shlex.split("%sgrompp -f em.mdp -p topol.top -c %s.gro -o em.tpr -maxwarn 1" % (softdir,lipname) )
-        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = process.communicate()
+        try:
+            args = shlex.split("%sgrompp -f em.mdp -p topol.top -c %s.gro -o em.tpr -maxwarn 1" % (softdir,lipname) )
+            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = process.communicate()
+        except:
+            err = "grompp has failed or has not been found."
         if not os.path.isfile("em.tpr"): 
             error = True
             errorfile = open("gromacs.log","w") 
