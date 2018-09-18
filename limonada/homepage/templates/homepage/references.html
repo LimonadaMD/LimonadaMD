@@ -4,116 +4,136 @@
 
 {% block title %}References{% endblock %}
 
-{% block content %}
-    <br>
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-10">
-                <h1>Articles</h1>
-            </div>
-            <div class="col" align="right">
-                {% if user.is_authenticated %}
-                    <a href={% url 'refcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <br>
-    <div class="container">
-        <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
-            <div class="col-2 align-self-start">
-                <div class="row">
-                    {% include 'per_page.html' %}
-                </div>
-            </div>
-            <div class="col-9" id="collapseselect" {% if not params.year %}style="display: none"{% endif %}>
-                <form id="select_form"  action="" method="get">
-                    <div class="row p-1">
-                        {% for field in form_select %}
-                            <div class="col-0">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <br>
-                                    <small style="color: grey">{{ field.help_text }}</small>
-                                {% endif %}
-                                {% for error in field.errors %}
-                                    <br>
-                                    <p style="color: red">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-                        <div class="col-1">
-                            <a onclick="url_replace('year')" class="btn btn-primary btn-sm text-white">Select</a> 
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="col-0 align-self-start">
-                <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
-            </div>
-        </div>
-        <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
-            <div class="col-12">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th width="17%">
-                                {% if sort == "refid" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="refid" %}"> Name<a/>
-                            </th>
-                            <th width="72%">
-                                {% if sort == "title" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="title" %}">Title<a/></th>
-                            <th width="7%">
-                                {% if sort == "year" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="year" %}">Year<a/></th>
-                            {% if user.is_authenticated %}
-                                <th width="2%"></th>
-                                <th width="2%"></th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ref in page_objects %}
-                            <tr>
-                                <td><a class="text-success" href="http://dx.doi.org/{{ ref.doi }}">{{ ref.refid }}</a></td>
-                                <td>
-                                    <div id="{{ ref.refid }}">
-                                        <a class="text-info" data-toggle="collapse" href="#collapse{{ ref.refid }}" aria-expanded="true" aria-controls="collapse{{ ref.refid }}">{{ ref.title }}</a>
-                                        <div id="collapse{{ ref.refid }}" class="collapse" data-parent="#{{ ref.refid }}">
-                                            {{ ref.authors }}<br>
-                                            <i>{{ ref.journal }}</i>, {{ ref.year }}, <i>{{ ref.volume }}</i>. 
-                                            <b>DOI:</b> <a class="text-success" href="http://dx.doi.org/{{ ref.doi }}">{{ ref.doi }}</a>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ ref.year }}</td>
-                                {% if user.is_authenticated %}
-                                    {% if user == ref.curator %}
-                                        <td><a href={% url 'refupdate' ref.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
-                                        <td><a href={% url 'refdelete' ref.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a></td>
-                                    {% else %}
-                                        <td></td>
-                                        <td><a href={% url 'mail' %}?refid={{ ref.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
-                                    {% endif %}
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="row rounded-bottom border border-top-0 border-success p-3" style="background-color:#c2e5ca" >
-            {% include 'paginator.html' %}
-        </div>
-    </div>
-    <br>
+{% block description %}
+  references repository of limonada
 {% endblock %}
+
+{% block content %}
+
+  <!-- Title -->
+  <div class="row align-items-center justify-content-between">
+    <div class="col-auto"><h1>Articles</h1></div>
+    <div class="col-auto">
+      {% if user.is_authenticated %}
+        <a href="{% url 'refcreate' %}" class="btn btn-primary" role="button">Add</a>
+      {% endif %}
+    </div>
+  </div>
+  <br>
+
+  <!-- Search form -->
+  <div class="row justify-content-between bg-green rounded-top border border-bottom-0 border-success p-3 mx-1">
+    <div class="col-auto px-0">
+      {% include 'per_page.html' %}
+    </div>
+    <div id="collapseselect" class="col-12 col-md-auto order-last"
+         {% if not params.year %}style="display: none"{% endif %}>
+      <div class="container">
+        <form id="select_form"  action="" method="get">
+          <div class="row pt-1">
+            {% for field in form_select %}
+              <div class="col-auto d-flex">
+                <div class="pr-2 py-1">{{ field.label_tag }}</div>
+                <div>
+                  {{ field }}
+                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
+                  {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <a onclick="url_replace('year')" class="btn btn-primary btn-sm text-white">Select</a>
+        </form>
+      </div>
+    </div>
+    <div class="col-auto ml-auto order-md-last">
+      <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3 mx-1">
+    <div class="col-12 table-responsive">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th width="17%">
+              {% if sort == "refid" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                {% endif %}
+              {% endif %}
+              <a href="?{% url_replace sort="refid" %}"> Name<a/>
+            </th>
+            <th width="72%">
+              {% if sort == "title" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                {% endif %}
+              {% endif %}
+              <a href="?{% url_replace sort="title" %}">Title<a/></th>
+            <th width="7%">
+              {% if sort == "year" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                {% endif %}
+              {% endif %}
+              <a href="?{% url_replace sort="year" %}">Year<a/></th>
+            {% if user.is_authenticated %}
+              <th width="2%"></th>
+              <th width="2%"></th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for ref in page_objects %}
+            <tr>
+              <td><a class="text-success" href="http://dx.doi.org/{{ ref.doi }}">{{ ref.refid }}</a></td>
+              <td>
+                <div id="{{ ref.refid }}">
+                  <a class="text-info" data-toggle="collapse" href="#collapse{{ ref.refid }}" aria-expanded="false"
+                      aria-controls="collapse{{ ref.refid }}">{{ ref.title }}</a>
+                  <div id="collapse{{ ref.refid }}" class="collapse" data-parent="#{{ ref.refid }}">
+                    {{ ref.authors }}<br>
+                    <i>{{ ref.journal }}</i>, {{ ref.year }}, <i>{{ ref.volume }}</i>.
+                    <b>DOI:</b> <a class="text-success" href="http://dx.doi.org/{{ ref.doi }}">{{ ref.doi }}</a>
+                  </div>
+                </div>
+              </td>
+              <td>{{ ref.year }}</td>
+              {% if user.is_authenticated %}
+                {% if user == ref.curator %}
+                  <td><a href="{% url 'refupdate' ref.pk %}"><i class="fas fa-edit text-success"></i></a></td>
+                  <td><a href="{% url 'refdelete' ref.pk %}"><i class="fas fa-trash text-success"></i></a></td>
+                {% else %}
+                  <td></td>
+                  <td><a href="{% url 'mail' %}?refid={{ ref.pk }}"><i class="fas fa-edit text-success"></i></a></td>
+                {% endif %}
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row align-items-start justify-content-between bg-green rounded-bottom border border-top-0
+              border-success p-3 mx-1">
+    {% include 'paginator.html' %}
+  </div>
+
+{% endblock %}
+
 
 {% block script %}
-    <script type="text/javascript">
-        $("#select_form").submit(function(){url_replace('year')});
-    </script>
-{% endblock %}
 
+  <script>
+    $("#select_form").submit(function(){url_replace('year')});
+  </script>
+
+{% endblock %}

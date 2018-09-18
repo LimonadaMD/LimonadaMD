@@ -1,46 +1,72 @@
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from django.template import RequestContext
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
-from django.core.files import File
-from django.core.files.storage import FileSystemStorage
-from django.http import HttpResponse, HttpResponseRedirect
-from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView, FormView
-from django.conf import settings
-from django.utils.text import slugify
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
-from django.contrib.auth.models import User
+# -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
+#
+#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#
+#    This file is part of Limonada.
+#
+#    Limonada is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Limonada is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
+
+# standard library
 import operator
-from .models import Lipid, Topology   
-from .forms import LmidForm, LipidForm, SelectLipidForm, TopologyForm, SelectTopologyForm  
-from membranes.models import MembraneTopol, Membrane 
-from homepage.models import Reference
-from forcefields.models import Forcefield
-from dal import autocomplete
-import json, os, os.path, time, shutil
+import os
+import shlex
+import shutil
+import subprocess
+
+# third-party
 import requests
-import shlex, subprocess
+from dal import autocomplete
+
+# Django
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from forcefields.choices import *
-import simplejson as json
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.core.urlresolvers import reverse
+from django.db.models import Q
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect, render
+from django.utils.text import slugify
+from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
+
+# Django apps
+from forcefields.choices import SFTYPE_CHOICES
+from forcefields.models import Forcefield
+from membranes.models import Membrane, MembraneTopol
+
+# local Django
+from .forms import LipidForm, LmidForm, SelectLipidForm, SelectTopologyForm, TopologyForm
+from .functions import findcgbonds
+from .models import Lipid, Topology
 
 
 def molsize(filename):
-    mol = open("%s.mol" % filename).readlines()
-    rotmol = open("%s_rot.mol" % filename,"w") 
-    for j in range(0,4):
+    mol = open('%s.mol' % filename).readlines()
+    rotmol = open('%s_rot.mol' % filename, 'w')
+    for j in range(0, 4):
         rotmol.write(mol[j])
     X = []
     Y = []
     nb = int(mol[3][0:3])
-    for j in range(4,nb+4):
+    for j in range(4, nb+4):
         X.append(float(mol[j].split()[0]))
         Y.append(float(mol[j].split()[1]))
-        rotmol.write("%10.4f%s %s" % (-float(mol[j][11:20]),mol[j][0:10],mol[j][21:]))
+        rotmol.write('%10.4f%s %s' % (-float(mol[j][11:20]), mol[j][0:10], mol[j][21:]))
     for line in mol[j+1:]:
-        rotmol.write("%s" % line)
+        rotmol.write('%s' % line)
     rotmol.close()
     R = (max(Y)-min(Y)) / (max(X)-min(X))
     return R
@@ -48,50 +74,50 @@ def molsize(filename):
 
 def LM_class():
     LM_dict = {}
-    LM_class = {'category':[]}
-    for line in open("media/Lipid_Classification").readlines():
-        name = line.split("[")[1].split("]")[0]
+    LM_class = {'category': []}
+    for line in open('media/Lipid_Classification').readlines():
+        name = line.split('[')[1].split(']')[0]
         line = line.strip()
-        l = len(name) 
-        LM_dict[name] = line 
-        if l == 2:
-            LM_class['category'].append([name,line]) 
-        elif l == 4: 
-            if name[0:2] not in LM_class.keys(): 
+        lname = len(name)
+        LM_dict[name] = line
+        if lname == 2:
+            LM_class['category'].append([name, line])
+        elif lname == 4:
+            if name[0:2] not in LM_class.keys():
                 LM_class[name[0:2]] = []
-            LM_class[name[0:2]].append([name,line]) 
-        elif l == 6: 
-            if name[0:4] not in LM_class.keys(): 
+            LM_class[name[0:2]].append([name, line])
+        elif lname == 6:
+            if name[0:4] not in LM_class.keys():
                 LM_class[name[0:4]] = []
-            LM_class[name[0:4]].append([name,line]) 
-        elif l == 8: 
-            if name[0:6] not in LM_class.keys(): 
+            LM_class[name[0:4]].append([name, line])
+        elif lname == 8:
+            if name[0:6] not in LM_class.keys():
                 LM_class[name[0:6]] = []
-            LM_class[name[0:6]].append([name,line]) 
+            LM_class[name[0:6]].append([name, line])
     return LM_class, LM_dict
 
 
 def LI_index():
-    lmclass, lmdict = LM_class() 
+    lmclass, lmdict = LM_class()
     liindex = {}
     liid = []
-    if Lipid.objects.filter(lmid__istartswith="LI").exists():
-        for i in Lipid.objects.filter(lmid__istartswith="LI").values_list('lmid', flat=True):
-           liid.append(i)
+    if Lipid.objects.filter(lmid__istartswith='LI').exists():
+        for i in Lipid.objects.filter(lmid__istartswith='LI').values_list('lmid', flat=True):
+            liid.append(i)
     for grp in lmdict.keys():
-        if grp not in lmclass.keys(): 
-            l = len(grp)
-            if l == 4:
-                liindex[grp] = "LI%s00%04d" % (grp,1)
+        if grp not in lmclass.keys():
+            lgrp = len(grp)
+            if lgrp == 4:
+                liindex[grp] = 'LI%s00%04d' % (grp, 1)
             else:
-                liindex[grp] = "LI%s%04d" % (grp,1)
+                liindex[grp] = 'LI%s%04d' % (grp, 1)
             for lipid in liid:
-                if lipid[2:l+2] == grp:
-                   if int(liindex[grp][l+2:]) <= int(lipid[l+2:]): 
-                       if l == 4:
-                           liindex[grp] = "LI%s00%04d" % (grp,int(lipid[l+2:])+1) 
-                       else:
-                           liindex[grp] = "LI%s%04d" % (grp,int(lipid[l+2:])+1) 
+                if lipid[2:lgrp+2] == grp:
+                    if int(liindex[grp][lgrp+2:]) <= int(lipid[lgrp+2:]):
+                        if lgrp == 4:
+                            liindex[grp] = 'LI%s00%04d' % (grp, int(lipid[lgrp+2:])+1)
+                        else:
+                            liindex[grp] = 'LI%s%04d' % (grp, int(lipid[lgrp+2:])+1)
     return liindex
 
 
@@ -99,29 +125,29 @@ def sf_ff_dict():
     sf_ff = {}
     for ff in Forcefield.objects.values_list('software', 'id', 'name'):
         if ff[0] not in sf_ff.keys():
-            sf_ff[ff[0].encode("utf-8")] = []
-        sf_ff[ff[0].encode("utf-8")].append([ff[1],ff[2].encode("utf-8")]) 
+            sf_ff[ff[0].encode('utf-8')] = []
+        sf_ff[ff[0].encode('utf-8')].append([ff[1], ff[2].encode('utf-8')])
     return sf_ff
 
 
 lipheaders = {'name': 'asc',
               'lmid': 'asc',
               'com_name': 'asc',
-              'sys_name':  'asc',}
+              'sys_name': 'asc'}
 
 
 def LipList(request):
 
-    lmclass, lmdict = LM_class() 
+    lmclass, lmdict = LM_class()
 
-    lipid_list = Lipid.objects.all().order_by("main_class")
+    lipid_list = Lipid.objects.all().order_by('main_class')
 
     params = request.GET.copy()
 
     selectparams = {}
-    for param in ['category','main_class','sub_class','l4_class','lipidid']:
+    for param in ['category', 'main_class', 'sub_class', 'l4_class', 'lipidid']:
         if param in request.GET.keys():
-            if request.GET[param] != "":
+            if request.GET[param] != '':
                 if param == 'lipidid':
                     liplist = request.GET[param].split(',')
                     selectparams['lipidid'] = liplist
@@ -135,8 +161,8 @@ def LipList(request):
         lipid_list = lipid_list.filter(sub_class=lmdict[selectparams['sub_class']])
     if 'l4_class' in selectparams.keys():
         lipid_list = lipid_list.filter(l4_class=lmdict[selectparams['l4_class']])
-    if 'lipidid' in selectparams.keys(): 
-        form_select = SelectLipidForm({'lipidid':selectparams['lipidid']})
+    if 'lipidid' in selectparams.keys():
+        form_select = SelectLipidForm({'lipidid': selectparams['lipidid']})
         if form_select.is_valid():
             querylist = []
             for i in liplist:
@@ -148,19 +174,19 @@ def LipList(request):
     sort = request.GET.get('sort')
     if sort is not None:
         lipid_list = lipid_list.order_by(sort)
-        if lipheaders[sort] == "des":
+        if lipheaders[sort] == 'des':
             lipid_list = lipid_list.reverse()
-            lipheaders[sort] = "asc"
+            lipheaders[sort] = 'asc'
         else:
-            lipheaders[sort] = "des"
+            lipheaders[sort] = 'des'
 
     per_page = 25
     if 'per_page' in request.GET.keys():
         try:
             per_page = int(request.GET['per_page'])
-        except:
+        except ValidationError:
             per_page = 25
-    if per_page not in [10,25,100]:
+    if per_page not in [10, 25, 100]:
         per_page = 25
     paginator = Paginator(lipid_list, per_page)
 
@@ -184,7 +210,7 @@ def LipList(request):
     data['lipids'] = True
     data['params'] = params
 
-    return render(request,'lipids/lipids.html', data)
+    return render(request, 'lipids/lipids.html', data)
 
 
 @login_required
@@ -195,65 +221,72 @@ def LipCreate(request):
         form_add = LipidForm()
         if form_search.is_valid():
             lm_data = {}
-            lm_data['lmid'] = form_search.cleaned_data['lmidsearch']
-            lm_response = requests.get("http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json" % lm_data['lmid'])
-            if "lm_id" in lm_response.json().keys():
+            lm_data['lmid'] = form_search.cleaned_data['lmid']
+            lm_response = requests.get('http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json' % lm_data['lmid'])
+            if 'lm_id' in lm_response.json().keys():
                 lm_data_raw = lm_response.json()
-            elif "Row1" in lm_response.json().keys():
-                lm_data_raw = lm_response.json()["Row1"]
-            for key in ["pubchem_cid", "name", "sys_name","formula","abbrev_chains"]:
-                if key == "name" and 'name' in lm_data_raw.keys():
+            elif 'Row1' in lm_response.json().keys():
+                lm_data_raw = lm_response.json()['Row1']
+            for key in ['pubchem_cid', 'name', 'sys_name', 'formula', 'abbrev_chains']:
+                if key == 'name' and 'name' in lm_data_raw.keys():
                     lm_data['com_name'] = lm_data_raw[key]
                 elif key in lm_data_raw.keys():
                     lm_data[key] = lm_data_raw[key]
-            filename = "media/tmp/%s" % lm_data['lmid']
-            url = "http://www.lipidmaps.org/data/LMSDRecord.php?Mode=File&LMID=%s" % lm_data['lmid']
+            filename = 'media/tmp/%s' % lm_data['lmid']
+            url = 'http://www.lipidmaps.org/data/LMSDRecord.php?Mode=File&LMID=%s' % lm_data['lmid']
             response = requests.get(url)
-            with open("%s.mol" % filename, 'wb') as f:
+            with open('%s.mol' % filename, 'wb') as f:
                 f.write(response.content)
             f.close()
             R = molsize(filename)
             if R < 1:
-                shutil.copy("%s_rot.mol" % filename, "%s.mol" % filename)
+                shutil.copy('%s_rot.mol' % filename, '%s.mol' % filename)
             try:
-                args = shlex.split("obabel %s.mol -O %s.png -xC -xh 1200 -xw 1000 -x0 molfile -xd --title" % (filename,filename))
+                args = shlex.split(
+                    'obabel %s.mol -O %s.png -xC -xh 1200 -xw 1000 -x0 molfile -xd --title' % (filename, filename))
                 process = subprocess.Popen(args, stdout=subprocess.PIPE)
                 process.communicate()
-                f = file("media/tmp/%s.png" % lm_data['lmid'])
-                file_data = {'img':SimpleUploadedFile(f.name,f.read())}
-                imgpath = "tmp/%s.png" % lm_data['lmid']
-            except:
+                f = file('media/tmp/%s.png' % lm_data['lmid'])
+                file_data = {'img': SimpleUploadedFile(f.name, f.read())}
+                imgpath = 'tmp/%s.png' % lm_data['lmid']
+            except OSError:
                 file_data = {}
-                imgpath = ""
-            if os.path.isfile("%s_rot.mol" % filename): 
-                os.remove("%s_rot.mol" % filename)
-            if os.path.isfile("%s.mol" % filename): 
-                os.remove("%s.mol" % filename)
-            if lm_data["pubchem_cid"] != "":
+                imgpath = ''
+            if os.path.isfile('%s_rot.mol' % filename):
+                os.remove('%s_rot.mol' % filename)
+            if os.path.isfile('%s.mol' % filename):
+                os.remove('%s.mol' % filename)
+            if lm_data['pubchem_cid'] != '':
                 try:
-                    pubchem_response = requests.get("https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/%s/JSON/" % lm_data["pubchem_cid"])
-                    pubchem_data_raw = pubchem_response.json()["Record"]
+                    pubchem_response = requests.get(
+                        'https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/%s/JSON/'
+                        % lm_data['pubchem_cid'])
+                    pubchem_data_raw = pubchem_response.json()['Record']
                     if pubchem_data_raw != []:
-                        for s1 in pubchem_data_raw["Section"]: 
-                            if s1["TOCHeading"] == "Names and Identifiers":
-                                for s2 in s1["Section"]: 
-                                    if s2["TOCHeading"] == "Computed Descriptors":
-                                        for s3 in s2["Section"]: 
-                                            if s3["TOCHeading"] == "IUPAC Name":
-                                                lm_data["iupac_name"] = s3["Information"][0]['StringValue']
-                                    if s2["TOCHeading"] == "Synonyms":
-                                        for s3 in s2["Section"]: 
-                                            if s3["TOCHeading"] == "Depositor-Supplied Synonyms":
-                                                nb = len(s3["Information"][0]['StringValueList'])
+                        for s1 in pubchem_data_raw['Section']:
+                            if s1['TOCHeading'] == 'Names and Identifiers':
+                                for s2 in s1['Section']:
+                                    if s2['TOCHeading'] == 'Computed Descriptors':
+                                        for s3 in s2['Section']:
+                                            if s3['TOCHeading'] == 'IUPAC Name':
+                                                lm_data['iupac_name'] = s3['Information'][0]['StringValue']
+                                    if s2['TOCHeading'] == 'Synonyms':
+                                        for s3 in s2['Section']:
+                                            if s3['TOCHeading'] == 'Depositor-Supplied Synonyms':
+                                                key1 = 'Information'
+                                                key2 = 'StringValueList'
+                                                nb = len(s3[key1][0][key2])
                                                 for i in range(nb):
-                                                    if len(s3["Information"][0]['StringValueList'][nb-1-i]) == 4:
-                                                        lm_data["name"] = s3["Information"][0]['StringValueList'][nb-1-i]   
+                                                    if len(s3[key1][0][key2][nb-1-i]) == 4:
+                                                        lm_data['name'] = s3[key1][0][key2][nb-1-i]
                 except KeyError:
                     pass
             form_add = LipidForm(lm_data, file_data)
-            return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'liindex': liindex, 'imgpath': imgpath })
+            return render(request, 'lipids/lip_form.html', {
+                'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'liindex': liindex,
+                'imgpath': imgpath})
     elif request.method == 'POST' and 'add' in request.POST:
-        lmclass, lmdict = LM_class() 
+        lmclass, lmdict = LM_class()
         form_search = LmidForm()
         form_add = LipidForm(request.POST, request.FILES)
         if form_add.is_valid():
@@ -261,21 +294,21 @@ def LipCreate(request):
             name = form_add.cleaned_data['name']
             lmid = form_add.cleaned_data['lmid']
             com_name = form_add.cleaned_data['com_name']
-            lipid.search_name = '%s - %s - %s' % (name,lmid,com_name)
+            lipid.search_name = '%s - %s - %s' % (name, lmid, com_name)
             core = form_add.cleaned_data['core']
             main_class = form_add.cleaned_data['main_class']
             sub_class = form_add.cleaned_data['sub_class']
             l4_class = form_add.cleaned_data['l4_class']
             lipid.core = lmdict[core]
             lipid.main_class = lmdict[main_class]
-            if sub_class != "": 
+            if sub_class != '':
                 lipid.sub_class = lmdict[sub_class]
-            if l4_class != "": 
+            if l4_class != '':
                 lipid.l4_class = lmdict[l4_class]
-            imgpath = "media/tmp/%s.png" % lmid 
+            imgpath = 'media/tmp/%s.png' % lmid
             if not request.FILES and os.path.isfile(imgpath):
-                shutil.copy(imgpath, "media/lipids/%s.png" % lmid) 
-                lipid.img = "lipids/%s.png" % lmid 
+                shutil.copy(imgpath, 'media/lipids/%s.png' % lmid)
+                lipid.img = 'lipids/%s.png' % lmid
             else:
                 lipid.img = form_add.cleaned_data['img']
             if os.path.isfile(imgpath):
@@ -287,7 +320,8 @@ def LipCreate(request):
     else:
         form_search = LmidForm()
         form_add = LipidForm()
-    return render(request, 'lipids/lip_form.html', {'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'liindex': liindex })
+    return render(request, 'lipids/lip_form.html', {
+        'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'liindex': liindex})
 
 
 @login_required
@@ -295,7 +329,7 @@ def LipUpdate(request, slug=None):
     if Lipid.objects.filter(slug=slug).exists():
         lipid = Lipid.objects.get(slug=slug)
         if lipid.curator != request.user:
-            return redirect('homepage')         
+            return redirect('homepage')
         if request.method == 'POST':
             form_add = LipidForm(request.POST, request.FILES, instance=lipid)
             if form_add.is_valid():
@@ -304,7 +338,7 @@ def LipUpdate(request, slug=None):
                 lmid = form_add.cleaned_data['lmid']
                 com_name = form_add.cleaned_data['com_name']
                 lipid.img = form_add.cleaned_data['img']
-                lipid.search_name = '%s - %s - %s' % (name,lmid,com_name)
+                lipid.search_name = '%s - %s - %s' % (name, lmid, com_name)
                 lipid.slug = slugify('%s' % (lmid), allow_unicode=True)
                 lipid.save()
                 return HttpResponseRedirect(reverse('liplist'))
@@ -349,10 +383,10 @@ class LipAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
-topheaders = {'software'  : 'asc',
+topheaders = {'software': 'asc',
               'forcefield': 'asc',
-              'lipid'     : 'asc',
-              'version'   : 'asc',}
+              'lipid': 'asc',
+              'version': 'asc'}
 
 
 def TopList(request):
@@ -361,24 +395,24 @@ def TopList(request):
 
     params = request.GET.copy()
 
-    selectparams = {} 
-    for param in ['software','forcefield','lipid']:  
+    selectparams = {}
+    for param in ['software', 'forcefield', 'lipid']:
         if param in request.GET.keys():
-            if request.GET[param] != "":
+            if request.GET[param] != '':
                 if param == 'lipid':
                     liplist = request.GET[param].split(',')
-                    selectparams['lipid'] = liplist 
+                    selectparams['lipid'] = liplist
                 else:
-                    selectparams[param] = request.GET[param] 
-    if 'software' in selectparams.keys(): 
+                    selectparams[param] = request.GET[param]
+    if 'software' in selectparams.keys():
         top_list = top_list.filter(software=selectparams['software'])
-    if 'forcefield' in selectparams.keys(): 
+    if 'forcefield' in selectparams.keys():
         top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
-    if 'lipid' in selectparams.keys(): 
-        form_select = SelectTopologyForm({'lipid':selectparams['lipid']})
+    if 'lipid' in selectparams.keys():
+        form_select = SelectTopologyForm({'lipid': selectparams['lipid']})
         if form_select.is_valid():
-            querylist = [] 
-            for i in liplist: 
+            querylist = []
+            for i in liplist:
                 querylist.append(Q(lipid=Lipid.objects.filter(id=i)))
             top_list = top_list.filter(reduce(operator.or_, querylist))
     else:
@@ -387,7 +421,7 @@ def TopList(request):
     if 'topid' in request.GET.keys():
         try:
             topid = int(request.GET['topid'])
-        except:
+        except ValidationError:
             topid = 0
         if topid > 0:
             top_list = top_list.filter(id=topid)
@@ -395,7 +429,7 @@ def TopList(request):
     if 'curator' in request.GET.keys():
         try:
             curator = int(request.GET['curator'])
-        except:
+        except ValidationError:
             curator = 0
         if curator > 0:
             top_list = top_list.filter(curator=User.objects.filter(id=curator))
@@ -403,19 +437,19 @@ def TopList(request):
     sort = request.GET.get('sort')
     if sort is not None:
         top_list = top_list.order_by(sort)
-        if topheaders[sort] == "des":
+        if topheaders[sort] == 'des':
             top_list = top_list.reverse()
-            topheaders[sort] = "asc"
+            topheaders[sort] = 'asc'
         else:
-            topheaders[sort] = "des"
+            topheaders[sort] = 'des'
 
     per_page = 25
     if 'per_page' in request.GET.keys():
         try:
             per_page = int(request.GET['per_page'])
-        except:
+        except ValidationError:
             per_page = 25
-    if per_page not in [10,25,100]:
+    if per_page not in [10, 25, 100]:
         per_page = 25
     paginator = Paginator(top_list, per_page)
 
@@ -451,6 +485,10 @@ class TopDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TopDetail, self).get_context_data(**kwargs)
+        bonds = []
+        if context_data['object'].forcefield.forcefield_type == 'CG':
+            bonds = findcgbonds(context_data['object'].itp_file.url)
+        context_data['cgbonds'] = bonds
         context_data['topologies'] = True
         return context_data
 
@@ -472,7 +510,7 @@ class TopCreate(CreateView):
     def get_context_data(self, **kwargs):
         context_data = super(TopCreate, self).get_context_data(**kwargs)
         context_data['ffs'] = Forcefield.objects.all()
-        context_data['sf_ff'] = sf_ff_dict() 
+        context_data['sf_ff'] = sf_ff_dict()
         context_data['sfchoices'] = SFTYPE_CHOICES
         context_data['topologies'] = True
         context_data['topcreate'] = True
@@ -485,14 +523,14 @@ class TopUpdate(UpdateView):
     template_name = 'lipids/top_form.html'
 
     def form_valid(self, form):
-        self.object = form.save() 
+        self.object = form.save()
         self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
 
     def get_context_data(self, **kwargs):
         context_data = super(TopUpdate, self).get_context_data(**kwargs)
         context_data['ffs'] = Forcefield.objects.all()
-        context_data['sf_ff'] = sf_ff_dict() 
+        context_data['sf_ff'] = sf_ff_dict()
         context_data['topologies'] = True
         return context_data
 
@@ -505,8 +543,7 @@ class TopUpdate(UpdateView):
     def dispatch(self, request, *args, **kwargs):
         if not self.user_passes_test(request):
             return redirect('homepage')
-        return super(TopUpdate, self).dispatch(
-            request, *args, **kwargs)
+        return super(TopUpdate, self).dispatch(request, *args, **kwargs)
 
 
 class TopDelete(DeleteView):
@@ -521,4 +558,12 @@ class TopDelete(DeleteView):
         context_data['topologies'] = True
         return context_data
 
+
+class TopAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        qs = Topology.objects.all()
+        if self.q:
+            qs = qs.filter(version__icontains=self.q)
+        return qs
 

@@ -2,117 +2,155 @@
 <html lang="en">
 
 <head>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-XXXXXXXXX-X"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'UA-XXXXXXXXX-X');
-    </script>
-	{% load staticfiles %}
-	{% load homepage_extras %}
-	<title>Limonada - {% block title %}{% endblock %}</title>
-	<link rel="icon" href="{% static 'img/favicon.ico' %}">
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet"/>
-	<link rel="stylesheet" href="http://code.jquery.com/ui/1.8.18/themes/base/jquery-ui.css" type="text/css" media="all" />
-	<link rel="stylesheet" href="{% static 'css/limonada.css' %}" type="text/css"/>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-	<meta name="description" content="">
-	<meta name="author" content="">
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-XXXXXXXXX-X"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-XXXXXXXXX-X');
+  </script>
+  {% load staticfiles %}
+  {% load homepage_extras %}
+  <title>Limonada - {% block title %}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{% endblock %}">
+  <meta name="author" content="Jean-Marc Crowet (jeanmarccrowet@gmail.com)">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <meta charset="utf-8">
+  <link rel="icon" href="{% static 'img/favicon.ico' %}">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'css/limonada.css' %}"/>
 </head>
 
-<body class="container bg-light p-3">
-	<header class="container p-3">
-		<div class="row bgimg" style="background-image: url('{% static "img/banner.png"%}')";>
-			<div class="col-3 bg-light">
-				<h3>Limonada {% version %}</h3>
-				<br>
-				<h5>LIpid Membranes Open Network And DAtabase</h5> 
-			</div>
-			<div class="col bggrad">
-			</div>
-			<div class="col-3 bg-light" align="left">
-				{% include 'users/login.html' %}
-			</div>
-		</div>
-	</header>
-	<nav class="container p-3">
-		<ul class="nav nav-pills bg-secondary nav-justified rounded">
-			<li class="nav-item {% if homepage %} bg-success rounded {% endif %} ">
-				<a class="nav-link text-light" href="{% url 'homepage' %}">Home</a>
-			</li>
-			<li class="nav-item {% if lipids %} bg-success rounded {% endif %}">
-				<a class="nav-link text-light" href="{% url 'liplist' %}">Lipids</a>
-			</li>
-			<li class="nav-item {% if topologies %} bg-success rounded {% endif %}">
-				<a class="nav-link text-light" href="{% url 'toplist' %}">Topologies</a>
-			</li>
-			<li class="nav-item {% if forcefields %} bg-success rounded {% endif %}">
-				<a class="nav-link text-light" href="{% url 'fflist' %}">Forcefields</a>
-			</li>
-			<li class="nav-item {% if membranes %} bg-success rounded {% endif %}">
-				<a class="nav-link text-light" href="{% url 'memlist' %}">Membranes</a>
-			</li>
-<!--
-			<li class="nav-item {% if builder %} bg-success rounded {% endif %}">
-				<a class="nav-link text-light" href="{% url 'builder' %}">Builder</a>
-			</li>
--->
-            {% if user.is_authenticated %}
-				<li class="nav-item {% if references %} bg-success rounded {% endif %}">
-					<a class="nav-link text-light" href="{% url 'reflist' %}">References</a>
-				</li>
-			{% endif %}	
-<!--
-			<li class="nav-item {% if jobs %} bg-success rounded {% endif %}">
-				<a class="nav-link text-light" href="{% url 'jobs' %}">Jobs</a>
-			</li>
--->
-		</ul>
-	</nav>
-	<section class="p-3">
-		{% block content %}
-		{% endblock %}	
-	</section> 
-	<footer class="container bg-secondary text-light p-3">
-		<div class="row"> 
-			<div class="col-6"> 
-				<h2>Contact</h2>
-				<p> Dr. Jean-Marc Crowet (<a href="mailto:jean-marc.crowet@univ-reims.fr" class="text-warning">jean-marc.crowet@univ-reims.fr</a>)</p> 
-				<br>
-				<h2>Contributors</h2> 
-				<ul> 
-					<li><a href="http://www.gembloux.ulg.ac.be/biophysique-moleculaire-aux-interfaces/team/jean-marc-crowet/" class="text-warning">Dr. Jean-Marc Crowet</a></li> 
-					<li><a href="http://seb-buch.github.io/" class="text-warning">Dr. Sébastien Buchoux</a></li> 
-				</ul> 
-			</div> 
-			<div class="col-6"> 
-				<h2>Financial support</h2> 
-				<a href="http://www.univ-reims.fr/"><img src="{% static "img/URCA.png" %}" alt="URCA" style="height:75px;" class="p-1"/></a> 
-				<a href="https://www.u-picardie.fr/"><img src="{% static "img/logoupjv-bleu.png" %}" alt="UPJV" style="height:75px;" class="p-1"/></a> 
-				<a href="https://www.uliege.be/"><img src="{% static "img/uliege_logo-retina.png" %}" alt="ULiège" style="height:75px;" class="p-1"/></a> 
-				<a href="http://www.univ-reims.fr/minisite_64/"><img src="{% static "img/MEDyC.png" %}" alt="MEDyC" style="height:75px;" class="p-1"/></a> 
-				<a href="https://p3m.univ-reims.fr/"><img src="{% static "img/plateau_modelisation.png" %}" alt="Maison_Simulation" style="height:75px;" class="p-1"/></a> 
-				<a href="http://www.gembloux.ulg.ac.be/biophysique-moleculaire-aux-interfaces/"><img src="{% static "img/logo_LBMI-300x224.png" %}" alt="LBMI" style="height:75px;" class="p-1"/></a> 
-				<a href="http://sfr-condorcet.fr/"><img src="{% static "img/SFR_condorcet.jpg" %}" alt="SFR_Condorcet" style="height:75px;" class="p-1"/></a> 
-				<a href="http://www.wbi.be/"><img src="{% static "img/wbi.png" %}" alt="WBI" style="height:75px;" class="p-1"/></a> 
-			</div> 
-		</div> 
-	</footer>
+<body class="container bg-light">
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-	<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
-	<script src="{% static 'js/popper.min.js' %}"></script>
-	<script src="{% static 'js/bootstrap.min.js' %}"></script>
-	<script src="{% static 'js/jquery.formset.js' %}"></script>
-	<script src="{% static 'js/ngl.js' %}"></script>
-	<script src="{% static 'js/limonada.js' %}?ver=20180210"></script>
-    {% block script %}
+  <header id="header" class="card bg-light border-light px-3">
+    <img class="card-img" src="{% static 'img/banner.png'%}" alt="membrane banner">
+    <div class="card-img-overlay container">
+      <div id="header-card" class="row align-items-start">
+        <div class="col-auto ml-2">
+          <h2 class="bg-success text-light rounded p-1">Limonada {% version %}</h3>
+          <div class="bg-success text-light rounded p-1 mt-1">
+            <h5>LIpid Membranes Open Network</h5>
+            <h5>And DAtabase</h5>
+          </div>
+          <br>
+        </div>
+        <div class="col-auto bg-light-transparent rounded border border-success mr-4">
+          <div class="container p-0">
+            {% include 'users/login.html' %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="p-3">
+    <ul class="nav nav-pills bg-grey nav-justified rounded">
+      <li class="nav-item {% if homepage %}bg-success rounded{% endif %} ">
+        <a class="nav-link text-light" href="{% url 'homepage' %}">Home</a>
+      </li>
+      <li class="nav-item {% if lipids %}bg-success rounded{% endif %}">
+        <a class="nav-link text-light" href="{% url 'liplist' %}">Lipids</a>
+      </li>
+      <li class="nav-item {% if topologies %}bg-success rounded{% endif %}">
+        <a class="nav-link text-light" href="{% url 'toplist' %}">Topologies</a>
+      </li>
+      <li class="nav-item {% if forcefields %}bg-success rounded{% endif %}">
+        <a class="nav-link text-light" href="{% url 'fflist' %}">Forcefields</a>
+      </li>
+      <li class="nav-item {% if membranes %}bg-success rounded{% endif %}">
+        <a class="nav-link text-light" href="{% url 'memlist' %}">Membranes</a>
+      </li>
+      {% if user.is_authenticated %}
+        <li class="nav-item {% if references %}bg-success rounded{% endif %}">
+          <a class="nav-link text-light" href="{% url 'reflist' %}">References</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  <section class="container">
+    <br>
+    {% block content %}
     {% endblock %}
-	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-	<script src="{% static 'js/ie10-viewport-bug-workaround.js' %}"></script>
+    <br><br>
+  </section>
+
+  <footer class="container bg-grey text-light p-3">
+    <div class="row">
+      <div class="col-6">
+        <h2>Contact</h2>
+        <p class="ml-3">Dr. Jean-Marc Crowet (<a href="mailto:jean-marc.crowet@univ-reims.fr" class="text-warning">
+            jean-marc.crowet@univ-reims.fr</a>)</p>
+        <br>
+        <h2>Contributors</h2>
+        <ul>
+          <li><a href="http://www.gembloux.ulg.ac.be/biophysique-moleculaire-aux-interfaces/team/jean-marc-crowet/"
+                 class="text-warning">Dr. Jean-Marc Crowet</a></li>
+          <li><a href="https://seb-buch.github.io/" class="text-warning">Dr. Sébastien Buchoux</a></li>
+        </ul>
+      </div>
+      <div class="col-6">
+        <h2>Financial support</h2>
+        <div class="container">
+          <div class="row d-flex flex-wrap align-items-center">
+            <div class="col-0 p-1">
+              <a href="http://www.univ-reims.fr/"><img src="{% static "img/URCA.png" %}" alt="URCA"
+                  class="img-footer"/></a>
+            </div>
+            <div class="col-0 p-1">
+              <a href="https://www.u-picardie.fr/"><img src="{% static "img/logoupjv-bleu.png" %}" alt="UPJV"
+                  class="img-footer"/></a>
+            </div>
+            <div class="col-0 p-1">
+              <a href="https://www.uliege.be/"><img src="{% static "img/uliege_logo-retina.png" %}" alt="ULiège"
+                  class="img-footer"/></a>
+            </div>
+            <div class="col-0 p-1">
+              <a href="http://www.univ-reims.fr/minisite_64/"><img src="{% static "img/MEDyC.png" %}" alt="MEDyC"
+                  class="img-footer"/></a>
+            </div>
+            <div class="col-0 p-1">
+              <a href="http://www.gembloux.ulg.ac.be/biophysique-moleculaire-aux-interfaces/">
+                  <img src="{% static "img/logo_LBMI-300x224.png" %}" alt="LBMI" class="img-footer"/></a>
+            </div>
+            <div class="col-0 p-1">
+              <a href="https://p3m.univ-reims.fr/"><img src="{% static "img/plateau_modelisation.png" %}"
+                  alt="Maison_Simulation" class="img-footer"/></a>
+            </div>
+            <div class="col-0 p-1">
+              <a href="http://sfr-condorcet.fr/"><img src="{% static "img/SFR_condorcet.jpg" %}" alt="SFR_Condorcet"
+                  class="img-footer"/></a>
+            </div>
+            <div class="col-0 p-1">
+              <a href="http://www.wbi.be/"><img src="{% static "img/wbi.png" %}" alt="WBI"
+                  class="img-footer"/></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js" crossorigin="anonymous"
+          integrity="sha384-kW+oWsYx3YpxvjtZjFXqazFpA7UP/MbiY4jvs+RWZo2+N94PFZ36T6TFkc9O3qoB"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" crossorigin="anonymous"
+          integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" crossorigin="anonymous"
+          integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" crossorigin="anonymous"
+          integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.min.js"
+          integrity="sha384-4SbfzJyePzKJxMo6GScR+wxudneCgKbBwE4itD+rscxrvLFGoDQGaZJGtXT7+s33"
+          crossorigin="anonymous"></script>  
+  <script src="{% static 'js/ngl.js' %}"></script>
+  <script src="{% static 'js/limonada.js' %}?ver=20180210"></script>
+  {% block script %}
+  {% endblock %}
+  <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+  <script src="{% static 'js/ie10-viewport-bug-workaround.js' %}"></script>
 </body>
 
 </html>

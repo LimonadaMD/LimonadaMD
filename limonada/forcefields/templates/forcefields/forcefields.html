@@ -4,128 +4,155 @@
 
 {% block title %}Forcefields{% endblock %}
 
-{% block content %}
-    <br>
-    <div class="container">
-        <div class="row">
-            <div class="col-11">
-                <h1>Forcefields</h1>
-            </div>
-            {% if user.is_authenticated and user.is_staff %}
-                <div class="col" align="right">
-                    <a href={% url 'ffcreate' %} class="btn btn-primary" role="button" aria-pressed="true">Add</a>
-                </div>
-            {% endif %}
-        </div>
-        <br><i><b>N.B.:</b> If you use the following files in your work, please cite the primary source. (see Description field)</i>
-    </div>
-    <div class="container">
-        <div class="row justify-content-between rounded-top border border-bottom-0 border-success p-3" style="background-color:#c2e5ca" >
-            <div class="col align-self-start">
-                <div class="row">
-                    {% include 'per_page.html' %}
-                </div>
-            </div>
-            <div class="col-9" id="collapseselect" {% if not params.software %}style="display: none"{% endif %}>
-                <form id="select_form" action="" method="get">
-                    <div class="row">
-                        {% for field in form_select %}
-                            <div class="col-0 p-1">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <br>
-                                    <small style="color: grey">{{ field.help_text }}</small>
-                                {% endif %}
-                                {% for error in field.errors %}
-                                    <br>
-                                    <p style="color: red">{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-                        <div class="col-1 p-1">
-                            <a onclick="url_replace('software','forcefield_type')" class="btn btn-primary btn-sm text-white">Select</a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="col-0  align-self-start">
-                <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
-            </div>
-        </div>
-        <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3">
-            <div class="col-12">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th width="12%">
-                                {% if sort == "software" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="software" %}">Software<a/></th>
-                            <th width="18%">
-                                {% if sort == "forcefield_type" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="forcefield_type" %}">Type<a/></th>
-                            <th width="21%">
-                                {% if sort == "name" %}{% if dir == "asc" %}<i class="fas fa-sort-up"></i>{% else %}<i class="fas fa-sort-down"></i>{% endif %}{% endif %}
-                                <a href="?{% url_replace sort="name" %}">Name<a/></th>
-                            <th width="45%">Files</th>
-                            {% if user.is_authenticated and user.is_staff %}
-                                <th width="2%"></th>
-                                <th width="2%"></th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for forcefield in page_objects %}
-                            <tr>
-                                <td>{{ forcefield.get_software_display }}</td>
-                                <td>{{ forcefield.get_forcefield_type_display }}</td>
-                                <td id="{{ forcefield.pk }}">
-                                    <a class="text-info" data-toggle="collapse" href="#collapse{{ forcefield.pk }}" aria-expanded="true" aria-controls="collapse{{ forcefield.pk }}">{{ forcefield.name }}</a>
-                                </td>
-                                <td>
-                                    <a href="{{ forcefield.ff_file.url }}" class="text-success" target="blank">Forcefield</a>
-                                    <a href="{{ forcefield.mdp_file.url }}" class="text-success" target="blank">Parameters</a>
-                                </td>
-                                {% if user.is_authenticated and user.is_staff %}
-                                    {% if user == forcefield.curator %}
-                                        <td><a href={% url 'ffupdate' forcefield.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
-                                        <td><a href={% url 'ffdelete' forcefield.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a></td>
-                                    {% else %}
-                                        <td></td>
-                                        <td><a href={% url 'mail' %}?ffid={{ forcefield.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a></td>
-                                    {% endif %}
-                                {% endif %}
-                            </tr>
-                            <tr id="collapse{{ forcefield.pk }}" class="collapse" data-parent="#{{ forcefield.pk }}">
-                                <td></td>
-                                <td colspan="3">
-                                    <div class="row">
-                                        <div class="col-2"><strong>Description:</strong></div>
-                                        <div class="col-10">{{ forcefield.description }}</div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-2"><strong>References:</strong></div>
-                                        <div class="col-10">
-                                            {% for reference in forcefield.reference.all %}
-                                                <a class="text-success" href="http://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>
-                                                <i>{{ reference.journal }}</i>, {{ reference.volume }}.
-                                                {{ reference.title }}<br>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td></td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="row rounded-bottom border border-top-0 border-success p-3" style="background-color:#c2e5ca" >
-            {% include 'paginator.html' %}
-        </div>
-    </div>
-    <br>
+{% block description %}
+  molecular dynamics forcefield repository of limonada
 {% endblock %}
 
+{% block content %}
 
+  <!-- Title -->
+  <div class="row align-items-center justify-content-between">
+    <div class="col-auto"><h1>Forcefields</h1></div>
+    <div class="col-auto">
+      {% if user.is_authenticated and user.is_staff %}
+        <a href="{% url 'ffcreate' %}" class="btn btn-primary" role="button">Add</a>
+      {% endif %}
+    </div>
+  </div>
+  <br>
+
+  <!-- Search form -->
+  <p class="font-italic m-0 pl-1"><span class="font-weight-bold">N.B.:</span> If you use the following files in
+      your work, please cite the primary source. (see Description field)</p>
+  <div class="row justify-content-between bg-green rounded-top border border-bottom-0 border-success p-3 mx-1">
+    <div class="col-auto px-0">
+        {% include 'per_page.html' %}
+    </div>
+    <div id="collapseselect" class="col-12 col-lg-auto col-md-7 order-last"
+         {% if not params.software %}style="display: none"{% endif %}>
+      <div class="container">
+        <form id="select_form" action="" method="get">
+          <div class="row pt-1">
+            {% for field in form_select %}
+              <div class="col-12 col-lg-auto col-md-12 col-sm-12 d-flex">
+                <div class="pr-2 py-1">{{ field.label_tag }}</div>
+                <div>
+                  {{ field }}
+                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
+                  {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <a onclick="url_replace('software','forcefield_type')" class="btn btn-primary btn-sm text-white">
+              Select</a>
+        </form>
+      </div>
+    </div>
+    <div class="col-auto ml-auto order-md-last">
+      <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3 mx-1">
+    <div class="col-12 table-responsive">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th width="25%">
+              {% if sort == "name" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                {% endif %}
+              {% endif %}
+              <a href="?{% url_replace sort="name" %}">Name<a/>
+            </th>
+            <th width="20%">
+              {% if sort == "software" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                {% endif %}
+              {% endif %}
+              <a href="?{% url_replace sort="software" %}">Software<a/>
+            </th>
+            <th width="20%">
+              {% if sort == "forcefield_type" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                {% endif %}
+                {% endif %}
+              <a href="?{% url_replace sort="forcefield_type" %}">Type<a/>
+            </th>
+            <th width="31%">Files</th>
+            {% if user.is_authenticated and user.is_staff %}
+              <th width="2%"></th>
+              <th width="2%"></th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for forcefield in page_objects %}
+            <tr>
+              <td id="{{ forcefield.pk }}">
+                <a class="text-info" data-toggle="collapse" href="#collapse{{ forcefield.pk }}" aria-expanded="false"
+                    aria-controls="collapse{{ forcefield.pk }}">{{ forcefield.name }}</a>
+              </td>
+              <td>{{ forcefield.get_software_display }}</td>
+              <td>{{ forcefield.get_forcefield_type_display }}</td>
+              <td>
+                <a href="{{ forcefield.ff_file.url }}" class="text-success" target="blank">Forcefield</a>
+                <a href="{{ forcefield.mdp_file.url }}" class="text-success" target="blank">Parameters</a>
+              </td>
+              {% if user.is_authenticated and user.is_staff %}
+                {% if user == forcefield.curator %}
+                  <td>
+                    <a href="{% url 'ffupdate' forcefield.pk %}"><i class="fas fa-edit text-success"></i></a>
+                  </td>
+                  <td>
+                    <a href="{% url 'ffdelete' forcefield.pk %}"><i class="fas fa-trash text-success"></i></a>
+                  </td>
+                {% else %}
+                  <td></td>
+                  <td>
+                    <a href="{% url 'mail' %}?ffid={{ forcefield.pk }}"><i class="fas fa-edit text-success"></i></a>
+                  </td>
+                {% endif %}
+              {% endif %}
+            </tr>
+            <tr>
+              <td colspan="5" class="p-0" style="border-top: none">
+                <div id="collapse{{ forcefield.pk }}" class="container collapse p-0">
+                  <div class="row mx-3">
+                    <div class="col-3 col-lg-2"><strong>Description:</strong></div>
+                    <div class="col-9 col-lg-10">{{ forcefield.description | linebreaks }}</div>
+                  </div>
+                  <div class="row mx-3">
+                    <div class="col-3 col-lg-2"><strong>References:</strong></div>
+                    <div class="col-9 col-lg-10">
+                      {% for reference in forcefield.reference.all %}
+                        <a class="text-success" href="https://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>
+                        <i>{{ reference.journal }}</i>, {{ reference.volume }}. {{ reference.title }}<br>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row bg-green rounded-bottom border border-top-0 border-success p-3 mx-1">
+    {% include 'paginator.html' %}
+  </div>
+  <br>
+
+{% endblock %}

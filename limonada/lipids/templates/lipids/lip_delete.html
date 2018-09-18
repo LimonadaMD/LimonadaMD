@@ -3,16 +3,16 @@
 {% block title %}Lipids{% endblock %}
 
 {% block content %}
-    <br>
-    <h1>Lipids</h1>
-    <br>
-    <form action="" method="post">
-        {% csrf_token %}
-        <p>Are you sure you want to delete "{{ object }}"?</p>
-        <input type="submit" class="btn btn-primary btn-sm" value="Yes">
-        <a href={% url 'liplist' %} class="btn btn-primary btn-sm" role="button" aria-pressed="true">No</a> 
-    </form>
-    <br>
+
+  <h1>Lipids</h1>
+  <br>
+
+  <form action="" method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to delete "{{ object }}"?</p>
+    <input type="submit" class="btn btn-primary btn-sm" value="Yes">
+    <a href="{% url 'liplist' %}" class="btn btn-primary btn-sm" role="button">No</a>
+  </form>
+  <br>
+
 {% endblock %}
-
-

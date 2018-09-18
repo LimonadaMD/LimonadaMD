@@ -1,37 +1,38 @@
 {% if user.is_authenticated %}
-	Logged user: {{ user.username }}
-	<br>
-	<a href="{% url 'logout' %}">logout</a>
-	<br>
-	<a href="{% url 'userinfo' %}">user informations</a>
-	<br>
-	<a href={% url 'update' %} class="btn btn-primary" role="button" aria-pressed="true">Update your account</a>
+  <div class="py-1">
+    User: {{ user.username }}
+    <br>
+    <a href="{% url 'logout' %}">logout</a>
+    <br>
+    <a href="{% url 'userinfo' %}">user informations</a>
+    <br>
+    <a href="{% url 'update' %}" class="btn btn-sm btn-primary" role="button">Update your account</a>
+  </div>
 {% else %}
-	<form method="post" action="{% url 'login' %}">
-		{% csrf_token %}
-		{% for field in login_form %}
-			<div class="row">
-				<div class="col-4">
-					{{ field.label_tag }} 
-				</div>
-				<div class="col" align="left">
-					{{ field }}
-					{% if field.help_text %}
-						<small style="color: grey">{{ field.help_text }}</small>
-					{% endif %}
-					{% for error in field.errors %}
-						<p style="color: red">{{ error }}</p>
-					{% endfor %}
-				</div>
-			</div>
-		{% endfor %} 
-		<div class="row justify-content-around">
-			<button type="submit" class="btn btn-primary">Login</button>
-			<a href={% url 'signup' %} class="btn btn-primary" role="button" aria-pressed="true">Create an account</a>
-		</div>
-		<div class="row justify-content-end">
-	        <a href="{% url 'password_reset' %}">Forgot your password? </a>
-		</div>
-	</form>
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    {% for field in login_form %}
+      <div class="row">
+        <div class="col p-1 align-self-end small">{{ field.label_tag }}</div>
+        <div class="col p-1">
+          {{ field }}
+          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
+          {% for error in field.errors %}<p class="text-success">{{ error }}</p>{% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+    <div class="row px-1 justify-content-between">
+      <div class="col-0">
+        <a href="{% url 'signup' %}" class="btn btn-sm btn-primary" role="button">Register</a>
+      </div>
+      <div class="col-0">
+        <button type="submit" class="btn btn-sm btn-primary">Login</button>
+      </div>
+    </div>
+    <div class="row px-1 small">
+      <div class="col-0">
+        <a href="{% url 'password_reset' %}">Forgot password? </a>
+      </div>
+    </div>
+  </form>
 {% endif %}
-

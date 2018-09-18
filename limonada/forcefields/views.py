@@ -1,20 +1,41 @@
-from django.shortcuts import render
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.decorators import method_decorator
-from django.http import HttpResponse, HttpResponseRedirect
-from django.template import RequestContext
-from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.models import User
-from .models import Forcefield 
-from .forms import ForcefieldForm, SelectForcefieldForm
+# -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
+#
+#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#
+#    This file is part of Limonada.
+#
+#    Limonada is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Limonada is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
+# Django
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views.generic import CreateView, DeleteView, UpdateView
+
+# local Django
+from .forms import ForcefieldForm, SelectForcefieldForm
+from .models import Forcefield
 
 headers = {'software': 'asc',
            'forcefield_type': 'asc',
-           'name':  'asc',}
+           'name': 'asc'}
 
 
 def FfList(request):
@@ -24,9 +45,9 @@ def FfList(request):
     params = request.GET.copy()
 
     selectparams = {}
-    for param in ['software','forcefield_type']:
+    for param in ['software', 'forcefield_type']:
         if param in request.GET.keys():
-            if request.GET[param] != "":
+            if request.GET[param] != '':
                 selectparams[param] = request.GET[param]
     form_select = SelectForcefieldForm(selectparams)
     if form_select.is_valid():
@@ -38,7 +59,7 @@ def FfList(request):
     if 'ffid' in request.GET.keys():
         try:
             ffid = int(request.GET['ffid'])
-        except:
+        except ValidationError:
             ffid = 0
         if ffid > 0:
             ff_list = ff_list.filter(id=ffid)
@@ -46,7 +67,7 @@ def FfList(request):
     if 'curator' in request.GET.keys():
         try:
             curator = int(request.GET['curator'])
-        except:
+        except ValidationError:
             curator = 0
         if curator > 0:
             ff_list = ff_list.filter(curator=User.objects.filter(id=curator))
@@ -54,19 +75,19 @@ def FfList(request):
     sort = request.GET.get('sort')
     if sort is not None:
         ff_list = ff_list.order_by(sort)
-        if headers[sort] == "des":
+        if headers[sort] == 'des':
             ff_list = ff_list.reverse()
-            headers[sort] = "asc"
+            headers[sort] = 'asc'
         else:
-            headers[sort] = "des"
+            headers[sort] = 'des'
 
     per_page = 25
     if 'per_page' in request.GET.keys():
         try:
             per_page = int(request.GET['per_page'])
-        except:
+        except ValidationError:
             per_page = 25
-    if per_page not in [10,25,100]:
+    if per_page not in [10, 25, 100]:
         per_page = 25
     paginator = Paginator(ff_list, per_page)
 
@@ -122,7 +143,7 @@ class FfUpdate(UpdateView):
     template_name = 'forcefields/ff_form.html'
 
     def form_valid(self, form):
-        self.object = form.save() 
+        self.object = form.save()
         self.object.save()
         return HttpResponseRedirect(self.object.get_absolute_url())
 
@@ -144,5 +165,3 @@ class FfDelete(DeleteView):
         context_data = super(FfDelete, self).get_context_data(**kwargs)
         context_data['forcefields'] = True
         return context_data
-
-

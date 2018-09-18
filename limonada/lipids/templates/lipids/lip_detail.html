@@ -3,53 +3,58 @@
 {% block title %}Lipids{% endblock %}
 
 {% block content %}
-    <br>
-    <h1>Lipids</h1>
-    <br>
-    <div class="container">
-        <div class="row align-items-center bg-white border rounded border-success p-3">
-            <div class="col-7">
-                <table class="table table-sm">
-                    <tbody>
-                        <tr><td width="30%" class="font-weight-bold">Name:</td><td>{{ lipid.name }}</td></tr>  
-                        <tr><td class="font-weight-bold">LMID:</td><td><a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">{{ lipid.lmid }}<a/></td></tr>  
-                        <tr><td class="font-weight-bold">Common name:</td><td>{{ lipid.com_name }}</td></tr> 
-                        <tr><td class="font-weight-bold">Systematic name:</td><td>{{ lipid.sys_name }}</td></tr> 
-                        <tr><td class="font-weight-bold">IUPAC name:</td><td>{{ lipid.iupac_name }}</td></tr> 
-                        <tr><td class="font-weight-bold">Formula:</td><td>{{ lipid.formula }}</td></tr> 
-                        <tr><td class="font-weight-bold">Category:</td><td>{{ lipid.core }}</td></tr> 
-                        <tr><td class="font-weight-bold">Main class:</td><td>{{ lipid.main_class }}</td></tr> 
-                        <tr><td class="font-weight-bold">Sub class:</td><td>{{ lipid.sub_class }}</td></tr> 
-                        <tr><td class="font-weight-bold">Class level 4:</td><td>{{ lipid.l4_class }}</td></tr> 
-                    </tbody>
-                </table>
-                <div class="row">
-                    <div class="col">
-                        <a class="text-success" href={% url 'toplist' %}?lipid={{ lipid.pk }}>Available Topologies</a>,  
-                        <a class="text-success" href={% url 'memlist' %}?lipids={{ lipid.pk }}>Available Membranes</a> 
-                    </div>
-                </div>
-                <br>
-                {% if user.is_authenticated %}
-                    <p>
-                        {% if user == lipid.curator %}
-                            <a href={% url 'lipupdate' lipid.slug %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a>&nbsp
-                            <a href={% url 'lipdelete' lipid.slug %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a>
-                        {% else %}
-                            <a href={% url 'mail' %}?lipid={{ lipid.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a>
-                        {% endif %}
-                    </p>
-                {% endif %}
-            </div>
-            <div class="col-5">
-                {% if lipid.img %}
-                    <img src="{{ lipid.img.url }}" alt="{{ lipid.img.url }}" style="max-height:520px;max-width:500px;">
-                {% endif %}
-                <br>
-            </div>
-        </div>
+
+  <h1>Lipids</h1>
+  <br>
+
+  <div class="row align-items-center bg-white border rounded border-success px-3 pt-3 mx-1">
+    <div class="col-12 col-lg-7 table-responsive">
+      <table class="table table-sm">
+        <tbody>
+          <tr><td width="30%" class="font-weight-bold">Name:</td><td>{{ lipid.name }}</td></tr>
+          <tr>
+            <td class="font-weight-bold">LMID:</td>
+            <td>
+              <a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">
+                  {{ lipid.lmid }}<a/>
+            </td>
+          </tr>
+          <tr><td class="font-weight-bold">Common name:</td><td>{{ lipid.com_name }}</td></tr>
+          <tr><td class="font-weight-bold">Systematic name:</td><td>{{ lipid.sys_name }}</td></tr>
+          <tr><td class="font-weight-bold">IUPAC name:</td><td>{{ lipid.iupac_name }}</td></tr>
+          <tr><td class="font-weight-bold">Formula:</td><td>{{ lipid.formula }}</td></tr>
+          <tr><td class="font-weight-bold">Category:</td><td>{{ lipid.core }}</td></tr>
+          <tr><td class="font-weight-bold">Main class:</td><td>{{ lipid.main_class }}</td></tr>
+          <tr><td class="font-weight-bold">Sub class:</td><td>{{ lipid.sub_class }}</td></tr>
+          <tr><td class="font-weight-bold">Class level 4:</td><td>{{ lipid.l4_class }}</td></tr>
+        </tbody>
+      </table>
+      <a class="text-success" href="{% url 'toplist' %}?lipid={{ lipid.pk }}">Available Topologies</a>,
+      <a class="text-success" href="{% url 'memlist' %}?lipids={{ lipid.pk }}">Available Membranes</a>
+      <br><br>
+      {% if user.is_authenticated %}
+        {% if user == lipid.curator %}
+          <a href="{% url 'lipupdate' lipid.slug %}"><i class="fas fa-edit text-success"></i></a>
+          &nbsp
+          <a href="{% url 'lipdelete' lipid.slug %}"><i class="fas fa-trash text-success"></i></a>
+        {% else %}
+          <a href="{% url 'mail' %}?lipid={{ lipid.pk }}">
+            <i class="fas fa-edit text-success"></i></a>
+        {% endif %}
+      {% endif %}
     </div>
-    <br>
+    <div class="col-12 col-lg-5">
+      {% if lipid.img %}
+        <img src="{{ lipid.img.url }}" alt="{{ lipid.img.url }}" class="viewport-lip">
+      {% endif %}
+    </div>
+    <div class="col-auto ml-auto">
+      <small>
+        <b>Curator:</b>
+        <a class="text-success" href="{% url 'userdetail' lipid.curator.pk %}">
+            {{ lipid.curator.get_full_name }}</a> on {{ lipid.date }}
+      </small>
+    </div>
+  </div>
+
 {% endblock %}
-
-

@@ -1,52 +1,44 @@
 {% extends "homepage/layout.html" %}
 
 {% block content %}
-    <h2>Sign up</h2>
-    <br>
-    <form method="post">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="row p-1 align-items-center">
-                <div class="col-1">
-                </div>
-                <div class="col-2">
-                    {{ field.label_tag }}<br>
-                </div>
-                <div class="col-4">
-                    {% if field.name == "utype" %}
-                        <select id="id_utype" name="utype" class="form-control">
-                            <option value="AC">Academic</option>
-                            <option value="CO">Commercial</option>
-                        </select>
-                    {% elif field.name == "password1" %}
-                        <input id="id_password1" name="password1" type="password" class="form-control" />
-                    {% elif field.name == "password2" %}
-                        <input id="id_password2" name="password2" type="password" class="form-control" />
-                    {% else %}
-                       {{ field }}
-                    {% endif %}
-                    {% if field.help_text %}
-                        <small style="color: grey">{{ field.help_text|safe }}</small>
-                    {% endif %}
-                    {% for error in field.errors %}
-                        <br>
-                        <p style="color: red">{{ error|safe }}</p>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
-        <div class="row p-1">
-            <div class="col-1">
-            </div>
-            <div class="col-2">
-                <button type="submit" class="btn btn-primary">Sign up</button>
-            </div>
+
+  <h2>Sign up</h2>
+  <br>
+
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="row py-1 ml-5">
+        <div class="col-3 col-lg-2 col-md-3 pt-1">{{ field.label_tag }}</div>
+        <div class="col-9 col-lg-4">
+          {% if field.name == "utype" %}
+            <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
+              <option value="AC">Academic</option>
+              <option value="CO">Commercial</option>
+            </select>
+          {% elif field.name == "password1" %}
+            <input id="{{ field.id_for_label }}" name="{{ field.html_name }}" type="password" class="form-control" />
+          {% elif field.name == "password2" %}
+            <input id="{{ field.id_for_label }}" name="{{ field.html_name }}" type="password" class="form-control" />
+          {% else %}
+             {{ field }}
+          {% endif %}
+          {% if field.help_text %}<small class="text-secondary">{{ field.help_text|safe }}</small>{% endif %}
+          {% for error in field.errors %}<p class="text-danger">{{ error|safe }}</p>{% endfor %}
         </div>
-    </form>
-    <br>
+      </div>
+    {% endfor %}
+    <div class="row ml-5">
+      <div class="col-auto pt-1">
+        <button type="submit" class="btn btn-primary">Sign up</button>
+      </div>
+    </div>
+  </form>
+  <br>
+
 {% endblock %}
+
 
 {% block script %}
-    {{ form.media.js }}
+  {{ form.media.js }}
 {% endblock %}
-

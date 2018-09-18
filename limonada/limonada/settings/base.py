@@ -10,11 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
+# standard library
 import os
+
+# third-party
+import netifaces
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -25,7 +28,7 @@ SECRET_KEY = 'l8aqdipf^nyb9@w+fye8wikf8^muj8qxxkv$n30(hv$%$z4+wg'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]','www.limonadamd.eu']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'www.limonadamd.eu']
 
 # Application definition
 PREREQ_APPS = [
@@ -48,8 +51,6 @@ PROJECT_APPS = [
     'forcefields',
     'lipids',
     'membranes',
-    'builder',
-    'jobs',
 ]
 
 INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS
@@ -164,10 +165,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, 'static'),
 ]
 
 STATICFILES_FINDERS = [
@@ -188,8 +189,6 @@ DEFAULT_FROM_EMAIL = 'Limonada Team <contact@limonadamd.eu>'
 # Allow Django from all hosts. This snippet is installed from
 # /var/lib/digitalocean/allow_hosts.py
 
-import os
-import netifaces
 
 # Find out what the IP addresses are at run time
 # This is necessary because otherwise Gunicorn will reject the connections
@@ -202,21 +201,17 @@ def ip_addresses():
                 ip_list.append(addrs[x][0]['addr'])
     return ip_list
 
+
 # Discover our IP address
-#ALLOWED_HOSTS = ip_addresses()
+# ALLOWED_HOSTS = ip_addresses()
 
 INTERNAL_IPS = ['127.0.0.1']
 
-#settings of django-verified-email-field
+# settings of django-verified-email-field
 VERIFIED_EMAIL_CODE_LENGTH = 10
-VERIFIED_EMAIL_MAIL_FROM = "contact@limonadamd.eu"
+VERIFIED_EMAIL_MAIL_FROM = 'contact@limonadamd.eu'
 
 
-#User configuration
-GROMACS_50_PATH = "/home/jmcrowet/Software/gmx507/build/bin/"
-GROMACS_45_PATH = "/home/jmcrowet/Software/gmx457/build/bin/"
-
-
-
-
-
+# User configuration
+GROMACS_50_PATH = '/home/jmcrowet/Software/gmx507/build/bin/'
+GROMACS_45_PATH = '/home/jmcrowet/Software/gmx457/build/bin/'
