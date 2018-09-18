@@ -5,93 +5,117 @@
 {% block title %}Topologies{% endblock %}
 
 {% block content %}
-    <br>
-    <h1>Topologies</h1>
-    <br>
-    <div class="container">
-       <div class="row align-items-center bg-white border rounded border-success p-3">
-            <div class="col-7">
-                <table class="table table-sm">
-                    <tbody>
-                        <tr>
-                            <td width="30%" class="font-weight-bold">Lipid:</td>
-                            <td><a class="text-success" href={% url 'lipdetail' topology.lipid.slug %}>{{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a></td>
-                        </tr>  
-                        <tr>
-                            <td class="font-weight-bold">Forcefield:</td>
-                            <td><a class="text-success" href="{% url 'fflist' %}?ffid={{ topology.forcefield.pk }}">{{ topology.forcefield }}</a></td>
-                        </tr>  
-                        <tr><td class="font-weight-bold">Software:</td><td>{{ topology.get_software_display }}</td></tr> 
-                        <tr><td class="font-weight-bold">Version:</td><td>{{ topology.version }}</td></tr>  
-                        <tr>
-                            <td class="font-weight-bold">Files:</td>
-                            <td>
-                                <a href="{{ topology.gro_file.url }}" class="text-success" target="blank">{{ topology.gro_file.url|basename }}</a>, 
-                                <a href="{{ topology.itp_file.url }}" class="text-success" target="blank">{{ topology.itp_file.url|basename }}</a>
-                            </td>
-                        </tr>  
-                        <tr>
-                            <td><strong>Description:</strong></td> 
-                            <td>{{ topology.description }}</td> 
-                        </tr>  
-                        <tr>
-                            <td><strong>References:</strong></td> 
-                            <td>
-                                {% for reference in topology.reference.all %}
-                                    <a class="text-success" href="http://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>
-                                    <i>{{ reference.journal }}</i>, {{ reference.volume }}.
-                                    {{ reference.title }}<br>
-                                {% endfor %}
-                            </td> 
-                        </tr>  
-                    </tbody>
-                </table>
-                <div class="row">
-                    <div class="col">
-                        <a class="text-success" href={% url 'memlist' %}?topid={{ topology.pk }}>Available Membranes</a>
-                    </div>
-                </div>
-                <br>
-                {% if user.is_authenticated %}
-                    <p>
-                        {% if user == topology.curator %}
-                            <a href={% url 'topupdate' topology.pk %}><i class="fas fa-edit text-success" aria-hidden="true"></i></a>&nbsp
-                            <a href={% url 'topdelete' topology.pk %}><i class="fas fa-trash text-success" aria-hidden="true"></i></a>
-                        {% else %}
-                            <a href={% url 'mail' %}?lipid={{ topology.pk }}><i class="fas fa-edit text-success" aria-hidden="true"></i></a>
-                        {% endif %}
-                    </p>
-                {% endif %}
-            </div>
-            <div class="col-5">
-                <!--<img style="max-height:520px;max-width:500px;"width:30%>-->
-                <div id="viewport" style="width:300px; height:400px; margin: 0 auto;"></div>
-                <br>
-            </div>
-        </div>
+
+  <h1>Topologies</h1>
+  <br>
+
+   <div class="row align-items-center bg-white border rounded border-success px-3 pt-3 mx-1">
+    <div class="col-12 col-lg-7 table-responsive">
+      <table class="table table-sm">
+        <tbody>
+          <tr>
+            <td width="30%" class="font-weight-bold">Lipid:</td>
+            <td>
+              <a class="text-success" href="{% url 'lipdetail' topology.lipid.slug %}">
+                  {{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="font-weight-bold">Forcefield:</td>
+            <td>
+              <a class="text-success" href="{% url 'fflist' %}?ffid={{ topology.forcefield.pk }}">
+                  {{ topology.forcefield }}</a>
+            </td>
+          </tr>
+          <tr><td class="font-weight-bold">Software:</td><td>{{ topology.get_software_display }}</td></tr>
+          <tr><td class="font-weight-bold">Version:</td><td>{{ topology.version }}</td></tr>
+          <tr>
+            <td class="font-weight-bold">Files:</td>
+            <td>
+              <a href="{{ topology.gro_file.url }}" class="text-success" target="blank">
+                  {{ topology.gro_file.url|basename }}</a>,
+              <a href="{{ topology.itp_file.url }}" class="text-success" target="blank">
+                  {{ topology.itp_file.url|basename }}</a>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Description:</strong></td>
+            <td>{{ topology.description | linebreaks }}</td>
+          </tr>
+          <tr>
+            <td><strong>References:</strong></td>
+            <td>
+              {% for reference in topology.reference.all %}
+                <a class="text-success" href="http://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>
+                <i>{{ reference.journal }}</i>, {{ reference.volume }}.
+                {{ reference.title }}<br>
+              {% endfor %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <a class="text-success" href="{% url 'memlist' %}?topid={{ topology.pk }}">Available Membranes</a>
+      <br><br>
+      {% if user.is_authenticated %}
+        {% if user == topology.curator %}
+          <a href="{% url 'topupdate' topology.pk %}"><i class="fas fa-edit text-success"></i></a>
+          &nbsp
+          <a href="{% url 'topdelete' topology.pk %}"><i class="fas fa-trash text-success"></i></a>
+        {% else %}
+          <a href="{% url 'mail' %}?lipid={{ topology.pk }}"><i class="fas fa-edit text-success"></i></a>
+        {% endif %}
+      {% endif %}
     </div>
-    <br>
+    <div class="col-12 col-lg-5">
+      <div id="viewport" class="viewport-top"></div>
+    </div>
+    <div class="col-auto ml-auto">
+      <small>
+        <b>Curator:</b>
+        <a class="text-success" href="{% url 'userdetail' topology.curator.pk %}">
+            {{ topology.curator.get_full_name }}</a> on {{ topology.date }}
+      </small>
+    </div>
+  </div>
+
 {% endblock %}
+
 
 {% block script %}
-    <script>
-        var name = "{{ topology.gro_file.url|basename }}"; 
-        var data = "../..{{ topology.gro_file.url|dirname }}/"; 
-        NGL.DatasourceRegistry.add("data", new NGL.StaticDatasource(data))
-        var stage;
-        document.addEventListener("DOMContentLoaded", function () {
-            stage = new NGL.Stage('viewport')
-            // Handle window resizing
-            window.addEventListener( "resize", function( event ){
-                stage.handleResize();
-            }, false );
-            stage.loadFile("data://"+name).then(function (o) {
-                o.addRepresentation("licorice")
-                o.autoView()
-            })
+
+  <script>
+    var name = "{{ topology.gro_file.url|basename }}";
+    var data = "../..{{ topology.gro_file.url|dirname }}/";
+    var atomPair = {{ cgbonds }};
+    NGL.DatasourceRegistry.add("data", new NGL.StaticDatasource(data))
+    var stage;
+    document.addEventListener("DOMContentLoaded", function () {
+      stage = new NGL.Stage('viewport')
+      // Handle window resizing
+      window.addEventListener( "resize", function( event ){
+        stage.handleResize();
+      }, false );
+      stage.loadFile("data://"+name).then(function (o) {
+        //var atomPair = [
+        //  [ "1.NC3", "1.PO4" ],
+        //  [ 0, 1 ], [ 1, 2 ]
+        //]
+        o.addRepresentation("licorice") //ball+stick
+        o.addRepresentation("distance", {
+          atomPair: atomPair,
+          useCylinder: true,
+          labelVisible: false,
+          //color: "skyblue",
+          //labelUnit: "nm"
         })
-    </script>
+        o.autoView()
+      })
+      // for coarse grained, see ngl/examples/scripts/interactive/crosslinking.js
+      // https://github.com/arose/ngl/blob/2d84a993/src/store/bond-store.ts#L26
+      // http://nglviewer.org/ngl/api/classes/bondstore.html#addbond
+      // https://codepen.io/pen?&editors=001
+      // http://nglviewer.org/ngl/api/file/src/representation/distance-representation.js.html
+    })
+  </script>
+
 {% endblock %}
-
-
-

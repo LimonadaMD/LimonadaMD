@@ -3,53 +3,41 @@
 {% block title %}Mail{% endblock %}
 
 {% block content %}
-    <br> 
-    <h1>Mail</h1>
-    <br> 
-    <div class="row p-1">
-        <div class="col-7">
-            <div class="row p-1">
-                <div class="col-1"></div>
-                <div class="col-11">
-                    The {{ objecttype }} entry (<a href="{{ object_url }}">{{ name }}</a>) you want to edit is currently handled by <a href="{% url 'userdetail' curator_id %}">{{ curator }}</a>.
-                    You cannot directly update this entry but you can send your comments to the curator and/or ask to become the new curator.
-                </div>
-            </div>
-            <br>
-            <form action="" method="post">
-                {% csrf_token %}
-                {% for field in form %}
-                    <div class="row p-1">
-                        <div class="col-1">
-                        </div>
-                        <div class="{% if field.name == 'curation' %}col-6{% else %}col-3{% endif %}">
-                            {{ field.label_tag }}<br>
-                        </div>
-                        <div class="{% if field.name == 'curation' %}col-1{% else %}col-8{% endif %}">
-                            {{ field }}
-                            {% if field.help_text %}
-                                <br>
-                                <small style="color: grey">{{ field.help_text }}</small>
-                            {% endif %}
-                            {% for error in field.errors %}
-                                <br>
-                                <p style="color: red">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
-                <div class="row p-1">
-                    <div class="col-1">
-                    </div>
-                    <div class="col-2">
-                        <button type="submit" class="btn btn-primary" name="add">Send</button>
-                    </div>
-                </div>
-            </form>
-            <br>
-        </div>
+
+  <h1>Mail</h1>
+  <br>
+
+  <div class="row p-1 ml-5">
+    <div class="col-12 col-lg-7">
+      <p>The {{ objecttype }} entry (<a href="{{ object_url }}" class="text-success">{{ name }}</a>) you want to edit
+          is currently handled  by <a href="{% url 'userdetail' curator_id %}" class="text-success">{{ curator }}</a>.
+          You cannot directly update this entry but  you can send your comments to the curator and/or ask to become
+          the new curator.</p>
     </div>
-    <br> 
+  </div>
+  <br>
+  <form action="" method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="row p-1 ml-5">
+        {% if field.name == 'curation' %}
+          <div class="col-auto pt-1">{{ field.label_tag }}</div>
+          <div class="col-auto align-self-center">{{ field }}</div>
+        {% else %} 
+          <div class="col-3 col-lg-2 pt-1">{{ field.label_tag }}</div>
+          <div class="col-9 col-lg-5">
+            {{ field }}
+            {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %} 
+      </div>
+    {% endfor %}
+    <div class="row p-1 ml-5">
+      <div class="col">
+        <button type="submit" class="btn btn-primary" name="add">Send</button>
+      </div>
+    </div>
+  </form>
+
 {% endblock %}
-
-

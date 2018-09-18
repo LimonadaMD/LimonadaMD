@@ -1,3 +1,23 @@
+# -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
+#
+#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#
+#    This file is part of Limonada.
+#
+#    Limonada is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Limonada is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
+
 """limonada URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -13,17 +33,20 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
-from django.contrib import admin
-from django.conf.urls.static import static
+
+# Django
 from django.conf import settings
-from .views import page_not_found_view, error_view, permission_denied_view, bad_request_view      
+from django.conf.urls import include, url
+from django.conf.urls.static import static
+from django.contrib import admin
 
+# local Django
+from .views import bad_request_view, error_view, page_not_found_view, permission_denied_view
 
-handler404 = page_not_found_view.as_view() 
-handler500 = error_view.as_view()  
-handler403 = permission_denied_view.as_view()  
-handler400 = bad_request_view.as_view()        
+handler404 = page_not_found_view.as_view()
+handler500 = error_view.as_view()
+handler403 = permission_denied_view.as_view()
+handler400 = bad_request_view.as_view()
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -31,14 +54,11 @@ urlpatterns = [
     url(r'^', include('lipids.urls')),
     url(r'^', include('forcefields.urls')),
     url(r'^', include('membranes.urls')),
-    url(r'^', include('builder.urls')),
-    url(r'^', include('jobs.urls')),
     url(r'^', include('users.urls')),
-]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
         url(r'^__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
-
