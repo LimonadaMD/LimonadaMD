@@ -31,15 +31,15 @@
     <div id="collapseselect" class="col-12 col-lg-auto col-md-7 order-last"
          {% if not params.software %}style="display: none"{% endif %}>
       <div class="container">
-        <form id="select_form" action="" method="get">
+        <form id="select_form" method="get">
           <div class="row pt-1">
             {% for field in form_select %}
               <div class="col-12 col-lg-auto col-md-12 col-sm-12 d-flex">
                 <div class="pr-2 py-1">{{ field.label_tag }}</div>
                 <div>
                   {{ field }}
-                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-                  {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                  {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                 </div>
               </div>
             {% endfor %}
@@ -60,7 +60,7 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th width="25%">
+            <th class="w-25">
               {% if sort == "name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -68,9 +68,9 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="name" %}">Name<a/>
+              <a href="?{% url_replace sort="name" %}">Name</a>
             </th>
-            <th width="20%">
+            <th class="w-20">
               {% if sort == "software" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -78,9 +78,9 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="software" %}">Software<a/>
+              <a href="?{% url_replace sort="software" %}">Software</a>
             </th>
-            <th width="20%">
+            <th class="w-20">
               {% if sort == "forcefield_type" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -88,12 +88,11 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
                 {% endif %}
-              <a href="?{% url_replace sort="forcefield_type" %}">Type<a/>
+              <a href="?{% url_replace sort="forcefield_type" %}">Type</a>
             </th>
-            <th width="31%">Files</th>
+            <th class="w-25">Files</th>
             {% if user.is_authenticated and user.is_staff %}
-              <th width="2%"></th>
-              <th width="2%"></th>
+              <th class="w-10"></th>
             {% endif %}
           </tr>
         </thead>
@@ -112,15 +111,12 @@
               </td>
               {% if user.is_authenticated and user.is_staff %}
                 {% if user == forcefield.curator %}
-                  <td>
+                  <td class="text-right">
                     <a href="{% url 'ffupdate' forcefield.pk %}"><i class="fas fa-edit text-success"></i></a>
-                  </td>
-                  <td>
-                    <a href="{% url 'ffdelete' forcefield.pk %}"><i class="fas fa-trash text-success"></i></a>
+                    <a href="{% url 'ffdelete' forcefield.pk %}"><i class="fas fa-trash text-success"></i></a>&nbsp
                   </td>
                 {% else %}
-                  <td></td>
-                  <td>
+                  <td class="text-right">
                     <a href="{% url 'mail' %}?ffid={{ forcefield.pk }}"><i class="fas fa-edit text-success"></i></a>
                   </td>
                 {% endif %}
@@ -131,7 +127,7 @@
                 <div id="collapse{{ forcefield.pk }}" class="container collapse p-0">
                   <div class="row mx-3">
                     <div class="col-3 col-lg-2"><strong>Description:</strong></div>
-                    <div class="col-9 col-lg-10">{{ forcefield.description | linebreaks }}</div>
+                    <div class="col-9 col-lg-10">{{ forcefield.description|linebreaks }}</div>
                   </div>
                   <div class="row mx-3">
                     <div class="col-3 col-lg-2"><strong>References:</strong></div>

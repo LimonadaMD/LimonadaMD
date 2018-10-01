@@ -9,15 +9,24 @@
   <h2 class="ml-5">{{ request.user.get_full_name }}</h2>
   <br>
 
-  <div class="row ml-5">
-    <div class="col-auto bg-white rounded border border-success px-3 pt-3">
+  <div class="row mx-5">
+    <div class="col-0 bg-white rounded border border-success px-3 pt-3">
       <div class="table-responsive">
         <table class="table table-sm">
           <tbody>
             <tr><td><b>Username:</b></td><td>{{ request.user.username }}</td></tr>
-            <tr><td><b>Institution:</b></td><td>{{ request.user.profile.institution}}</td></tr>
             <tr><td><b>Position:</b></td><td>{{ request.user.profile.position }}</td></tr>
             <tr><td><b>e-mail:</b></td><td>{{ request.user.email }}</td></tr>
+            <tr><td><b>Institution:</b></td><td>{{ request.user.profile.institution }}</td></tr>
+            <tr><td><b>Address:</b></td><td>{{ request.user.profile.address }}</td></tr>
+            <tr><td><b>Miscellaneous:</b></td><td>{{ request.user.profile.miscellaneous|linebreaks }}</td></tr>
+            <tr>
+              <td><b>Curation:</b></td>
+              <td>
+                <a class="text-success" href="{% url 'toplist' %}?curator={{ request.user.pk }}">Topologies</a><br>
+                <a class="text-success" href="{% url 'memlist' %}?curator={{ request.user.pk }}">Membranes</a>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

@@ -11,12 +11,12 @@
     <div class="col-12 col-lg-7 table-responsive">
       <table class="table table-sm">
         <tbody>
-          <tr><td width="30%" class="font-weight-bold">Name:</td><td>{{ lipid.name }}</td></tr>
+          <tr><td class="font-weight-bold w-30">Name:</td><td>{{ lipid.name }}</td></tr>
           <tr>
             <td class="font-weight-bold">LMID:</td>
             <td>
               <a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">
-                  {{ lipid.lmid }}<a/>
+                  {{ lipid.lmid }}</a>
             </td>
           </tr>
           <tr><td class="font-weight-bold">Common name:</td><td>{{ lipid.com_name }}</td></tr>
@@ -34,8 +34,7 @@
       <br><br>
       {% if user.is_authenticated %}
         {% if user == lipid.curator %}
-          <a href="{% url 'lipupdate' lipid.slug %}"><i class="fas fa-edit text-success"></i></a>
-          &nbsp
+          <a href="{% url 'lipupdate' lipid.slug %}"><i class="fas fa-edit text-success"></i></a>&nbsp
           <a href="{% url 'lipdelete' lipid.slug %}"><i class="fas fa-trash text-success"></i></a>
         {% else %}
           <a href="{% url 'mail' %}?lipid={{ lipid.pk }}">

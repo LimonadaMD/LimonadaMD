@@ -1,13 +1,13 @@
 [ leaflet_1 ]
-      OPSG        10
-      OPPG        10
       OPMG        40
       OPGG        25
       DPSG        15
+      OPPG        10
+      OPSG        10
 
 [ leaflet_2 ]
-      OPSG        10
-      OPPG        10
       OPMG        40
       OPGG        25
       DPSG        15
+      OPPG        10
+      OPSG        10

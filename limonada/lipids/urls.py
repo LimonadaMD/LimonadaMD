@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -21,23 +22,25 @@
 # Django
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 
 # local Django
-from .views import (LipAutocomplete, LipCreate, LipDelete, LipDetail, LipList,
-                    LipUpdate, TopAutocomplete, TopCreate, TopDelete, TopDetail,
-                    TopList, TopUpdate)
+from .views import (GetLiIndex, GetLmClass, LipAutocomplete, LipCreate, LipDelete, LipDetail, LipList,
+                    LipUpdate, TopAutocomplete, TopCreate, TopDelete, TopDetail, TopList, TopUpdate)
 
 urlpatterns = [
     url(r'^lipids/$', LipList, name='liplist'),
     url(r'^lipids/create/$', LipCreate, name='lipcreate'),
-    url(r'^lipids/(?P<slug>\w+)/$', LipDetail.as_view(), name='lipdetail'),
+    url(r'^lipids/(?P<slug>\w+)/$', never_cache(LipDetail.as_view()), name='lipdetail'),
     url(r'^lipids/(?P<slug>\w+)/update/$', LipUpdate, name='lipupdate'),
-    url(r'^lipids/(?P<slug>\w+)/delete/$', login_required(LipDelete.as_view()), name='lipdelete'),
+    url(r'^lipids/(?P<slug>\w+)/delete/$', LipDelete, name='lipdelete'),
+    url(r'^load_lmclass/$', GetLmClass, name='load_lmclass'),
+    url(r'^load_liindex/$', GetLiIndex, name='load_liindex'),
     url(r'^lipid-autocomplete/$', LipAutocomplete.as_view(), name='lipid-autocomplete'),
     url(r'^topologies/$', TopList, name='toplist'),
-    url(r'^topologies/create/$', login_required(TopCreate.as_view()), name='topcreate'),
-    url(r'^topologies/(?P<pk>\d+)/$', TopDetail.as_view(), name='topdetail'),
-    url(r'^topologies/(?P<pk>\d+)/update/$', login_required(TopUpdate.as_view()), name='topupdate'),
-    url(r'^topologies/(?P<pk>\d+)/delete/$', login_required(TopDelete.as_view()), name='topdelete'),
+    url(r'^topologies/create/$', TopCreate, name='topcreate'),
+    url(r'^topologies/(?P<pk>\d+)/$', never_cache(TopDetail.as_view()), name='topdetail'),
+    url(r'^topologies/(?P<pk>\d+)/update/$', TopUpdate, name='topupdate'),
+    url(r'^topologies/(?P<pk>\d+)/delete/$', TopDelete, name='topdelete'),
     url(r'^topology-autocomplete/$', TopAutocomplete.as_view(), name='topology-autocomplete'),
 ]

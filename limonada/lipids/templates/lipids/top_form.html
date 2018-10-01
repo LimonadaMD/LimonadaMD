@@ -9,7 +9,7 @@
   <h1>Topologies</h1>
   <br>
 
-  <form action="" method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% for field in form %}
       <div class="row py-1 ml-5">
@@ -20,13 +20,12 @@
               <div class="custom-file">
                 {% if field.name == "itp_file" %}
                   <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="custom-file-input"
-                         accept=".itp" onchange="$('#itp_filetext').text($(this).val().split('\\').slice(-1)[0]);">
+                         accept=".itp">
                 {% else %}
                   <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="custom-file-input"
-                         accept=".gro" onchange="$('#gro_filetext').text($(this).val().split('\\').slice(-1)[0]);">
+                         accept=".gro">
                 {% endif %}
-                <label id="{{ field.name }}text" class="custom-file-label" for="{{ field.id_for_label }}">
-                    {{ field.value|basename }}</label>
+                <label class="custom-file-label" for="{{ field.id_for_label }}">{{ field.value|basename }}</label>
               </div>
             </div>
           {% elif field.name == 'forcefield' %}
@@ -37,22 +36,16 @@
               {% query ffs software="GR50" as ffobjects %}
             {% endif %}
             {% for ff in ffobjects %}
-              {% if form.forcefield.value %}
-                <option value="{{ ff.id }}" {% if ff.name == form.forcefield.value %}selected="selected"{% endif %}>
-                  {{ ff.name }}
-                </option>
-              {% else %}
-                <option value="{{ ff.id }}" {% if ff.name == "charmm36" %}selected="selected"{% endif %}>
-                  {{ ff.name }}
-                </option>
-              {% endif %}
+              <option value="{{ ff.id }}"
+                  {% if ff.id|stringformat:"s" == field.value|stringformat:"s" %}selected="selected"{% endif %}>
+                  {{ ff.name }}</option>
             {% endfor %}
             </select>
           {% else %}
             {{ field }}
           {% endif %}
-          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-          {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+          {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
         </div>
       </div>
     {% endfor %}
@@ -61,8 +54,9 @@
         <button type="submit" class="btn btn-primary">{% if topcreate %}Add{% else %}Update{% endif %}</button>
       </div>
     </div>
+    <input type="hidden" name="itppath" value="{{ itppath }}"/>
+    <input type="hidden" name="gropath" value="{{ gropath }}"/>
   </form>
-  <br>
 
 {% endblock %}
 

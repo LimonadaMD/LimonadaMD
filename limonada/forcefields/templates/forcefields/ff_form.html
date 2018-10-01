@@ -41,21 +41,15 @@
             <div class="input-group">
               <div class="custom-file">
                 <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}"
-                       class="custom-file-input"  accept=".zip"
-                       {% if field.name == "ff_file" %}
-                         onchange="$('#ff_filetext').text($(this).val().split('\\').slice(-1)[0]);"
-                       {% else %}
-                         onchange="$('#mdp_filetext').text($(this).val().split('\\').slice(-1)[0]);"
-                       {% endif %}>
-                <label id="{{ field.name }}text" class="custom-file-label" for="{{ field.id_for_label }}">
-                    {{ field.value|basename }}</label>
+                       class="custom-file-input"  accept=".zip">
+                <label class="custom-file-label" for="{{ field.id_for_label }}">{{ field.value|basename }}</label>
               </div>
             </div>
           {% else %}
             {{ field }}
           {% endif %}
-          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-          {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+          {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
         </div>
       </div>
     {% endfor %}
@@ -64,6 +58,8 @@
         <button type="submit" class="btn btn-primary">{% if ffcreate %}Add{% else %}Update{% endif %}</button>
       </div>
     </div>
+  <input type="hidden" name="ffpath" value="{{ ffpath }}"/>
+  <input type="hidden" name="mdppath" value="{{ mdppath }}"/>
   </form>
 
 {% endblock %}

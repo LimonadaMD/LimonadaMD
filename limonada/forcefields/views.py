@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -18,8 +19,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
+# standard library
+import os
+import shutil
+
 # Django
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -27,17 +33,24 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views.generic import CreateView, DeleteView, UpdateView
 
 # local Django
 from .forms import ForcefieldForm, SelectForcefieldForm
 from .models import Forcefield
 
+# Django apps
+from homepage.functions import FileData
+from lipids.models import Topology
+from membranes.models import MembraneTopol
+
 headers = {'software': 'asc',
            'forcefield_type': 'asc',
            'name': 'asc'}
 
 
+@never_cache
 def FfList(request):
 
     ff_list = Forcefield.objects.all()
@@ -114,54 +127,91 @@ def FfList(request):
     return render(request, 'forcefields/forcefields.html', data)
 
 
-@method_decorator(staff_member_required, name='dispatch')
-class FfCreate(CreateView):
-    model = Forcefield
-    form_class = ForcefieldForm
-    template_name = 'forcefields/ff_form.html'
-
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.curator = self.request.user
-        self.object.save()
-        refs = form.cleaned_data['reference']
-        for ref in refs:
-            self.object.reference.add(ref)
-        return HttpResponseRedirect(self.object.get_absolute_url())
-
-    def get_context_data(self, **kwargs):
-        context_data = super(FfCreate, self).get_context_data(**kwargs)
-        context_data['forcefields'] = True
-        context_data['ffcreate'] = True
-        return context_data
-
-
-@method_decorator(staff_member_required, name='dispatch')
-class FfUpdate(UpdateView):
-    model = Forcefield
-    form_class = ForcefieldForm
-    template_name = 'forcefields/ff_form.html'
-
-    def form_valid(self, form):
-        self.object = form.save()
-        self.object.save()
-        return HttpResponseRedirect(self.object.get_absolute_url())
-
-    def get_context_data(self, **kwargs):
-        context_data = super(FfUpdate, self).get_context_data(**kwargs)
-        context_data['forcefields'] = True
-        return context_data
+@staff_member_required
+@never_cache
+def FfCreate(request):
+    ffpath = ''
+    mdppath = ''
+    if request.method == 'POST':
+        file_data = {}
+        file_data, ffpath = FileData(request, 'ff_file', 'ffpath', file_data)
+        file_data, mdppath = FileData(request, 'mdp_file', 'mdppath', file_data)
+        form = ForcefieldForm(request.POST, file_data)
+        if form.is_valid():
+            ff = form.save(commit=False)
+            ff.curator = request.user
+            ff.save()
+            if os.path.isfile('media/' + ffpath):
+                os.remove('media/' + ffpath)
+            if os.path.isfile('media/' + mdppath):
+                os.remove('media/' + mdppath)
+            refs = form.cleaned_data['reference']
+            for ref in refs:
+                ff.reference.add(ref)
+            ff.save()
+            return HttpResponseRedirect(reverse('fflist'))
+    else:
+        form = ForcefieldForm()
+    return render(request, 'forcefields/ff_form.html', {'form': form, 'forcefields': True, 'ffcreate': True,
+        'ffpath': ffpath, 'mdppath': mdppath})
 
 
-@method_decorator(staff_member_required, name='dispatch')
-class FfDelete(DeleteView):
-    model = Forcefield
-    template_name = 'forcefields/ff_delete.html'
+@staff_member_required
+@never_cache
+def FfUpdate(request, pk=None):
+    if Forcefield.objects.filter(pk=pk).exists():
+        ff = Forcefield.objects.get(pk=pk)
+        if ff.curator != request.user:
+            return redirect('homepage')
+        if request.method == 'POST':
+            file_data = {}
+            file_data, ffpath = FileData(request, 'ff_file', 'ffpath', file_data)
+            file_data, mdppath = FileData(request, 'mdp_file', 'mdppath', file_data)
+            form = ForcefieldForm(request.POST, file_data, instance=ff)
+            if form.is_valid():
+                form.save()
+                if os.path.isfile('media/' + ffpath):
+                    os.remove('media/' + ffpath)
+                if os.path.isfile('media/' + mdppath):
+                    os.remove('media/' + mdppath)
+                return HttpResponseRedirect(reverse('fflist'))
+        else:
+            ffpath = 'tmp/%s' % os.path.basename(ff.ff_file.name)
+            shutil.copy(ff.ff_file.url[1:], 'media/tmp/')
+            mdppath = 'tmp/%s' % os.path.basename(ff.mdp_file.name)
+            shutil.copy(ff.mdp_file.url[1:], 'media/tmp/')
+            form = ForcefieldForm(instance=ff)
+        return render(request, 'forcefields/ff_form.html', {'form': form, 'forcefields': True,
+            'ffpath': ffpath, 'mdppath': mdppath})
 
-    def get_success_url(self):
-        return reverse('fflist')
 
-    def get_context_data(self, **kwargs):
-        context_data = super(FfDelete, self).get_context_data(**kwargs)
-        context_data['forcefields'] = True
-        return context_data
+@staff_member_required
+def FfDelete(request, pk=None):
+    if Forcefield.objects.filter(pk=pk).exists():
+        ff = Forcefield.objects.get(pk=pk)
+        if ff.curator != request.user:
+            return redirect('homepage')
+        mt = MembraneTopol.objects.filter(forcefield=ff).distinct()
+        top = Topology.objects.filter(forcefield=ff).distinct()
+        curator = True
+        for obj in mt:
+           if obj.curator != request.user:
+               curator = False
+        for obj in top:
+           if obj.curator != request.user:
+               curator = False
+        if curator == True:
+            if request.method == 'POST':
+                ff.delete()
+                for obj in mt:
+                    m = obj.membrane
+                    obj.delete()
+                    if not MembraneTopol.objects.filter(membrane=m).count():
+                        m.delete()
+                for obj in top:
+                    obj.delete()
+                return HttpResponseRedirect(reverse('fflist'))
+            return render(request, 'forcefields/ff_delete.html',
+                {'forcefields': True, 'ff': ff, 'nbtop': len(top), 'nbmem': len(mt)})
+        return render(request, 'forcefields/ff_notdelete.html',
+            {'forcefields': True, 'ff': ff, 'nbtop': len(top), 'nbmem': len(mt)})

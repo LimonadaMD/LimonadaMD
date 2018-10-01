@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -21,13 +22,14 @@
 # Django
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 
 # local Django
 from .views import FfCreate, FfDelete, FfList, FfUpdate
 
 urlpatterns = [
     url(r'^forcefields/$', FfList, name='fflist'),
-    url(r'^forcefields/create/$', login_required(FfCreate.as_view()), name='ffcreate'),
-    url(r'^forcefields/(?P<pk>\d+)/update/$', login_required(FfUpdate.as_view()), name='ffupdate'),
-    url(r'^forcefields/(?P<pk>\d+)/delete/$', login_required(FfDelete.as_view()), name='ffdelete'),
+    url(r'^forcefields/create/$', FfCreate, name='ffcreate'),
+    url(r'^forcefields/(?P<pk>\d+)/update/$', FfUpdate, name='ffupdate'),
+    url(r'^forcefields/(?P<pk>\d+)/delete/$', FfDelete, name='ffdelete'),
 ]

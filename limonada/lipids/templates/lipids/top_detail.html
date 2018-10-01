@@ -9,12 +9,14 @@
   <h1>Topologies</h1>
   <br>
 
-   <div class="row align-items-center bg-white border rounded border-success px-3 pt-3 mx-1">
+  <p class="font-italic m-0 pl-1"><span class="font-weight-bold">N.B.:</span> If you use the following files in your
+      work, please cite the primary source. (see Description field)</p>
+  <div class="row align-items-center bg-white border rounded border-success px-3 pt-3 mx-1">
     <div class="col-12 col-lg-7 table-responsive">
       <table class="table table-sm">
         <tbody>
           <tr>
-            <td width="30%" class="font-weight-bold">Lipid:</td>
+            <td class="font-weight-bold w-30">Lipid:</td>
             <td>
               <a class="text-success" href="{% url 'lipdetail' topology.lipid.slug %}">
                   {{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a>
@@ -40,7 +42,7 @@
           </tr>
           <tr>
             <td><strong>Description:</strong></td>
-            <td>{{ topology.description | linebreaks }}</td>
+            <td>{{ topology.description|linebreaks }}</td>
           </tr>
           <tr>
             <td><strong>References:</strong></td>
@@ -58,8 +60,7 @@
       <br><br>
       {% if user.is_authenticated %}
         {% if user == topology.curator %}
-          <a href="{% url 'topupdate' topology.pk %}"><i class="fas fa-edit text-success"></i></a>
-          &nbsp
+          <a href="{% url 'topupdate' topology.pk %}"><i class="fas fa-edit text-success"></i></a>&nbsp
           <a href="{% url 'topdelete' topology.pk %}"><i class="fas fa-trash text-success"></i></a>
         {% else %}
           <a href="{% url 'mail' %}?lipid={{ topology.pk }}"><i class="fas fa-edit text-success"></i></a>
@@ -96,11 +97,15 @@
         stage.handleResize();
       }, false );
       stage.loadFile("data://"+name).then(function (o) {
+        // Rotation in rad
+        var e = new NGL.Euler( 4.71, 0, 0 );
+        var q = new NGL.Quaternion().setFromEuler( e );
+        o.setRotation( q );
+        o.addRepresentation("licorice") //ball+stick
         //var atomPair = [
         //  [ "1.NC3", "1.PO4" ],
         //  [ 0, 1 ], [ 1, 2 ]
         //]
-        o.addRepresentation("licorice") //ball+stick
         o.addRepresentation("distance", {
           atomPair: atomPair,
           useCylinder: true,
