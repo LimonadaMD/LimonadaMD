@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #

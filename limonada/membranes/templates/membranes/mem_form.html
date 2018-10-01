@@ -10,29 +10,31 @@
   <h1>Membranes</h1>
   <br>
 
-  <form method="post" action="" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% for field in topform %}
       <div class="row py-1 ml-5">
         <div class="col-3 col-lg-2 col-md-3 pt-1">{{ field.label_tag }}</div>
         {% if field.name == "mem_file" %}
-          <div class="col-7 col-lg-4 col-md-7 input-group">
-            <div class="custom-file">
-              <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="custom-file-input"
-                     accept=".gro" onchange="$('#mem_filetext').text($(this).val().split('\\').slice(-1)[0]);">
-              <label id="{{ field.name }}text" class="custom-file-label" for="{{ field.html_name }}">
-                  {{ field.value|basename }}</label>
+          <div class="col-7 col-lg-4 col-md-7">
+            <div class="input-group">
+              <div class="custom-file">
+                <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="custom-file-input"
+                       accept=".gro">
+                <label class="custom-file-label" for="{{ field.html_name }}">{{ field.value|basename }}</label>
+              </div>
             </div>
-            {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-            {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
-            {% for error in merrors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+            {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+            {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
+            {% for info in minfos %}<span class="text-warning">{{ info }}<br></span>{% endfor %}
+            {% for error in merrors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
           </div>
           <div class="col-2 pt-1">
-            <button class="btn btn-sm" onclick="readfile();">Analyze</button>
+            <button class="btn btn-sm" name="analyze" onclick="readfile();">Analyze</button>
             <span data-toggle="popover" data-trigger="hover" title="Membrane analysis"
                   data-content='This function allows to fill the composition form from a membrane structrure file.
-                      It also reorder lipids and check that there is only one membrane composed of one or two
-                      leaflets whithout unknown lipids or proteins.'>
+                      It reorders lipids according to the composition and leaflets and it checks that there is only
+                      one membrane composed of one or two leaflets whithout unknown lipids.'>
                 <i class="fas fa-info-circle text-success"></i></span>
           </div>
         {% elif field.name == 'forcefield' %}
@@ -44,25 +46,19 @@
               {% query ffs software="GR50" as ffobjects %}
             {% endif %}
             {% for ff in ffobjects %}
-              {% if topform.forcefield.value %}
-                <option value="{{ ff.id }}" {% if ff.name == topform.forcefield.value %}selected="selected"{% endif %}>
-                  {{ ff.name }}
-                </option>
-              {% else %}
-                <option value="{{ ff.id }}" {% if ff.name == "charmm36" %}selected="selected"{% endif %}>
-                  {{ ff.name }}
-                </option>
-              {% endif %}
+              <option value="{{ ff.id }}"
+                  {% if ff.id|stringformat:"s" == field.value|stringformat:"s" %}selected="selected"{% endif %}>
+                  {{ ff.name }}</option>
             {% endfor %}
             </select>
-            {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-            {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+            {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+            {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
           </div>
         {% else %}
           <div class="col-9 col-lg-4 col-md-7">
             {{ field }}
-            {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-            {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+            {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+            {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
           </div>
         {% endif %}
       </div>
@@ -92,9 +88,9 @@
                     {% if lip.topology.value %}
                       {% query tops lipid_id=lip.lipid.value forcefield=topform.forcefield.value as topobjects %}
                       {% for top in topobjects %}
-                        <option value="{{ top.id }}" {% if top.id == lip.topology.value %}selected="selected"{% endif %}>
-                          {{ top.version }}
-                        </option>
+                        <option value="{{ top.id }}"
+                            {% if top.id|stringformat:"s" == lip.topology.value|stringformat:"s" %}
+                            selected="selected"{% endif %}>{{ top.version }}</option>
                       {% endfor %}
                     {% else %}
                       <option value="" selected="selected">---------</option>
@@ -103,7 +99,7 @@
                   </div>
                   <div class="col-5 col-lg-2 col-md-3 col-sm-4 pt-1">
                     <input id="id_{{ lip.prefix }}-number" type="number" name="{{ lip.prefix }}-number"
-                           class="form-control-sm w-100"/>
+                           value="{{ lip.number.value }}" class="form-control-sm w-100"/>
                   </div>
                   <div class="col-0 pt-1 pl-2">{{ lip.side }}</div>
                   <div class="col-0 pt-1 pl-1">
@@ -139,14 +135,12 @@
         </div>
         <div class="col-9 col-lg-4 col-md-7">
           {{ memfield }}
-          {% if memfield.help_text %}<small class="text-secondary">{{ memfield.help_text }}</small>{% endif %}
-          {% for error in memfield.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+          {% if memfield.help_text %}<small class="text-secondary">{{ memfield.help_text }}<br></small>{% endif %}
+          {% for error in memfield.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
         </div>
       </div>
     {% endfor %}
 
-    <input type="hidden" name="rand" value="{{ rand }}" />
-    <input type="hidden" name="fname" value="{{ fname }}" />
     <div class="row ml-5">
       <div class="col-auto pt-1">
         <button type="submit" class="btn btn-primary" name="add">
@@ -154,6 +148,9 @@
         </button>
       </div>
     </div>
+    <input type="hidden" name="rand" value="{{ rand }}"/>
+    <input type="hidden" name="fname" value="{{ fname }}"/>
+    <input type="hidden" name="mempath" value="{{ mempath }}"/>
   </form>
 
 {% endblock %}
@@ -325,12 +322,12 @@
           $('#id_form-'+ndx+'-topology').removeClass('text-danger');
           if (data.length == 0) {
             if (valueSelected) {
-              $('#id_form-'+ndx+'-topology').attr('class', 'text-danger');
+              $('#id_form-'+ndx+'-topology').attr('class', 'text-danger form-control-sm w-100');
             }
             $('#id_form-'+ndx+'-topology').append('<option value="">---------</option>');
           }
           if (data.length > 1) {
-            $('#id_form-'+ndx+'-topology').attr('class', 'text-success');
+            $('#id_form-'+ndx+'-topology').attr('class', 'text-success form-control-sm w-100');
           }
           for (var i = data.length - 1; i >= 0; i--) {
             $('#id_form-'+ndx+'-topology').append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');

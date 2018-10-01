@@ -10,6 +10,8 @@
   <h1>Membranes</h1>
   <br>
 
+  <p class="font-italic m-0 pl-1"><span class="font-weight-bold">N.B.:</span> If you use the following files in your
+      work, please cite the primary source. (see Description field)</p>
   <div class="row bg-white border rounded border-success px-3 pt-3 mx-1">
     <div class="col-12 col-lg-7 table-responsive">
       <table class="table table-sm">
@@ -36,11 +38,13 @@
           <tr>
             <td class="font-weight-bold">Files:</td>
             <td>
-              <a href="{{ membranetopol.mem_file.url }}" class="text-success" target="blank">
-                  {{ membranetopol.mem_file.url|basename }}</a>,
+              {% if membrane.mem_file %} 
+                <a href="{{ membranetopol.mem_file.url }}" class="text-success" target="blank">
+                    {{ membranetopol.mem_file.url|basename }}</a>,
+              {% endif %}
               <a href="{{ membranetopol.compo_file.url }}" class="text-success" target="blank">
                   {{ membranetopol.compo_file.url|basename }}</a><br>
-              <a href="{% url 'getfiles' %}?memid={{ membranetopol.pk }}" class="text-success">Simulation files<a/>
+              <a href="{% url 'getfiles' %}?memid={{ membranetopol.pk }}" class="text-success">Simulation files</a>
             </td>
           </tr>
           <tr><td class="font-weight-bold">Number:</td><td>{{ membranetopol.nb_lipids }} lipids</td></tr>
@@ -118,21 +122,28 @@
 {% block script %}
 
   <script>
-    var name = "{{ membranetopol.mem_file.url|basename }}";
-    var data = "../..{{ membranetopol.mem_file.url|dirname }}/";
-    NGL.DatasourceRegistry.add("data", new NGL.StaticDatasource(data))
-    var stage;
-    document.addEventListener("DOMContentLoaded", function () {
-      stage = new NGL.Stage('viewport')
-      // Handle window resizing
-      window.addEventListener( "resize", function( event ){
-        stage.handleResize();
-      }, false );
-      stage.loadFile("data://"+name).then(function (o) {
-        o.addRepresentation("licorice")
-        o.autoView()
+    var mem_file = "{{ mem_file }}";
+    if (mem_file) {
+      var name = "{{ mem_file|basename }}";
+      var data = "../..{{ mem_file|dirname }}/";
+      var rep = "{{ rep }}"
+      NGL.DatasourceRegistry.add("data", new NGL.StaticDatasource(data))
+      var stage;
+      document.addEventListener("DOMContentLoaded", function () {
+        stage = new NGL.Stage('viewport')
+        // Handle window resizing
+        window.addEventListener( "resize", function( event ){
+          stage.handleResize();
+        }, false );
+        stage.loadFile("data://"+name).then(function (o) {
+          var e = new NGL.Euler( 4.71, 0, 0 );
+          var q = new NGL.Quaternion().setFromEuler( e );
+          o.setRotation( q );
+          o.addRepresentation(rep)
+          o.autoView()
+        })
       })
-    })
+    }
   </script>
 
 {% endblock %}

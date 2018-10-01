@@ -19,16 +19,25 @@
           {% else %}
             {{ field }}
           {% endif %}
-          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-          {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+          {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
         </div>
       </div>
     {% endfor %}
+    <div class="row py-1 ml-5">
+      <div class="col-3 col-lg-2 col-md-3 pt-1">Password:</div>
+      <div class="col-9 col-lg-4">
+        Raw passwords are not stored but you can change your password
+        using <a href="{% url 'password_reset' %}">this form</a>.
+      </div>
+    </div>
     <div class="row ml-5">
       <div class="col-auto pt-1">
         <button type="submit" class="btn btn-primary">Update</button>
       </div>
     </div>
   </form>
+  <p class="font-italic text-warning pt-3 pl-3 ml-5"><span class="font-weight-bold">N.B.:</span> These informations will be
+      public and could be seen by other users of Limonada.</p>
 
 {% endblock %}

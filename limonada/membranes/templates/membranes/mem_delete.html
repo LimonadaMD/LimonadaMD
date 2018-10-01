@@ -7,9 +7,9 @@
   <h1>Membranes</h1>
   <br>
 
-  <form action="" method="post">
+  <form method="post">
     {% csrf_token %}
-    <p>Are you sure you want to delete "{{ object }}"?</p>
+    <p>Are you sure you want to delete "{{ mt }}"?</p>
     <input type="submit" class="btn btn-primary btn-sm" value="Yes">
     <a href="{% url 'memlist' %}" class="btn btn-primary btn-sm" role="button">No</a>
   </form>

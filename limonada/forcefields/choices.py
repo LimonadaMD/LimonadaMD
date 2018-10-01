@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -31,5 +32,5 @@ GROMACS45 = 'GR45'
 GROMACS50 = 'GR50'
 SFTYPE_CHOICES = ((AMBER, 'Amber'),
                   (CHARMM, 'Charmm'),
-                  (GROMACS45, 'Gromacs 4.5'),
-                  (GROMACS50, 'Gromacs 5.0'))
+                  (GROMACS45, 'Gromacs <= 4.5'),
+                  (GROMACS50, 'Gromacs >= 5.0'))

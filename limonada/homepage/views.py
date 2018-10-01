@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -277,8 +278,12 @@ def mail(request):
 
     if request.method == 'POST':
         form = MailForm(request.POST)
+        print request.POST
         if form.is_valid():
-            if request.POST['curation']:
+            curation = form.cleaned_data['curation']
+            subject = form.cleaned_data['subject']
+            comment = form.cleaned_data['comment']
+            if curation:
                 send_mail(subject, comment, settings.VERIFIED_EMAIL_MAIL_FROM,
                           [email, 'jean-marc.crowet@univ-reims.fr'])
             else:

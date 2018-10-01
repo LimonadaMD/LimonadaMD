@@ -34,23 +34,23 @@
            style="display: none"
          {% endif %}>
       <div class="container">
-        <form id="select_form" action="" method="get">
+        <form id="select_form" method="get">
           <div class="row pt-1">
             {% for field in form_select %}
               {% if field.name == 'lipids' or field.name == 'tags' %}
                 <div class="col-2 col-md-1 p-1">{{ field.label_tag }}</div>
                 <div class="col-10 col-xl-8 col-lg-9 col-md-8 pb-1">
                   {{ field }}
-                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-                  {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                  {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                 </div>
                 <div class="col-0 col-xl-3 col-lg-2 col-md-3"></div>
               {% else %}
                 <div class="col-0 p-1">{{ field.label_tag }}</div>
                 <div class="col-6 col-xl-2 col-lg-3 col-md-3 col-sm-7 pb-1">
                   {{ field }}
-                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-                  {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                  {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                 </div>
               {% endif %}
             {% endfor %}
@@ -71,7 +71,7 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th width="15%">
+            <th claa="w-15">
               {% if sort == "name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -79,13 +79,12 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="name" %}">Name<a/></th>
-            <th width="31%">Lipids</th>
-            <th width="25%">Tags</th>
-            <th width="25%">Files</th>
+              <a href="?{% url_replace sort="name" %}">Name</a></th>
+            <th class="w-30">Lipids</th>
+            <th class="w-25">Tags</th>
+            <th class="w-20">Files</th>
             {% if user.is_authenticated %}
-              <th width="2%"></th>
-              <th width="2%"></th>
+              <th class="w-10"></th>
             {% endif %}
           </tr>
         </thead>
@@ -102,22 +101,21 @@
               </td>
               <td>{{ membrane.membrane.tag.all|join:", " }}</td>
               <td>
-                <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">
-                    {{ membrane.mem_file.url|basename }}</a>
+                {% if membrane.mem_file %} 
+                  <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">
+                      {{ membrane.mem_file.url|basename }}</a>
+                {% endif %}
                 <a href="{{ membrane.compo_file.url }}" class="text-success" target="blank">
                     {{ membrane.compo_file.url|basename }}</a>
               </td>
               {% if user.is_authenticated %}
                 {% if user == membrane.curator %}
-                  <td>
+                  <td class="text-right">
                     <a href="{% url 'memupdate' membrane.pk %}"><i class="fas fa-edit text-success"></i></a>
-                  </td>
-                  <td>
-                    <a href="{% url 'memdelete' membrane.pk %}"><i class="fas fa-trash text-success"></i></a>
+                    <a href="{% url 'memdelete' membrane.pk %}"><i class="fas fa-trash text-success"></i></a>&nbsp
                   </td>
                 {% else %}
-                  <td></td>
-                  <td>
+                  <td class="text-right">
                     <a href="{% url 'mail' %}?memid={{ membrane.pk }}"><i class="fas fa-edit text-success"></i></a>
                   </td>
                 {% endif %}

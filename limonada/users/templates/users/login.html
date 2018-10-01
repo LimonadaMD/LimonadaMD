@@ -16,8 +16,8 @@
         <div class="col p-1 align-self-end small">{{ field.label_tag }}</div>
         <div class="col p-1">
           {{ field }}
-          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-          {% for error in field.errors %}<p class="text-success">{{ error }}</p>{% endfor %}
+          {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+          {% for error in field.errors %}<span class="text-success">{{ error }}<br></span>{% endfor %}
         </div>
       </div>
     {% endfor %}

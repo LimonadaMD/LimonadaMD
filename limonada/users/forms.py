@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -23,9 +24,9 @@ from verified_email_field.forms import VerifiedEmailField
 
 # Django
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserChangeForm, UserCreationForm
 from django.contrib.auth.models import User
-from django.forms.widgets import PasswordInput, TextInput
+from django.forms.widgets import PasswordInput, Textarea, TextInput
 
 
 class SignUpForm(UserCreationForm):
@@ -41,11 +42,15 @@ class SignUpForm(UserCreationForm):
     position = forms.CharField(max_length=30,
                                widget=TextInput(attrs={'class': 'form-control'}))
     email = VerifiedEmailField(label='email', required=True)
+    address = forms.CharField(widget=TextInput(attrs={'class': 'form-control'}),
+                              required=False)
+    miscellaneous = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
+                                    required=False)
 
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'utype', 'institution',
-                  'position')
+                  'address', 'position', 'miscellaneous')
         widgets = {'username': TextInput(attrs={'class': 'form-control'}),
                    'first_name': TextInput(attrs={'class': 'form-control'}),
                    'last_name': TextInput(attrs={'class': 'form-control'})}
@@ -62,11 +67,16 @@ class UpdateForm(forms.ModelForm):
     institution = forms.CharField(max_length=200,
                                   widget=TextInput(attrs={'class': 'form-control'}))
     position = forms.CharField(max_length=30,
-                                  widget=TextInput(attrs={'class': 'form-control'}))
+                               widget=TextInput(attrs={'class': 'form-control'}))
+    address = forms.CharField(widget=TextInput(attrs={'class': 'form-control'}),
+                              required=False)
+    miscellaneous = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
+                                    required=False)
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'utype', 'institution', 'position')
+        fields = ('first_name', 'last_name', 'email', 'utype', 'institution','address', 'position',
+                  'miscellaneous')
         widgets = {'first_name': TextInput(attrs={'class': 'form-control'}),
                    'last_name': TextInput(attrs={'class': 'form-control'}),
                    'email': TextInput(attrs={'class': 'form-control'})}
