@@ -228,7 +228,7 @@ def formsetdata(mem_file, ff, mempath):
                 'form-INITIAL_FORMS': '0',
                 'form-MAX_NUM_FORMS': ''}
         i = 0
-        for lip in compo['up'].keys():
+        for lip in sorted(compo['up'], key=compo['up'].__getitem__, reverse=True):
             lid = Lipid.objects.filter(name=lip).values_list('id', flat=True)[0]
             data['form-%d-lipid' % (i)] = lid
             data['form-%d-topology' % (i)] = ''
@@ -239,7 +239,7 @@ def formsetdata(mem_file, ff, mempath):
             data['form-%d-number' % (i)] = compo['up'][lip]
             data['form-%d-side' % (i)] = 'UP'
             i += 1
-        for lip in compo['lo'].keys():
+        for lip in sorted(compo['lo'], key=compo['lo'].__getitem__, reverse=True):
             lid = Lipid.objects.filter(name=lip).values_list('id', flat=True)[0]
             data['form-%d-lipid' % (i)] = lid
             data['form-%d-topology' % (i)] = ''

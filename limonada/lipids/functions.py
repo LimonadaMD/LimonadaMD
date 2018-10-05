@@ -121,7 +121,8 @@ def findcgbonds(itp_file):
                 bondsection = False
         if bondsection:
             linearr = line.strip().split()
-            if line.strip() != '' and line[0:1] != ';' and len(linearr) >= 2:
-                bonds.append([int(linearr[0])-1, int(linearr[1])-1])
+            if line.strip() != '':
+                if line[0:1] != '[' and line[0:1] != ';' and line[0:1] != '#' and len(linearr) >= 2:
+                    bonds.append([int(linearr[0])-1, int(linearr[1])-1])
 
     return bonds

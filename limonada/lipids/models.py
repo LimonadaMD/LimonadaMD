@@ -53,7 +53,7 @@ def validate_lmid(value):
         try:
             lm_response = requests.get('http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json' % value)
             lm_data_raw = lm_response.json()
-            if lm_data_raw == [] or int(value[-4:]) == 0:
+            if lm_data_raw == []:
                 raise ValidationError(_('Invalid LMID'),
                                       code='invalid',
                                       params={'value': value})

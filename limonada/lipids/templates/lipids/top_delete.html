@@ -9,8 +9,10 @@
 
   <form method="post">
     {% csrf_token %}
-    <p>The topology record "{{ top }}" is associated with {{ nbmem }} membrane objects.<br>
-        If you delete this record these objects will be also deleted.</p>
+    {% if nbmem > 0 %}
+      <p>The topology record "{{ top }}" is associated with {{ nbmem }} membrane objects.<br>
+          If you delete this record these objects will be also deleted.</p>
+    {% endif %}
     <p>Are you sure you want to delete "{{ top }}"?</p>
     <input type="submit" class="btn btn-primary btn-sm" value="Yes">
     <a href="{% url 'toplist' %}" class="btn btn-primary btn-sm" role="button">No</a>

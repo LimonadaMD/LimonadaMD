@@ -119,7 +119,7 @@ def RefCreate(request):
         form_add = ReferenceForm()
         if form_search.is_valid():
             doi = form_search.cleaned_data['doisearch']
-            url = 'http://dx.doi.org/%s' % doi
+            url = 'https://dx.doi.org/%s' % doi
             headers = {'Accept': 'application/citeproc+json'}
             doidata = {}
             response = requests.get(url, headers=headers)

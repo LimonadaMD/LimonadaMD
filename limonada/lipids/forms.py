@@ -48,9 +48,7 @@ class LipidForm(forms.ModelForm):
     name = forms.CharField(widget=TextInput(attrs={'placeholder': 'e.g., POPC',
                                                    'class': 'form-control'}),
                            validators=[validate_name])
-    lmid = forms.CharField(widget=TextInput(attrs={'readonly': 'readonly',
-                                                   'class': 'text-success form-control'}),
-                           validators=[validate_lmid])
+    lmid = forms.CharField(validators=[validate_lmid])
     core = forms.CharField(label='Category',
                            widget=TextInput(attrs={'readonly': 'readonly',
                                                    'class': 'form-control'}),

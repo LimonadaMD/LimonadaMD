@@ -21,6 +21,7 @@
 
 # standard library
 import os
+import re
 import urllib
 
 # Django
@@ -91,3 +92,8 @@ def split(value):
 @register.filter(name='dirname')
 def dirname(value):
     return os.path.dirname(value)
+
+
+@register.filter(name='slashbreak')
+def slashbreak(value):
+    return re.sub(r'/', '/&#8203;', value) 

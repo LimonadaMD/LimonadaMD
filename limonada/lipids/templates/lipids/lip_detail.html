@@ -1,5 +1,8 @@
 {% extends "homepage/layout.html" %}
 
+{% load homepage_extras %}
+{% load lipid_extras %}
+
 {% block title %}Lipids{% endblock %}
 
 {% block content %}
@@ -14,12 +17,16 @@
           <tr><td class="font-weight-bold w-30">Name:</td><td>{{ lipid.name }}</td></tr>
           <tr>
             <td class="font-weight-bold">LMID:</td>
-            <td>
-              <a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">
-                  {{ lipid.lmid }}</a>
-            </td>
+            {% if lipid.lmid|substring:"0,2" == "LM" %}
+              <td>
+                <a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">
+                    {{ lipid.lmid }}</a>
+              </td>
+            {% else %}
+              <td>{{ lipid.lmid }}</td>
+            {% endif %}
           </tr>
-          <tr><td class="font-weight-bold">Common name:</td><td>{{ lipid.com_name }}</td></tr>
+          <tr><td class="font-weight-bold">Common name:</td><td>{{ lipid.com_name|slashbreak|safe }}</td></tr>
           <tr><td class="font-weight-bold">Systematic name:</td><td>{{ lipid.sys_name }}</td></tr>
           <tr><td class="font-weight-bold">IUPAC name:</td><td>{{ lipid.iupac_name }}</td></tr>
           <tr><td class="font-weight-bold">Formula:</td><td>{{ lipid.formula }}</td></tr>

@@ -161,7 +161,7 @@
               </td>
               <td>
                 <a class="text-success" href="{% url 'lipdetail' topology.lipid.slug %}">
-                    {{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a>
+                    {{ topology.lipid.name }} - {{ topology.lipid.com_name|slashbreak|safe }}</a>
               </td>
               <td>{{ topology.get_software_display }}</td>
               <td>
@@ -188,7 +188,7 @@
       </table>
     </div>
   </div>
-  <div class="row bg-green rounded-bottom border border-top-0 border-success p-3 mx-1">
+  <div class="row align-items-start justify-content-between bg-green rounded-bottom border border-top-0 border-success p-3 mx-1">
     {% include 'paginator.html' %}
   </div>
   <br>

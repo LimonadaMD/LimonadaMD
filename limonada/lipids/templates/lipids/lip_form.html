@@ -163,6 +163,14 @@
                     {% endfor %}
                   {% endif %}
                   </select>
+                {% elif field.name == 'lmid' %}
+                  {% if field.value|substring:"0,2" == "LM" %}
+                    <input id="{{ field.id_for_label }}" name="{{ field.html_name }}" readonly="readonly" type="text"
+                           value="{{ field.value }}" class="text-success form-control"/>
+                  {% else %}
+                    <input id="{{ field.id_for_label }}" name="{{ field.html_name }}" readonly="readonly" type="text"
+                           value="{{ field.value }}" class="text-warning form-control"/>
+                  {% endif %}
                 {% else %}
                   {{ field }}
                 {% endif %}

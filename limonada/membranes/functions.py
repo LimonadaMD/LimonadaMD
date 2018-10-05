@@ -36,9 +36,8 @@ aminoacids = ['ARG', 'HIS', 'LYS', 'ASP', 'GLU', 'SER', 'THR', 'ASN', 'GLN', 'CY
 
 def Atom(a):
     try:
-        # ==>   res name,        atom name,        res id,     atom id,       x,               y,               z
-        return (a[5:10].strip(), a[10:15].strip(), int(a[:5]), int(a[15:20]), float(a[20:28]), float(a[28:36]),
-                float(a[36:44]))
+        # ==>   res name,        atom name,        res id,     atom id,       coord
+        return (a[5:10].strip(), a[10:15].strip(), int(a[:5]), int(a[15:20]), a[20:])
     except ValueError:
         return 'error'
 
@@ -62,13 +61,9 @@ class Membrane:
             self.title = lines[0]
             self.natoms = lines[1]
             self.box = lines[-1]
-            i = 0
-            atom = ''
-            while i <= len(lines[2:-1])-1 and atom != 'error':
-                atom = Atom(lines[i+2]) 
-                atoms.append(atom)
-                i += 1
-        if len(lines) > 3 and atom != 'error':
+            for line in lines[2:-1]:
+                atoms.append(Atom(line)) 
+        if len(lines) > 3 and 'error' not in atoms:
             resid = ''
             resname = ''
             restype = ''
@@ -115,14 +110,10 @@ class Membrane:
 
 class LipidRes:
     def __init__(self, atoms=None):
-        self.name = ''
-        self.leaflet = ''
-        self.hgndx = ''
-        self.atoms = []
-
         self.name = atoms[0][0]
         self.hgndx = atoms[0][3]
         self.atoms = atoms
+        self.leaflet = ''
 
 
 def membraneanalysis(filename, rand):
@@ -221,48 +212,56 @@ def membraneanalysis(filename, rand):
             ai = 0
             for res in membrane.prot:
                 ri += 1
+                if ri == 100000:
+                    ri = 0
                 for atom in res:
                     ai += 1
+                    if ai == 100000:
+                        ai = 0
                     rn = atom[0]
                     an = atom[1]
-                    x = atom[4]
-                    y = atom[5]
-                    z = atom[6]
-                    outfile.write('%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n' % (ri, rn, an, ai, x, y, z))
+                    coord = atom[4]
+                    outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
             for resname in membrane.unkres.keys():
                 for res in membrane.unkres[resname]:
                     ri += 1
+                    if ri == 100000:
+                        ri = 0
                     for atom in res:
                         ai += 1
+                        if ai == 100000:
+                            ai = 0
                         rn = atom[0]
                         an = atom[1]
-                        x = atom[4]
-                        y = atom[5]
-                        z = atom[6]
-                        outfile.write('%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n' % (ri, rn, an, ai, x, y, z))
+                        coord = atom[4]
+                        outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
             for leaflet in ['up','lo','unk']:
-                for key in sorted(compo[leaflet], reverse=True):
+                for key in sorted(compo[leaflet], key=compo[leaflet].__getitem__, reverse=True):
                     for lipid in membrane.lipids[key]:
                         if lipid.leaflet == leaflet:
                             ri += 1
+                            if ri == 100000:
+                                ri = 0
                             rn = lipid.name
                             for atom in lipid.atoms:
                                 ai += 1
+                                if ai == 100000:
+                                    ai = 0
                                 an = atom[1]
-                                x = atom[4]
-                                y = atom[5]
-                                z = atom[6]
-                                outfile.write('%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n' % (ri, rn, an, ai, x, y, z))
+                                coord = atom[4]
+                                outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
             for res in membrane.solvent:
                 ri += 1
+                if ri == 100000:
+                    ri = 0
                 for atom in res:
                     ai += 1
+                    if ai == 100000:
+                        ai = 0
                     rn = atom[0]
                     an = atom[1]
-                    x = atom[4]
-                    y = atom[5]
-                    z = atom[6]
-                    outfile.write('%5d%-5s%5s%5d%8.3f%8.3f%8.3f\n' % (ri, rn, an, ai, x, y, z))
+                    coord = atom[4]
+                    outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
             outfile.write(membrane.box)
             outfile.close()
 

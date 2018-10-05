@@ -78,15 +78,20 @@
                 <div id="{{ lip.prefix }}-row" class="row form-row align-items-center">
                   <div class="col-12 col-lg-5 col-md-6 col-sm-8 pt-1">{{ lip.lipid }}</div>
                   <div class="col-5 col-lg-2 col-md-3 col-sm-4 pt-1">
+                    {% if lip.topology.value %}
+                      {% query tops lipid_id=lip.lipid.value forcefield=topform.forcefield.value as topobjects %}
+                    {% endif %}
                     {% if lip.lipid.value and not lip.topology.value %}
                       <select id="id_{{ lip.prefix }}-topology" name="{{ lip.prefix }}-topology"
                               class="form-control-sm text-danger w-100">
+                    {% elif topobjects|length > 1 %}
+                      <select id="id_{{ lip.prefix }}-topology" name="{{ lip.prefix }}-topology"
+                              class="form-control-sm text-success w-100">
                     {% else %}
                       <select id="id_{{ lip.prefix }}-topology" name="{{ lip.prefix }}-topology"
                               class="form-control-sm w-100">
                     {% endif %}
                     {% if lip.topology.value %}
-                      {% query tops lipid_id=lip.lipid.value forcefield=topform.forcefield.value as topobjects %}
                       {% for top in topobjects %}
                         <option value="{{ top.id }}"
                             {% if top.id|stringformat:"s" == lip.topology.value|stringformat:"s" %}
