@@ -30,7 +30,7 @@
     <div id="collapseselect" class="col-12 col-xl-9 col-lg-8 order-last"
          {% if not params.category and not params.lipidid %}style="display: none"{% endif %}>
       <div class="container">
-        <form id="select_form" action="" method="get">
+        <form id="select_form" method="get">
           {% for field in form_select %}
             <div class="row pt-1">
               <div class="col-4 col-lg-2 col-md-2 col-sm-3 pt-1">
@@ -58,11 +58,9 @@
                 {% endif %}
               </div>
               <div class="col-8 col-xl-8 col-lg-9 col-md-8 col-sm-9">
-                {% lm_select "all" as lmall %}
                 {% if field.name == 'category' %}
                   <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control py-1"
-                          onchange="rmselect('id_l4_class');rmselect('id_sub_class');rmselect('id_main_class');
-                                    populate(this.id,'id_main_class',{{ lmall }});">
+                          onchange="updateselect(this.id);">
                   <option value="">---------</option>
                   {% lm_select "category" as lmobjects %}
                   {% for value,name in lmobjects %}
@@ -74,8 +72,7 @@
                 {% elif field.name == 'main_class' %}
                   <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control"
                           {% if not params.category %}style="display: none;"{% endif %}
-                          onchange="rmselect('id_l4_class');rmselect('id_sub_class');
-                                    populate(this.id,'id_sub_class',{{ lmall }})">
+                          onchange="updateselect(this.id)">
                   <option value="">---------</option>
                   {% if params.category %}
                     {% lm_select params.category as lmobjects %}
@@ -97,7 +94,7 @@
                                 style="display: none;"
                             {% endif %}
                           {% endif %}
-                          onchange="rmselect('id_l4_class');populate(this.id,'id_l4_class',{{ lmall }})">
+                          onchange="updateselect(this.id)">
                   <option value="">---------</option>
                   {% if params.main_class %}
                     {% lm_select params.main_class as lmobjects %}
@@ -131,8 +128,8 @@
                 {% else %}
                   {{ field }}
                 {% endif %}
-                {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-                {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
               </div>
             </div>
           {% endfor %}
@@ -152,15 +149,16 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th width="10%">
+            <th class="w-10">
               {% if sort == "name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
-                {% else %}<i class="fas fa-sort-down"></i>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="name" %}">Name<a/></th>
-            <th width="15%">
+              <a href="?{% url_replace sort="name" %}">Name</a></th>
+            <th class="w-15">
               {% if sort == "lmid" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -168,8 +166,8 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="lmid" %}">LM ID<a/></th>
-            <th width="25%">
+              <a href="?{% url_replace sort="lmid" %}">LM ID</a></th>
+            <th class="w-25">
               {% if sort == "com_name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -177,8 +175,8 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="com_name" %}">Common Name<a/></th>
-            <th width="46%">
+              <a href="?{% url_replace sort="com_name" %}">Common Name</a></th>
+            <th class="w-40">
               {% if sort == "sys_name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -186,39 +184,34 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="sys_name" %}">Systematic Name<a/></th>
+              <a href="?{% url_replace sort="sys_name" %}">Systematic Name</a></th>
             {% if user.is_authenticated %}
-              <th width="2%"></th>
-              <th width="2%"></th>
+              <th class="w-10"></th>
             {% endif %}
           </tr>
         </thead>
         <tbody>
           {% for lipid in page_objects %}
             <tr>
+              <td><a class="text-success" href="{% url 'lipdetail' lipid.slug %}">{{ lipid.name }}</a></td>
               {% if lipid.lmid|substring:"0,2" == "LM" %}
-                <td><a class="text-success" href="{% url 'lipdetail' lipid.slug %}">{{ lipid.name }}</a></td>
                 <td>
                   <a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">
-                      {{ lipid.lmid }}<a/>
+                      {{ lipid.lmid }}</a>
                 </td>
               {% else %}
-                <td><a class="text-warning" href="{% url 'lipdetail' lipid.slug %}">{{ lipid.name }}</a></td>
-                <td class="text-warning">{{ lipid.lmid }}</td>
+                <td>{{ lipid.lmid }}</td>
               {% endif %}
-              <td>{{ lipid.com_name }}</td>
+              <td>{{ lipid.com_name|slashbreak|safe }}</td>
               <td>{{ lipid.sys_name }}</td>
               {% if user.is_authenticated %}
                 {% if user == lipid.curator %}
-                  <td>
+                  <td class="text-right">
                     <a href="{% url 'lipupdate' lipid.slug %}"><i class="fas fa-edit text-success"></i></a>
-                  </td>
-                  <td>
-                    <a href="{% url 'lipdelete' lipid.slug %}"><i class="fas fa-trash text-success"></i></a>
+                    <a href="{% url 'lipdelete' lipid.slug %}"><i class="fas fa-trash text-success"></i></a>&nbsp
                   </td>
                 {% else %}
-                  <td></td>
-                  <td>
+                  <td class="text-right">
                     <a href="{% url 'mail' %}?lipid={{ lipid.pk }}"><i class="fas fa-edit text-success"></i></a>
                   </td>
                 {% endif %}
@@ -241,23 +234,44 @@
 {% block script %}
 
   <script>
-    function populate(s0,s1,lmclass){
+    function updateselect(s0){
       var val = document.getElementById(s0).value;
-      var label = s1+"_label";
-      var s1  = document.getElementById(s1);
-      if (lmclass[val]) {
-        for(var option in lmclass[val]){
-          var newOption = document.createElement("option");
-          newOption.value = lmclass[val][option][0];
-          newOption.innerHTML = lmclass[val][option][1];
-          s1.options.add(newOption);
-        }
-        s1.style.display = 'block'
-        document.getElementById(label).style.display = 'block';
-      } else {
-        s1.style.display = 'none'
-        document.getElementById(label).style.display = 'none';
+      if (s0 == 'id_category') {
+          var s1 = document.getElementById('id_main_class');
+          var s1_id = '#id_main_class';
+          var s1_label = '#id_main_class_label';
+          rmselect('id_main_class');
+          rmselect('id_sub_class');
+          rmselect('id_l4_class');
+      } else if (s0 == 'id_main_class') {
+          var s1 = document.getElementById('id_sub_class');
+          var s1_id = '#id_sub_class';
+          var s1_label = '#id_sub_class_label';
+          rmselect('id_sub_class');
+          rmselect('id_l4_class');
+      } else if (s0 == 'id_sub_class') {
+          var s1 = document.getElementById('id_l4_class');
+          var s1_id = '#id_l4_class';
+          var s1_label = '#id_l4_class_label';
+          rmselect('id_l4_class');
       }
+      $.ajax({
+        url: '{% url "load_lmclass" %}',
+        data: { 'classname': val },
+        dataType: 'json',
+        success: function (data) {
+          if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+              $(s1).append('<option value='+ data[i].name +'>'+ data[i].line +'</option>');
+            };
+	        $(s1_id).css("display","block") 
+	        $(s1_label).css("display","block") 
+          } else {
+	        $(s1_id).css("display","none") 
+	        $(s1_label).css("display","none") 
+          }
+        }
+      });
     }
     function rmselect(s1){
       var label = s1+"_label";

@@ -10,7 +10,7 @@
     gtag('js', new Date());
     gtag('config', 'UA-XXXXXXXXX-X');
   </script>
-  {% load staticfiles %}
+  {% load staticfiles  %}
   {% load homepage_extras %}
   <title>Limonada - {% block title %}{% endblock %}</title>
   <meta name="description" content="{% block description %}{% endblock %}">
@@ -30,7 +30,7 @@
     <div class="card-img-overlay container">
       <div id="header-card" class="row align-items-start">
         <div class="col-auto ml-2">
-          <h2 class="bg-success text-light rounded p-1">Limonada {% version %}</h3>
+          <h2 class="bg-success text-light rounded p-1">Limonada {% version %}</h2>
           <div class="bg-success text-light rounded p-1 mt-1">
             <h5>LIpid Membranes Open Network</h5>
             <h5>And DAtabase</h5>
@@ -78,8 +78,8 @@
     <br><br>
   </section>
 
-  <footer class="container bg-grey text-light p-3">
-    <div class="row">
+  <footer class="container">
+    <div class="row bg-grey text-light mx-1 py-3 rounded border">
       <div class="col-6">
         <h2>Contact</h2>
         <p class="ml-3">Dr. Jean-Marc Crowet (<a href="mailto:jean-marc.crowet@univ-reims.fr" class="text-warning">
@@ -146,7 +146,7 @@
           integrity="sha384-4SbfzJyePzKJxMo6GScR+wxudneCgKbBwE4itD+rscxrvLFGoDQGaZJGtXT7+s33"
           crossorigin="anonymous"></script>  
   <script src="{% static 'js/ngl.js' %}"></script>
-  <script src="{% static 'js/limonada.js' %}?ver=20180210"></script>
+  <script src="{% static 'js/limonada.js' %}"></script>
   {% block script %}
   {% endblock %}
   <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->

@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -32,7 +33,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, pre_save
 from django.dispatch.dispatcher import receiver
 from django.utils.translation import ugettext_lazy as _
 
@@ -52,7 +53,7 @@ def validate_lmid(value):
         try:
             lm_response = requests.get('http://www.lipidmaps.org/rest/compound/lm_id/%s/all/json' % value)
             lm_data_raw = lm_response.json()
-            if lm_data_raw == [] or int(value[-4:]) == 0:
+            if lm_data_raw == []:
                 raise ValidationError(_('Invalid LMID'),
                                       code='invalid',
                                       params={'value': value})
@@ -76,15 +77,18 @@ def validate_file_extension(value):
 def img_path(instance, filename):
     ext = os.path.splitext(filename)[1]
     filepath = 'lipids/{0}{1}'.format(instance.lmid, ext)
-    if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
-        os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
+    valid_extensions = ['.png', '.jpg']
+    for ext in valid_extensions:
+        imgpath = 'lipids/{0}{1}'.format(instance.lmid, ext)
+        if os.path.isfile(os.path.join(settings.MEDIA_ROOT, imgpath)):
+            os.remove(os.path.join(settings.MEDIA_ROOT, imgpath))
     return filepath
 
 
 def file_path(instance, filename):
     ext = os.path.splitext(filename)[1]
     version = unicodedata.normalize('NFKD', instance.version).encode('ascii', 'ignore').replace(' ', '_')
-#   ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro,png} (we assume gromacs for now)
+#   ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro} (we assume gromacs for now)
     filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software, instance.forcefield, instance.lipid.name,
                                                           version, ext)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
@@ -169,12 +173,12 @@ def _delete_file(path):
 @receiver(pre_delete, sender=Lipid)
 def delete_file_pre_delete_lip(sender, instance, *args, **kwargs):
     if instance.img:
-        _delete_file(instance.img.path)
+         _delete_file(instance.img.path)
 
 
 @receiver(pre_delete, sender=Topology)
 def delete_file_pre_delete_top(sender, instance, *args, **kwargs):
     if instance.itp_file:
-        _delete_file(instance.itp_file.path)
+         _delete_file(instance.itp_file.path)
     if instance.gro_file:
-        _delete_file(instance.gro_file.path)
+         _delete_file(instance.gro_file.path)

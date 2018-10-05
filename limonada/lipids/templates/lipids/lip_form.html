@@ -18,16 +18,18 @@
             <a href="http://lipidmaps.org/data/classification/LM_classification_exp.php"
             class="text-success">LipidMaps</a> database. If it is not present, a Limonada entry can be used.</p>
         <div class="container p-0">
-          <form action="" method="post">
+          <form method="post">
             {% csrf_token %}
             <div class="row p-1">
-              <div class="col-3 pt-1">{{ form_search.lmid.label_tag }}</div>
+              <div class="col-3 pt-1">{{ form_search.lmidsearch.label_tag }}</div>
               <div class="col-7">
-                {{ form_search.lmid }}
-                {% if form_search.lmid.help_text %}
-                  <small class="text-secondary">{{ form_search.lmid.help_text }}</small>
+                {{ form_search.lmidsearch }}
+                {% if form_search.lmidsearch.help_text %}
+                  <small class="text-secondary">{{ form_search.lmidsearch.help_text }}<br></small>
                 {% endif %}
-                {% for error in form_search.lmid.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                {% for error in form_search.lmidsearch.errors %}
+                  <span class="text-danger">{{ error }}<br></span>
+                {% endfor %}
               </div>
               <div class="col-1 pt-1">
                 <button type="submit" class="btn btn-primary btn-sm" name="search">Search</button>
@@ -45,7 +47,7 @@
   <div class="row ml-5">
     <div class="col-12 col-lg-6">
       <div class="container p-0">
-        <form action="" method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           {% for field in form_add %}
             <div class="row p-1">
@@ -98,9 +100,8 @@
                   <div class="input-group">
                     <div class="custom-file">
                       <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}"
-                             class="custom-file-input" accept=".jpg,.png"
-                             onchange="$('#imgtext').text($(this).val().split('\\').slice(-1)[0]);">
-                      <label id="{{ field.name }}text" class="custom-file-label" for="{{ field.id_for_label }}">
+                             class="custom-file-input" accept=".jpg,.png">
+                      <label class="custom-file-label" for="{{ field.id_for_label }}">
                         {% if imgpath %}
                           {{ imgpath|cut:"tmp/" }}
                         {% else %}
@@ -111,8 +112,7 @@
                   </div>
                 {% elif field.name == 'core' and search %}
                   <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control"
-                      onchange="rmselect('id_l4_class');rmselect('id_sub_class');rmselect('id_main_class');
-                                populate(this.id,'id_main_class');">
+                      onchange="updateselect(this.id);">
                   <option value="">---------</option>
                   {% lm_select "category" as lmobjects %}
                   {% for value,name in lmobjects %}
@@ -124,7 +124,7 @@
                   </select>
                 {% elif field.name == 'main_class' and search %}
                   <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control"
-                          onchange="rmselect('id_l4_class');rmselect('id_sub_class');populate(this.id,'id_sub_class')">
+                          onchange="updateselect(this.id)">
                   <option value="">---------</option>
                   {% if form_add.lmid.value %}
                     {% lm_select form_add.lmid.value|substring:"2,4" as lmobjects %}
@@ -138,7 +138,7 @@
                   </select>
                 {% elif field.name == 'sub_class' and search %}
                   <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control"
-                          onchange="rmselect('id_l4_class');populate(this.id,'id_l4_class')">
+                          onchange="updateselect(this.id)">
                   <option value="">---------</option>
                   {% if form_add.lmid.value %}
                     {% lm_select form_add.lmid.value|substring:"2,6" as lmobjects %}
@@ -163,11 +163,19 @@
                     {% endfor %}
                   {% endif %}
                   </select>
+                {% elif field.name == 'lmid' %}
+                  {% if field.value|substring:"0,2" == "LM" %}
+                    <input id="{{ field.id_for_label }}" name="{{ field.html_name }}" readonly="readonly" type="text"
+                           value="{{ field.value }}" class="text-success form-control"/>
+                  {% else %}
+                    <input id="{{ field.id_for_label }}" name="{{ field.html_name }}" readonly="readonly" type="text"
+                           value="{{ field.value }}" class="text-warning form-control"/>
+                  {% endif %}
                 {% else %}
                   {{ field }}
                 {% endif %}
-                {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-                {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
               </div>
             </div>
           {% endfor %}
@@ -178,6 +186,7 @@
               </button>
             </div>
           </div>
+          <input type="hidden" name="imgpath" value="{{ imgpath }}"/>
         </form>
       </div>
     </div>
@@ -203,9 +212,6 @@
     $(document).ready(function(){
       $('[data-toggle="popover"]').popover();
     });
-    {% lm_select "all" as lmall %};
-    var lmclass = {{ lmall|safe }};
-    {% if liindex %}var liindex = {{ liindex|safe }}{% endif %};
   </script>
   <script>
     function readURL(input) {
@@ -220,22 +226,36 @@
     $("#id_img").change(function() {
       readURL(this);
     });
-    function populate(s0,s1){
+    function updateselect(s0){
       var val = document.getElementById(s0).value;
-      var label = s1+"_label";
-      var s1  = document.getElementById(s1);
-      if (lmclass[val]) {
-        for(var option in lmclass[val]){
-          var newOption = document.createElement("option");
-          newOption.value = lmclass[val][option][0];
-          newOption.innerHTML = lmclass[val][option][1];
-          s1.options.add(newOption);
-        }
+      if (s0 == 'id_core') {
+          var s1 = document.getElementById('id_main_class');
+          rmselect('id_main_class');
+          rmselect('id_sub_class');
+          rmselect('id_l4_class');
+      } else if (s0 == 'id_main_class') {
+          var s1 = document.getElementById('id_sub_class');
+          rmselect('id_sub_class');
+          rmselect('id_l4_class');
+      } else if (s0 == 'id_sub_class') {
+          var s1 = document.getElementById('id_l4_class');
+          rmselect('id_l4_class');
       }
+      $.ajax({
+        url: '{% url "load_lmclass" %}',
+        data: { 'classname': val },
+        dataType: 'json',
+        success: function (data) {
+          if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+              $(s1).append('<option value='+ data[i].name +'>'+ data[i].line +'</option>');
+            };
+          }
+        }
+      });
       lmidupdate();
     }
     function rmselect(s1){
-      var label = s1+"_label";
       var s1  = document.getElementById(s1);
       while (s1.options.length > 0) {
         s1.remove(0);
@@ -251,18 +271,25 @@
       var sub = document.getElementById("id_sub_class").value;
       var l4  = document.getElementById("id_l4_class").value;
       var text = "";
-      if ( cat ) { text = 'LI'+cat+'...' ; }
-      if ( main ) {
-        if (liindex[main]) { text = liindex[main] ;
-        } else { text = 'LI'+main+'...' ; }
-      }
-      if ( sub ) {
-        if (liindex[sub]) { text = liindex[sub] ;
-        } else { text = 'LI'+sub+'...' ; }
-      }
-      if ( l4 ) { text = liindex[l4] ; }
-      document.getElementById("id_lmid").value = text;
-      document.getElementById("id_lmid").className = "text-warning form-control";
+      $.ajax({
+        url: '{% url "load_liindex" %}',
+        data: { 'mainclass': main, 'subclass': sub, 'l4class': l4 },
+        dataType: 'json',
+        success: function (data) {
+          if ( cat ) { text = 'LI'+cat+'...' ; }
+          if ( main ) {
+            if (data['mainclass']) { text = data['mainclass'] ;
+            } else { text = 'LI'+main+'...' ; }
+          }
+          if ( sub ) {
+            if (data['subclass']) { text = data['subclass'] ;
+            } else { text = 'LI'+sub+'...' ; }
+          }
+          if ( l4 ) { text = data['l4class'] ; }
+          $('#id_lmid').val(text);
+          $('#id_lmid').attr('class', 'text-warning form-control');
+        }
+      });
     }
   </script>
 

@@ -22,4 +22,6 @@ $('#clickselect').click(function(){
     $('#iconselect').toggleClass("fa-plus fa-minus")
 })
 
-
+$('input[type="file"]').on('change', function() {
+    $(this).next('.custom-file-label').text($(this)[0].files[0].name);
+});

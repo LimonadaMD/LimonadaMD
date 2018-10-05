@@ -29,15 +29,15 @@
     <div id="collapseselect" class="col-12 col-md-auto order-last"
          {% if not params.year %}style="display: none"{% endif %}>
       <div class="container">
-        <form id="select_form"  action="" method="get">
+        <form id="select_form" method="get">
           <div class="row pt-1">
             {% for field in form_select %}
               <div class="col-auto d-flex">
                 <div class="pr-2 py-1">{{ field.label_tag }}</div>
                 <div>
                   {{ field }}
-                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-                  {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                  {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                 </div>
               </div>
             {% endfor %}
@@ -57,7 +57,7 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th width="17%">
+            <th class="w-15">
               {% if sort == "refid" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -65,9 +65,9 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="refid" %}"> Name<a/>
+              <a href="?{% url_replace sort="refid" %}"> Name</a>
             </th>
-            <th width="72%">
+            <th class="w-70">
               {% if sort == "title" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -75,8 +75,8 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="title" %}">Title<a/></th>
-            <th width="7%">
+              <a href="?{% url_replace sort="title" %}">Title</a></th>
+            <th class="w-5">
               {% if sort == "year" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -84,10 +84,9 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="year" %}">Year<a/></th>
+              <a href="?{% url_replace sort="year" %}">Year</a></th>
             {% if user.is_authenticated %}
-              <th width="2%"></th>
-              <th width="2%"></th>
+              <th class="w-10"></th>
             {% endif %}
           </tr>
         </thead>
@@ -109,11 +108,14 @@
               <td>{{ ref.year }}</td>
               {% if user.is_authenticated %}
                 {% if user == ref.curator %}
-                  <td><a href="{% url 'refupdate' ref.pk %}"><i class="fas fa-edit text-success"></i></a></td>
-                  <td><a href="{% url 'refdelete' ref.pk %}"><i class="fas fa-trash text-success"></i></a></td>
+                  <td class="text-right">
+                    <a href="{% url 'refupdate' ref.pk %}"><i class="fas fa-edit text-success"></i></a>
+                    <a href="{% url 'refdelete' ref.pk %}"><i class="fas fa-trash text-success"></i></a>&nbsp
+                  </td>
                 {% else %}
-                  <td></td>
-                  <td><a href="{% url 'mail' %}?refid={{ ref.pk }}"><i class="fas fa-edit text-success"></i></a></td>
+                  <td class="text-right">
+                    <a href="{% url 'mail' %}?refid={{ ref.pk }}"><i class="fas fa-edit text-success"></i></a>
+                  </td>
                 {% endif %}
               {% endif %}
             </tr>

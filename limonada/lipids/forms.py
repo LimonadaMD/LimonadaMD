@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -36,10 +37,10 @@ from .models import Lipid, Topology, validate_file_extension, validate_lmid, val
 
 class LmidForm(forms.Form):
 
-    lmid = forms.CharField(label='LipidMaps ID',
-                           widget=TextInput(attrs={'placeholder': 'e.g., LMGP01010005',
-                                                   'class': 'form-control'}),
-                           validators=[validate_lmid])
+    lmidsearch = forms.CharField(label='LipidMaps ID',
+                                 widget=TextInput(attrs={'placeholder': 'e.g., LMGP01010005',
+                                                         'class': 'form-control'}),
+                                  validators=[validate_lmid])
 
 
 class LipidForm(forms.ModelForm):
@@ -47,9 +48,7 @@ class LipidForm(forms.ModelForm):
     name = forms.CharField(widget=TextInput(attrs={'placeholder': 'e.g., POPC',
                                                    'class': 'form-control'}),
                            validators=[validate_name])
-    lmid = forms.CharField(widget=TextInput(attrs={'readonly': 'readonly',
-                                                   'class': 'text-success form-control'}),
-                           validators=[validate_lmid])
+    lmid = forms.CharField(validators=[validate_lmid])
     core = forms.CharField(label='Category',
                            widget=TextInput(attrs={'readonly': 'readonly',
                                                    'class': 'form-control'}),
@@ -129,13 +128,6 @@ class TopologyForm(forms.ModelForm):
                    'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete')}
         labels = {'reference': 'References'}
 
-#    def clean_version(self):
-#        version = self.cleaned_data['version']
-#        test = True
-#        if test:
-#            raise ValidationError('%s is not valid' % software)
-#        return version
-
     def clean(self):
         cleaned_data = super(TopologyForm, self).clean()
         software = cleaned_data.get('software')
@@ -149,9 +141,9 @@ class TopologyForm(forms.ModelForm):
                 self.add_error('version', mark_safe(
                     'This version name is already taken by another topology entry for this lipid and forcefield.'))
 
-        if lipid and ff and software and 'itp_file' in self.files and 'gro_file' in self.files:
-            itp_file = self.files['itp_file']
-            gro_file = self.files['gro_file']
+        if lipid and ff and software and 'itp_file' in cleaned_data.keys() and 'gro_file' in cleaned_data.keys():
+            itp_file = cleaned_data['itp_file']
+            gro_file = cleaned_data['gro_file']
             error, rand = gmxrun(lipid.name, ff.ff_file.url, ff.mdp_file.url, itp_file, gro_file, software)
             if error:
                 logpath = '/media/tmp/%s/gromacs.log' % rand

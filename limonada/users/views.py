@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -44,6 +45,8 @@ def signup(request):
             user.profile.utype = form.cleaned_data.get('utype')
             user.profile.institution = form.cleaned_data.get('institution')
             user.profile.position = form.cleaned_data.get('position')
+            user.profile.address = form.cleaned_data.get('address')
+            user.profile.miscellaneous = form.cleaned_data.get('miscellaneous')
 #            permission = Permission.objects.get(name='MembraneTag')
 #            user.user_permissions.add(permission)
             user.save()
@@ -68,16 +71,20 @@ def update(request):
             user.profile.utype = form.cleaned_data.get('utype')
             user.profile.institution = form.cleaned_data.get('institution')
             user.profile.position = form.cleaned_data.get('position')
+            user.profile.address = form.cleaned_data.get('address')
+            user.profile.miscellaneous = form.cleaned_data.get('miscellaneous')
             user.save()
             return redirect('homepage')
-    else:
-        if request.user.is_authenticated():
-            instance = request.user
-            utype = request.user.profile.utype
-            institution = request.user.profile.institution
-            position = request.user.profile.position
-            form = UpdateForm(instance=instance,
-                              initial={'utype': utype, 'institution': institution, 'position': position})
+    elif request.user.is_authenticated():
+        instance = request.user
+        utype = request.user.profile.utype
+        institution = request.user.profile.institution
+        position = request.user.profile.position
+        address = request.user.profile.address
+        miscellaneous = request.user.profile.miscellaneous
+        form = UpdateForm(instance=instance,
+                          initial={'utype': utype, 'institution': institution, 'position': position,
+                                   'address': address, 'miscellaneous': miscellaneous})
     return render(request, 'users/update.html', {'form': form, 'homepage': True})
 
 

@@ -1,7 +1,8 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#  Copyright (C) 2016-2020  Jean-Marc Crowet <jeanmarccrowet@gmail.com>
+#    Limonada is accessible at https://www.limonadamd.eu/
+#    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
 #
@@ -21,6 +22,7 @@
 # Django
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 
 # local Django
 from .forms import MemFormSet
@@ -31,9 +33,9 @@ urlpatterns = [
     url(r'^membranes/$', MemList, name='memlist'),
     url(r'^membranes/create/$', MemCreate, {'formset_class': MemFormSet, 'template': 'membranes/mem_form.html'},
         name='memcreate'),
-    url(r'^membranes/(?P<pk>\d+)/$', MemDetail.as_view(), name='memdetail'),
+    url(r'^membranes/(?P<pk>\d+)/$', never_cache(MemDetail.as_view()), name='memdetail'),
     url(r'^membranes/(?P<pk>\d+)/update/$', MemUpdate, name='memupdate'),
-    url(r'^membranes/(?P<pk>\d+)/delete/$', login_required(MemDelete.as_view()), name='memdelete'),
+    url(r'^membranes/(?P<pk>\d+)/delete/$', MemDelete, name='memdelete'),
     url(r'^membrane-autocomplete/$', MembraneAutocomplete.as_view(), name='membrane-autocomplete'),
     url(r'^getliptops/$', GetLipTops, name='getliptops'),
     url(r'^getfiles/$', GetFiles, name='getfiles'),

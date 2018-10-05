@@ -1,0 +1,18 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Topologies{% endblock %}
+
+{% block content %}
+
+  <h1>Lipids</h1>
+  <br>
+
+  <form method="post">
+    {% csrf_token %}
+    <p>The lipid record "{{ lip }}" is associated with {{ nbtop }} topology and {{ nbmem }} membrane objects.<br>
+        As you are not the curator of all these objects, you cannot delete "{{ lip }}".<br>
+        If you still want to delete this record, please contact the other curators or the Limonada Team.</p>
+  </form>
+  <br>
+
+{% endblock %}

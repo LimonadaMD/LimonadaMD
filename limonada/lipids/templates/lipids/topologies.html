@@ -32,15 +32,15 @@
     <div id="collapseselect" class="col-12 col-lg-8 order-last"
          {% if not params.software %}style="display: none"{% endif %}>
       <div class="container">
-        <form id="select_form" action="" method="get">
+        <form id="select_form" method="get">
           <div class="row pt-1">
             {% for field in form_select %}
               {% if field.name == 'lipid' %} 
                 <div class="col-auto p-1">{{ field.label_tag }}</div>
                 <div class="col-8 col-xl-9 col-lg-10 col-md-10 col-sm-9 pb-1">
                   {{ field }}
-                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-                  {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                  {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                 </div>
               {% else %} 
                 <div class="col-auto d-flex">
@@ -83,8 +83,8 @@
                     {% else %}
                       {{ field }}
                     {% endif %}
-                    {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}</small>{% endif %}
-                    {% for error in field.errors %}<p class="text-danger">{{ error }}</p>{% endfor %}
+                    {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                    {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                   </div>
                 </div>
               {% endif %} 
@@ -106,7 +106,7 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th width="16%">
+            <th class="w-15">
               {% if sort == "version" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -114,8 +114,8 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="version" %}">Name<a/></th>
-            <th width="15%">
+              <a href="?{% url_replace sort="version" %}">Name</a></th>
+            <th class="w-15">
               {% if sort == "forcefield" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -123,8 +123,8 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="forcefield" %}">Forcefield<a/></th>
-            <th width="28%">
+              <a href="?{% url_replace sort="forcefield" %}">Forcefield</a></th>
+            <th class="w-25">
               {% if sort == "lipid" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -132,8 +132,8 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="lipid" %}">Lipid<a/></th>
-            <th width="15%">
+              <a href="?{% url_replace sort="lipid" %}">Lipid</a></th>
+            <th class="w-15">
               {% if sort == "software" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -141,11 +141,10 @@
                   <i class="fas fa-sort-down"></i>
                 {% endif %}
               {% endif %}
-              <a href="?{% url_replace sort="software" %}">Software<a/></th>
-            <th width="22%">Files</th>
+              <a href="?{% url_replace sort="software" %}">Software</a></th>
+            <th class="w-20">Files</th>
             {% if user.is_authenticated %}
-              <th width="2%"></th>
-              <th width="2%"></th>
+              <th class="w-10"></th>
             {% endif %}
           </tr>
         </thead>
@@ -162,7 +161,7 @@
               </td>
               <td>
                 <a class="text-success" href="{% url 'lipdetail' topology.lipid.slug %}">
-                    {{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a>
+                    {{ topology.lipid.name }} - {{ topology.lipid.com_name|slashbreak|safe }}</a>
               </td>
               <td>{{ topology.get_software_display }}</td>
               <td>
@@ -173,15 +172,12 @@
               </td>
               {% if user.is_authenticated %}
                 {% if user == topology.curator %}
-                  <td>
+                  <td class="text-right">
                     <a href="{% url 'topupdate' topology.pk %}"><i class="fas fa-edit text-success"></i></a>
-                  </td>
-                  <td>
-                    <a href="{% url 'topdelete' topology.pk %}"><i class="fas fa-trash text-success"></i></a>
+                    <a href="{% url 'topdelete' topology.pk %}"><i class="fas fa-trash text-success"></i></a>&nbsp
                   </td>
                 {% else %}
-                  <td></td>
-                  <td>
+                  <td class="text-right">
                     <a href="{% url 'mail' %}?topid={{ topology.pk }}"><i class="fas fa-edit text-success"></i></a>
                   </td>
                 {% endif %}
@@ -192,7 +188,7 @@
       </table>
     </div>
   </div>
-  <div class="row bg-green rounded-bottom border border-top-0 border-success p-3 mx-1">
+  <div class="row align-items-start justify-content-between bg-green rounded-bottom border border-top-0 border-success p-3 mx-1">
     {% include 'paginator.html' %}
   </div>
   <br>
