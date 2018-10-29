@@ -153,38 +153,51 @@
               {% if sort == "name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="name" dir="des" %}">Name</a>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="name" dir="asc" %}">Name</a>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="name" dir="asc" %}">Name</a>
               {% endif %}
-              <a href="?{% url_replace sort="name" %}">Name</a></th>
+            </th>
             <th class="w-15">
               {% if sort == "lmid" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="lmid" dir="des" %}">LM ID</a></th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="lmid" dir="asc" %}">LM ID</a></th>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="lmid" dir="asc" %}">LM ID</a></th>
               {% endif %}
-              <a href="?{% url_replace sort="lmid" %}">LM ID</a></th>
             <th class="w-25">
               {% if sort == "com_name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="com_name" dir="des" %}">Common Name</a></th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="com_name" dir="asc" %}">Common Name</a></th>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="com_name" dir="asc" %}">Common Name</a></th>
               {% endif %}
-              <a href="?{% url_replace sort="com_name" %}">Common Name</a></th>
             <th class="w-40">
               {% if sort == "sys_name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="sys_name" dir="des" %}">Systematic Name</a></th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="sys_name" dir="asc" %}">Systematic Name</a></th>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="sys_name" dir="asc" %}">Systematic Name</a></th>
               {% endif %}
-              <a href="?{% url_replace sort="sys_name" %}">Systematic Name</a></th>
             {% if user.is_authenticated %}
               <th class="w-10"></th>
             {% endif %}

@@ -51,6 +51,12 @@ def homepage(request):
     return render(request, 'homepage/index.html', data)
 
 
+def links(request):
+
+    data = {'links': True}
+    return render(request, 'homepage/links.html', data)
+
+
 headers = {'refid': 'asc',
            'title': 'asc',
            'year': 'asc'}
@@ -261,9 +267,9 @@ def mail(request):
         subject = 'Request concerning a Limonada entry'
         curation = '\nIf it is more convenient, the curation can also be changed.'
         comment = ''.join(('Dear Mr/Ms %s,\n\n%s %s ' % (curator, request.user.first_name, request.user.last_name),
-                          'is making the following comment on the %s entry (%s) for which ' % (objtype, name),
-                          'you are the current curator.\n\n\nCould you please address these comments and/or reply ',
-                          'him/her at %s?\n%s\n\nSincerely,\nThe Limonada Team' % (email, curation)))
+                           'is making the following comment on the %s entry (%s) for which ' % (objtype, name),
+                           'you are the current curator.\n\n\nCould you please address these comments and/or reply ',
+                           'him/her at %s?\n%s\n\nSincerely,\nThe Limonada Team' % (email, curation)))
     form = MailForm({'subject': subject, 'comment': comment})
 
     data = {}

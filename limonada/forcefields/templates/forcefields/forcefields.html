@@ -64,31 +64,40 @@
               {% if sort == "name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="name" dir="des" %}">Name</a>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="name" dir="asc" %}">Name</a>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="name" dir="asc" %}">Name</a>
               {% endif %}
-              <a href="?{% url_replace sort="name" %}">Name</a>
             </th>
             <th class="w-20">
               {% if sort == "software" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="software" dir="des" %}">Software</a>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="software" dir="asc" %}">Software</a>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="software" dir="asc" %}">Software</a>
               {% endif %}
-              <a href="?{% url_replace sort="software" %}">Software</a>
             </th>
             <th class="w-20">
               {% if sort == "forcefield_type" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="forcefield_type" dir="des" %}">Type</a>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="forcefield_type" dir="asc" %}">Type</a>
                 {% endif %}
-                {% endif %}
-              <a href="?{% url_replace sort="forcefield_type" %}">Type</a>
+              {% else %}
+                <a href="?{% url_replace sort="forcefield_type" dir="asc" %}">Type</a>
+              {% endif %}
             </th>
             <th class="w-25">Files</th>
             {% if user.is_authenticated and user.is_staff %}

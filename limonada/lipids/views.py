@@ -33,14 +33,17 @@ import simplejson
 from dal import autocomplete
 
 # Django
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.mail import send_mail
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.db.models.functions import Substr
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.utils.text import slugify
@@ -54,9 +57,10 @@ from homepage.functions import FileData
 from membranes.models import Membrane, MembraneTopol, TopolComposition
 
 # local Django
-from .forms import LipidForm, LmidForm, SelectLipidForm, SelectTopologyForm, TopologyForm
+from .forms import TopCommentForm, LipidForm, LmidForm, SelectLipidForm, SelectTopologyForm, TopologyForm
 from .functions import findcgbonds
-from .models import Lipid, Topology
+from .models import TopComment, Lipid, Topology
+
 
 def molsize(filename):
     mol = open('%s.mol' % filename).readlines()
@@ -157,18 +161,12 @@ def sf_ff_dict():
     return sf_ff
 
 
-lipheaders = {'name': 'asc',
-              'lmid': 'asc',
-              'com_name': 'asc',
-              'sys_name': 'asc'}
-
-
 @never_cache
 def LipList(request):
 
     lmclass, lmdict = lm_class()
 
-    lipid_list = Lipid.objects.all().order_by('main_class')
+    lipid_list = Lipid.objects.annotate(lmid_split=Substr('lmid', 3)).order_by('lmid_split')
 
     params = request.GET.copy()
 
@@ -200,13 +198,15 @@ def LipList(request):
         form_select = SelectLipidForm()
 
     sort = request.GET.get('sort')
-    if sort is not None:
-        lipid_list = lipid_list.order_by(sort)
-        if lipheaders[sort] == 'des':
-            lipid_list = lipid_list.reverse()
-            lipheaders[sort] = 'asc'
+    sortdir = request.GET.get('dir')
+    lipheaders = ['name', 'lmid', 'com_name', 'sys_name']
+    if sort is not None and sort in lipheaders:
+        if sort == 'lmid':
+            lipid_list = lipid_list.annotate(lmid_split=Substr('lmid', 3)).order_by('lmid_split')
         else:
-            lipheaders[sort] = 'des'
+            lipid_list = lipid_list.order_by(sort)
+        if sortdir == 'des':
+            lipid_list = lipid_list.reverse()
 
     per_page = 25
     if 'per_page' in request.GET.keys():
@@ -233,8 +233,8 @@ def LipList(request):
     data['page_objects'] = lipids
     data['per_page'] = per_page
     data['sort'] = sort
-    if sort is not None:
-        data['dir'] = lipheaders[sort]
+    if sort is not None and sort in lipheaders:
+        data['dir'] = sortdir
     data['lipids'] = True
     data['params'] = params
 
@@ -438,21 +438,17 @@ class LipAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
-topheaders = {'software': 'asc',
-              'forcefield': 'asc',
-              'lipid': 'asc',
-              'version': 'asc'}
-
-
 @never_cache
 def TopList(request):
+
+    lmclass, lmdict = lm_class()
 
     top_list = Topology.objects.all()
 
     params = request.GET.copy()
 
     selectparams = {}
-    for param in ['software', 'forcefield', 'lipid']:
+    for param in ['software', 'forcefield', 'lipid', 'category', 'main_class', 'sub_class', 'l4_class']:
         if param in request.GET.keys():
             if request.GET[param] != '':
                 if param == 'lipid':
@@ -464,6 +460,14 @@ def TopList(request):
         top_list = top_list.filter(software=selectparams['software'])
     if 'forcefield' in selectparams.keys():
         top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
+    if 'category' in selectparams.keys():
+        top_list = top_list.filter(lipid__core=lmdict[selectparams['category']])
+    if 'main_class' in selectparams.keys():
+        top_list = top_list.filter(lipid__main_class=lmdict[selectparams['main_class']])
+    if 'sub_class' in selectparams.keys():
+        top_list = top_list.filter(lipid__sub_class=lmdict[selectparams['sub_class']])
+    if 'l4_class' in selectparams.keys():
+        top_list = top_list.filter(lipid__l4_class=lmdict[selectparams['l4_class']])
     if 'lipid' in selectparams.keys():
         form_select = SelectTopologyForm({'lipid': selectparams['lipid']})
         if form_select.is_valid():
@@ -491,13 +495,17 @@ def TopList(request):
             top_list = top_list.filter(curator=User.objects.filter(id=curator))
 
     sort = request.GET.get('sort')
-    if sort is not None:
-        top_list = top_list.order_by(sort)
-        if topheaders[sort] == 'des':
-            top_list = top_list.reverse()
-            topheaders[sort] = 'asc'
+    sortdir = request.GET.get('dir')
+    topheaders = ['version', 'forcefield', 'lipid', 'software']
+    if sort is not None and sort in topheaders:
+        if sort == 'forcefield':
+            top_list = top_list.order_by('forcefield__name')
+        elif sort == 'lipid':
+            top_list = top_list.order_by('lipid__name')
         else:
-            topheaders[sort] = 'des'
+            top_list = top_list.order_by(sort)
+        if sortdir == 'des':
+            top_list = top_list.reverse()
 
     per_page = 25
     if 'per_page' in request.GET.keys():
@@ -524,8 +532,8 @@ def TopList(request):
     data['page_objects'] = topologies
     data['per_page'] = per_page
     data['sort'] = sort
-    if sort is not None:
-        data['dir'] = topheaders[sort]
+    if sort is not None and sort in topheaders:
+        data['dir'] = sortdir
     data['topologies'] = True
     data['sfchoices'] = SFTYPE_CHOICES
     data['params'] = params
@@ -535,18 +543,34 @@ def TopList(request):
     return render(request, 'lipids/topologies.html', data)
 
 
-class TopDetail(DetailView):
-    model = Topology
-    template_name = 'lipids/top_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context_data = super(TopDetail, self).get_context_data(**kwargs)
+@never_cache
+def TopDetail(request, pk=None):
+    if Topology.objects.filter(pk=pk).exists():
+        topology = Topology.objects.get(pk=pk)
         bonds = []
-        if context_data['object'].forcefield.forcefield_type == 'CG':
-            bonds = findcgbonds(context_data['object'].itp_file.url)
-        context_data['cgbonds'] = bonds
-        context_data['topologies'] = True
-        return context_data
+        if topology.forcefield.forcefield_type == 'CG':
+            bonds = findcgbonds(topology.itp_file.url)
+        if request.method == 'POST':
+            form = TopCommentForm(request.POST)
+            if form.is_valid():
+                comment = form.save(commit=False)
+                comment.topology = topology
+                comment.user = request.user
+                comment.save()
+                if request.user != topology.curator:
+                    email = request.user.email
+                    subject = 'New comment on your Limonada entry %s_%s' % (topology.lipid.name, topology.version)
+                    text = ''.join(('Dear Mr/Ms %s %s,' % (topology.curator.first_name, topology.curator.last_name),
+                                   '\n\n%s %s has published ' % (comment.user.first_name, comment.user.last_name), 
+                                   'the following comment on %s.\n\n' % (comment.date.strftime("%b. %d, %Y at %H:%M")),
+                                   '%s\n\nSincerely,\nThe Limonada Team' % (comment.comment)))
+                    send_mail(subject, text, settings.VERIFIED_EMAIL_MAIL_FROM, [email, ])
+                form = TopCommentForm()
+        else:
+            form = TopCommentForm()
+        comments = TopComment.objects.filter(topology=topology)
+        return render(request, 'lipids/top_detail.html', {'topology': topology, 'comments': comments, 'form': form,
+            'cgbonds': bonds, 'topologies': True})
 
 
 @login_required
@@ -625,6 +649,7 @@ def TopDelete(request, pk=None):
         if top.curator != request.user:
             return redirect('homepage')
         mt = MembraneTopol.objects.filter(topolcomposition__topology=top).distinct()
+        comments = TopComment.objects.filter(topology=top)
         curator = True
         for obj in mt:
            if obj.curator != request.user:
@@ -637,6 +662,8 @@ def TopDelete(request, pk=None):
                     obj.delete()
                     if not MembraneTopol.objects.filter(membrane=m).count():
                         m.delete()
+                for obj in comments:
+                    obj.delete()
                 return HttpResponseRedirect(reverse('toplist'))
             return render(request, 'lipids/top_delete.html', {'topologies': True, 'top': top, 'nbmem': len(mt)})
         return render(request, 'lipids/top_notdelete.html', {'topologies': True, 'top': top, 'nbmem': len(mt)})

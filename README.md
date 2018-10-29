@@ -22,5 +22,3 @@ Add a cron task to remove temporary files created in the media/tmp directory
   execute "crontab -e" and add "0 * * * * /usr/bin/limonada.cron" at the end of the file
 
 
-=======
-# LimonadaMD

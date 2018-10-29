@@ -1,0 +1,9 @@
+[ leaflet_1 ]
+      DIPC   45.3125
+      SITO   45.3125
+      SPGC     9.375
+
+[ leaflet_2 ]
+      DIPC   45.3125
+      SITO   45.3125
+      SPGC     9.375

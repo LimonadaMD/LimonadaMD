@@ -78,6 +78,33 @@
       </small>
     </div>
   </div>
+  <br>
+
+  <h2>Comments</h2>
+  <div class="row bg-white border rounded border-success p-3 mx-1">
+    <div class="col-12 comments">
+      {% for comment in comments %}
+        {{ comment.comment }}<br>
+        <p class="text-right p-0"><small class="text-secondary">{{ comment.user.get_full_name }} on {{ comment.date }}</small><p>
+        {% if not forloop.last %}<hr>{% endif %}
+      {% endfor %}
+      {% if comments|length == 0 %}
+        No comments yet<br>
+      {% endif %}
+    </div>
+    {% if user.is_authenticated %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="col-12 pt-2">
+          <textarea id="{{ form.comment.id_for_label }}" name="{{ form.comment.html_name }}" class="form-control bg-light" rows="2" cols="110"></textarea>
+          {% if form.comment.help_text %}<small class="text-secondary">{{ form.comment.help_text }}<br></small>{% endif %}
+          {% for error in form.comment.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
+          <button type="submit" class="btn btn-primary btn-sm mt-2">Add</button>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+  <br>
 
 {% endblock %}
 
@@ -85,6 +112,9 @@
 {% block script %}
 
   <script>
+    $(document).ready(function(){
+      $(".comments").scrollTop($(".comments")[0].scrollHeight);
+    });
     var name = "{{ topology.gro_file.url|basename }}";
     var data = "../..{{ topology.gro_file.url|dirname }}/";
     var atomPair = {{ cgbonds }};

@@ -1,0 +1,11 @@
+[ leaflet_1 ]
+      CHOL   47.2868
+      POPC   21.7054
+      SPSM   15.5039
+      SXSM   15.5039
+
+[ leaflet_2 ]
+      CHOL   37.9032
+      POPS   35.4839
+      OPPE   17.7419
+      POPC     8.871

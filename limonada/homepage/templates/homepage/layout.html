@@ -68,6 +68,9 @@
           <a class="nav-link text-light" href="{% url 'reflist' %}">References</a>
         </li>
       {% endif %}
+      <li class="nav-item {% if links %}bg-success rounded{% endif %}">
+        <a class="nav-link text-light" href="{% url 'links' %}">Links</a>
+      </li>
     </ul>
   </nav>
 

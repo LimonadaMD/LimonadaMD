@@ -32,7 +32,7 @@ from forcefields.choices import SFTYPE_CHOICES
 from lipids.models import Lipid
 
 # local Django
-from .models import Composition, Membrane, MembraneTag, MembraneTopol, TopolComposition
+from .models import MemComment, Composition, Membrane, MembraneTag, MembraneTopol, TopolComposition
 
 
 class MembraneTopolForm(ModelForm):
@@ -136,3 +136,19 @@ class SelectMembraneForm(forms.Form):
     equilibration = forms.IntegerField(label='Equilibration (ns) > ',
                                        widget=NumberInput(attrs={'class': 'form-control'}),
                                        required=False)
+
+
+class MemCommentForm(forms.ModelForm):
+
+    class Meta:
+        model = MemComment
+        fields = ['comment']
+        widgets = {'comment': Select(attrs={'class': 'form-control'})}
+
+
+class MemCommentAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = MemComment
+        fields = ('__all__')
+        widgets = {'user': autocomplete.ModelSelect2(url='user-autocomplete')}

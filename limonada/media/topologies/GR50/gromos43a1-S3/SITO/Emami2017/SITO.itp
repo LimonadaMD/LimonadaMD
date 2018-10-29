@@ -1,0 +1,259 @@
+; GROMOS43A1-S3 cholesterol
+; extracted from Common PC lipids itp file 'lipids_43A1-S3.itp'
+;
+; Use ffG43A1-S3 parameter files
+; KW-type potential (gd_kw20) is used for the dihedrals -CH2*-CH2*-CH2*-CH2*-
+; of hydrocarbon chains.
+; Partial charges on the head group atoms were derived from HF/6-31G*
+; calculation
+; Recommend to use VDW cutoff 1.6 nm and PME for electrostatic interaction with
+; 1.0 nm cutoff in real space. 
+; 
+;References:
+;[0]. S.-W. Chiu, S. A. Pandit, H. L. Scott, and E. Jakobsson. An
+; improved united atom force field for simulation of mixed lipid
+; bilayers. The Journal of Physical Chemistry B, 113 (9):2748-2763,
+; 2009. 10.1021/jp807056c. URL
+; http://pubs.acs.org/doi/abs/10.1021/jp807056c. 
+;
+;[1]. Sagar A. Pandit, See-Wing Chiu, Eric Jakobsson, Ananth Grama,
+; and H. L. Scott. Cholesterol Packing around Lipids with Saturated and
+; Unsaturated Chains: A Simulation Study. Langmuir, 24: 6858-6865
+; (2008).
+;
+;[2]. Sagar A. Pandit, See-Wing Chiu, Eric Jakobsson, Ananth Grama,
+; and H. L. Scott Cholesterol Surrogates: A Comparison of Cholesterol
+; and 16:0 Ceramide in POPC Bilayers.  Biophys. J. 2007 92: 920-927.
+;
+;[3]. Sagar A. Pandit, S. Vasudevan, S. W. Chiu, R. Jay Mashl, Eric
+; Jakobsson, and H. L. Scott. Sphingomyelin-Cholesterol Domains in
+; Phospholipid Membranes: Atomistic Simulation.  Biophys. J. 2004 87:
+; 1092-1100.
+;
+;[4]. S. W. Chiu, S. Vasudevan, Eric Jakobsson, R. Jay Mashl, and
+; H. Larry Scott. Structure of Sphingomyelin Bilayers: A Simulation
+; Study.  Biophys. J. 2003 85: 3624-3636.
+;
+;[5] Shiva Emami, Sodeif Azadmard-Damirchi, Seyed Hadi Peighambardoust, 
+; Javad Hesari, Hadi Valizadeh, Roland Faller: Molecular Dynamics Simulations 
+; of Ternary Lipid Bilayers Containing Plant Sterol and Glucosylceramide 
+; Chemistry and Physics of Lipids 203, 24-32 (2017)
+
+
+[ moleculetype ]
+; Name            nrexcl
+SITO                3
+
+[ atoms ]
+;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
+     1      CH2R6      1   SITO     C1      1      0.0       14.027
+     2      CH2R6      1   SITO     C2      2      0.0       14.027
+     3      CH1R6      1   SITO     C3      3      0.270     13.019
+     4      CH2R6      1   SITO     C4      4      0.0       14.027
+     5         C*      1   SITO     C5      5      0.0       12.011
+     6      C*HR6      1   SITO     C6      6      0.0       13.019
+     7      CH2R6      1   SITO     C7      7      0.0       14.027
+     8      CH1R6      1   SITO     C8      8      0.0       13.019
+     9      CH1R6      1   SITO     C9      9      0.0       13.019
+    10       CH0*      1   SITO    C10     10      0.0       12.011
+    11      CH2R6      1   SITO    C11     11      0.0       14.027
+    12      CH2R6      1   SITO    C12     12      0.0       14.027
+    13       CH0*      1   SITO    C13     13      0.0       12.011
+    14      CH1R6      1   SITO    C14     14      0.0       13.019
+    15      CH2R5      1   SITO    C15     15      0.0       14.027
+    16      CH2R5      1   SITO    C16     16      0.0       14.027
+    17      CH1R5      1   SITO    C17     17      0.0       13.019  
+    18       CH3*      1   SITO    C18     18      0.0       15.035
+    19       CH3*      1   SITO    C19     19      0.0       15.035
+    20       CH1*      1   SITO    C20     20      0.0       13.019
+    21       CH3*      1   SITO    C21     20      0.0       15.035
+    22       CH2*      1   SITO    C22     20      0.0       14.027
+    23       CH2*      1   SITO    C23     21      0.0       14.027
+    24       CH1*      1   SITO    C24     21      0.0       14.027
+    25       CH1*      1   SITO    C25     22      0.0       13.019
+    26       CH3*      1   SITO    C26     22      0.0       15.035
+    27       CH3*      1   SITO    C27     22      0.0       15.035
+    28         OA      1   SITO    O28     23     -0.675     15.9994
+    29          H      1   SITO    H29     24      0.405      1.008
+    30       CH2*      1   SITO    C28     27     -0.002     14.0270
+    31       CH3*      1   SITO    C29     27      0.002     15.0350     ; -0.000
+
+[ bonds ]
+;  ai    aj funct            c0            c1            c2            c3
+    1     2     2     gb_26
+    1    10     2     gb_26
+    2     3     2     gb_26
+    3     4     2     gb_26
+    3    28     2     gb_17
+    4     5     2     gb_58a
+    5     6     2     gb_57
+    5    10     2     gb_58a
+    6     7     2     gb_58a
+    7     8     2     gb_26
+    8     9     2     gb_26
+    8    14     2     gb_26
+    9    10     2     gb_26
+    9    11     2     gb_26
+   10    19     2     gb_26
+   11    12     2     gb_26
+   12    13     2     gb_26
+   13    14     2     gb_61
+   13    17     2     gb_60
+   13    18     2     gb_26
+   14    15     2     gb_60
+   15    16     2     gb_60
+   16    17     2     gb_60
+   17    20     2     gb_26
+   20    21     2     gb_26
+   20    22     2     gb_26
+   22    23     2     gb_26
+   23    24     2     gb_26
+   24    25     2     gb_26
+   24    30     2     gb_26
+   25    26     2     gb_26
+   25    27     2     gb_26
+   28    29     2     gb_1
+   30    31     2     gb_26
+ 
+[ pairs ]
+    1     4     1
+    2     5     1
+    3    10     1
+;   5     8     1
+;   6     9     1
+    7    10     1
+    8    12     1
+    9    13     1
+   11    14     1
+   18    11     1
+   18     8     1
+   18    15     1
+   18    16     1
+   19     2     1
+   19     4     1
+   19     6     1
+   19     8     1
+   19    11     1
+   20    15     1
+   28     1     1
+   28     5     1
+;              
+   12    20     1
+   13    21     1
+   13    22     1
+   14    20     1
+   15    20     1
+   16    21     1
+   16    21     1
+   16    22     1
+   17    23     1
+   18    20     1
+   20    24     1
+   21    23     1
+   22    25     1
+   22    30     1
+   23    26     1
+   23    27     1
+   23    31     1
+   30    26     1
+   30    27     1
+   31    25     1
+
+[ angles ]
+    1     2     3     2     ga_14
+    1    10     5     2     ga_12
+    1    10     9     2     ga_12
+    1    10    19     2     ga_12
+    2     1    10     2     ga_14
+    2     3     4     2     ga_12
+    3     4     5     2     ga_14
+    4     5     6     2     ga_55
+    4     5    10     2     ga_49 
+    5     6     7     2     ga_55
+    5    10     9     2     ga_12
+    5    10    19     2     ga_12
+    6     5    10     2     ga_55
+    6     7     8     2     ga_14
+    7     8     9     2     ga_12
+    7     8    14     2     ga_12
+    8     9    10     2     ga_12
+    8     9    11     2     ga_12
+    8    14    13     2     ga_12
+    8    14    15     2     ga_12
+    9    10    19     2     ga_12 
+   10     9    11     2     ga_12
+   11    12    13     2     ga_14
+   12    13    14     2     ga_12
+   12    13    17     2     ga_12
+   12    13    18     2     ga_12
+   13    14    15     2     ga_54
+   13    17    16     2     ga_54
+   13    17    20     2     ga_12
+   14    13    17     2     ga_54
+   14    13    18     2     ga_12
+   14    15    16     2     ga_54
+   15    16    17     2     ga_54
+   16    17    20     2     ga_12   
+   17    13    18     2     ga_12
+   17    20    21     2     ga_12
+   17    20    22     2     ga_12
+   20    22    23     2     ga_14
+   21    20    22     2     ga_12
+   22    23    24     2     ga_14
+   23    24    25     2     ga_12
+   23    24    30     2     ga_12
+   24    25    26     2     ga_12
+   24    25    27     2     ga_12
+   24    30    31     2     ga_14
+   25    24    30     2     ga_12
+   26    25    27     2     ga_12
+    3    28    29     2     ga_11
+    2     3    28     2     ga_12
+    4     3    28     2     ga_12
+
+[ dihedrals ]
+    1     2     3     4     3     gd_swc20
+    2     3     4     5     3     gd_swc20
+    3     4     5    10     3     gd_swc20
+    3     4     5     6     3     gd_kw4a1
+    4     5    10     9     3     gd_swc20
+    2     1    10     9     3     gd_swc20 
+   10     1     2     3     3     gd_swc20
+    4     5     6     7     1     gd_5
+    5     6     7     8     3     gd_kw34a1   
+    6     7     8     9     3     gd_kw4a1 
+    7     8     9    11     3     gd_swc20             
+    8     9    10     1     3     gd_swc20    
+   10     9    11    12     3     gd_swc20 
+    9    11    12    13     3     gd_swc20
+   11    12    13    17     3     gd_swc20
+   12    13    14    15     3     gd_swc20
+   13    14     8     7     3     gd_swc20
+    8    14    15    16     3     gd_swc20 
+   14    15    16    17     3     gd_swc20
+   15    16    17    20     3     gd_swc20  
+   16    17    13    12     3     gd_swc20
+   16    17    20    21     3     gd_swc20
+   17    20    22    23     3     gd_swc20
+   20    22    23    24     3     gd_swc20
+   22    23    24    25     1     gd_17c
+   23    24    25    26     3     gd_swc20
+    4     3    28    29     1     gd_13
+   23    24    30    31     3     gd_swc20  
+
+[ dihedrals ]
+   10     5     6     7     2     gi_1
+   14    15    16    17     2     gi_1a
+    8    14     7     9     2     gi_2
+    9    11    10     8     2     gi_2
+   14     8    15    13     2     gi_2
+   17    20    13    16     2     gi_2
+   20    17    21    22     2     gi_2
+    3     4     2    28     2     gi_2
+   24    25    30    23     2     gi_2
+
+
+; Include Position restraint file
+#ifdef POSRES
+#include "SITO_posre.itp"
+#endif

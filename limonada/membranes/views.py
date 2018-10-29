@@ -58,9 +58,9 @@ from lipids.models import Lipid, Topology
 from lipids.views import sf_ff_dict
 
 # local Django
-from .forms import MembraneForm, MembraneTopolForm, MemFormSet, SelectMembraneForm
+from .forms import MemCommentForm, MembraneForm, MembraneTopolForm, MemFormSet, SelectMembraneForm
 from .functions import membraneanalysis
-from .models import Composition, Membrane, MembraneTag, MembraneTopol, TopolComposition
+from .models import MemComment, Composition, Membrane, MembraneTag, MembraneTopol, TopolComposition
 
 
 def zipdir(path, ziph):
@@ -82,9 +82,6 @@ def cd(newdir):
 
 def display_data(request, data, **kwargs):
     return render(request, 'membranes/posted-data.html', dict(data=data, **kwargs))
-
-
-headers = {'name': 'asc'}
 
 
 @never_cache
@@ -151,13 +148,15 @@ def MemList(request):
             mem_list = mem_list.filter(curator=User.objects.filter(id=curator))
 
     sort = request.GET.get('sort')
-    if sort is not None:
-        mem_list = mem_list.order_by(sort)
-        if headers[sort] == 'des':
-            mem_list = mem_list.reverse()
-            headers[sort] = 'asc'
+    sortdir = request.GET.get('dir')
+    headers = ['name', 'nbliptypes', 'nb_lipids']
+    if sort is not None and sort in headers:
+        if sort == 'nbliptypes':
+            mem_list = mem_list.order_by('membrane__nb_liptypes')
         else:
-            headers[sort] = 'des'
+            mem_list = mem_list.order_by(sort)
+        if sortdir == 'des':
+            mem_list = mem_list.reverse()
 
     per_page = 25
     if 'per_page' in request.GET.keys():
@@ -184,8 +183,8 @@ def MemList(request):
     data['page_objects'] = membranes
     data['per_page'] = per_page
     data['sort'] = sort
-    if sort is not None:
-        data['dir'] = headers[sort]
+    if sort is not None and sort in headers:
+        data['dir'] = sortdir
     data['membranes'] = True
     data['params'] = params
     data['comps'] = Composition.objects.all()
@@ -618,24 +617,38 @@ def MemUpdate(request, pk=None):
         return HttpResponseRedirect(reverse('memlist'))
 
 
-class MemDetail(DetailView):
-    model = MembraneTopol
-    template_name = 'membranes/mem_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context_data = super(MemDetail, self).get_context_data(**kwargs)
-
-        if context_data['object'].forcefield.forcefield_type == 'CG':
+@never_cache
+def MemDetail(request, pk=None):
+    if MembraneTopol.objects.filter(pk=pk).exists():
+        membrane = MembraneTopol.objects.get(pk=pk)
+        if membrane.forcefield.forcefield_type == 'CG':
             representation = 'spacefill' #'ball+stick'
         else:
             representation = 'licorice'
         mem_file = ''
-        if context_data['object'].mem_file:
-            mem_file = context_data['object'].mem_file.url
-        context_data['rep'] = representation
-        context_data['mem_file'] = mem_file
-        context_data['membranes'] = True
-        return context_data
+        if membrane.mem_file:
+            mem_file = membrane.mem_file.url
+        if request.method == 'POST':
+            form = MemCommentForm(request.POST)
+            if form.is_valid():
+                comment = form.save(commit=False)
+                comment.membrane = membrane
+                comment.user = request.user
+                comment.save()
+                if request.user != membrane.curator:
+                    email = request.user.email
+                    subject = 'New comment on your Limonada entry %s' % (membrane.name)
+                    text = ''.join(('Dear Mr/Ms %s %s,' % (membrane.curator.first_name, membrane.curator.last_name),
+                                   '\n\n%s %s has published ' % (comment.user.first_name, comment.user.last_name),
+                                   'the following comment on %s.\n\n' % (comment.date.strftime("%b. %d, %Y at %H:%M")),
+                                   '%s\n\nSincerely,\nThe Limonada Team' % (comment.comment)))
+                    send_mail(subject, text, settings.VERIFIED_EMAIL_MAIL_FROM, [email, ])
+                form = MemCommentForm()
+        else:
+            form = MemCommentForm()
+        comments = MemComment.objects.filter(membrane=membrane)
+        return render(request, 'membranes/mem_detail.html', {'membranetopol': membrane, 'comments': comments, 'form': form,
+            'mem_file': mem_file, 'rep': representation, 'membranes': True})
 
 
 @login_required
@@ -644,11 +657,14 @@ def MemDelete(request, pk=None):
         mt = MembraneTopol.objects.get(pk=pk)
         if mt.curator != request.user:
             return redirect('homepage')
+        comments = MemComment.objects.filter(membrane=mt)
         if request.method == 'POST':
             m = mt.membrane
             mt.delete()
             if not MembraneTopol.objects.filter(membrane=m).count():
                 m.delete()
+            for obj in comments:
+                obj.delete()
             return HttpResponseRedirect(reverse('memlist'))
         return render(request, 'membranes/mem_delete.html', {'membranes': True, 'mt': mt})
 
@@ -709,6 +725,7 @@ def GetFiles(request):
                     shutil.copy(mem.mem_file.url[1:], dirname)
                 else:
                     grodir = os.path.join(dirname, 'lipids')
+                    os.makedirs(grodir)
                 tops = {}
                 for lip in mem.topolcomposition_set.all():
                     if lip.topology.id not in tops.keys():
@@ -733,13 +750,14 @@ def GetFiles(request):
                         outfile = codecs.open('%s.itp' % os.path.join(topdir, lipname), 'w', encoding='utf-8')
                         outfile.write(newdata2)
                         outfile.close()
-                        infile = codecs.open(lip.topology.gro_file.url[1:], 'r', encoding='utf-8')
-                        filedata = infile.read()
-                        infile.close()
-                        newdata = filedata.replace('%s ' % lip.lipid.name, lipname)
-                        outfile = codecs.open('%s.gro' % os.path.join(grodir, lipname), 'w', encoding='utf-8')
-                        outfile.write(newdata)
-                        outfile.close()
+                        if not mem.mem_file:
+                            infile = codecs.open(lip.topology.gro_file.url[1:], 'r', encoding='utf-8')
+                            filedata = infile.read()
+                            infile.close()
+                            newdata = filedata.replace('%s ' % lip.lipid.name, lipname)
+                            outfile = codecs.open('%s.gro' % os.path.join(grodir, lipname), 'w', encoding='utf-8')
+                            outfile.write(newdata)
+                            outfile.close()
                 topfile.write('\n[ system ]\n')
                 topfile.write('%s\n\n' % mem.name)
                 topfile.write('[ molecules ]\n')

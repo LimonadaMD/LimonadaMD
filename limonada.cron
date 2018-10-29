@@ -1,5 +1,5 @@
 #!/bin/bash
 
-find /path/limonada/media/tmp/ -mmin +60 -exec rm -rf {} \;
+find /path/limonada/media/tmp/ -mmin +60 -mindepth 1 -exec rm -rf {} \;
 
 

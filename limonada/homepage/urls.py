@@ -24,7 +24,7 @@ from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
 
 # local Django
-from .views import RefCreate, RefDelete, ReferenceAutocomplete, RefList, RefUpdate, homepage, mail
+from .views import homepage, links, mail, RefCreate, RefDelete, ReferenceAutocomplete, RefList, RefUpdate
 
 urlpatterns = [
     url(r'^$', homepage, name='homepage'),
@@ -33,5 +33,6 @@ urlpatterns = [
     url(r'^references/(?P<pk>\d+)/update/$', RefUpdate, name='refupdate'),
     url(r'^references/(?P<pk>\d+)/delete/$', login_required(RefDelete.as_view()), name='refdelete'),
     url(r'^reference-autocomplete/$', ReferenceAutocomplete.as_view(), name='reference-autocomplete'),
+    url(r'^links/$', links, name='links'),
     url(r'^mail/$', mail, name='mail'),
 ]

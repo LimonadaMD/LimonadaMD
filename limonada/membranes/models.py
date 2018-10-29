@@ -30,6 +30,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
+from django.utils.formats import localize
 
 # Django apps
 from forcefields.choices import SFTYPE_CHOICES
@@ -53,7 +54,7 @@ def directory_path(instance, filename):
 
 class MembraneTopol(models.Model):
 
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=100)
     membrane = models.ForeignKey('Membrane',
                                  null=True,
                                  on_delete=models.CASCADE)
@@ -150,6 +151,19 @@ class Composition(models.Model):
     side = models.CharField(max_length=2,
                             choices=LEAFLET_CHOICES,
                             default=UPPER)
+
+
+class MemComment(models.Model):
+
+    membrane = models.ForeignKey(MembraneTopol,
+                                 on_delete=models.CASCADE)
+    comment = models.TextField(blank=True)
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return '%s %s %s' % (self.user.username, self.membrane.name, localize(self.date))
 
 
 def _delete_file(path):

@@ -35,6 +35,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import pre_delete, pre_save
 from django.dispatch.dispatcher import receiver
+from django.utils.formats import localize
 from django.utils.translation import ugettext_lazy as _
 
 # Django apps
@@ -95,16 +96,13 @@ def file_path(instance, filename):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath
 
-# write a procedure to check the well functioning of the topology
-# itp AA and UA must contain REST_ON on chiral and db, and CG Z retraint
-
 
 class Lipid(models.Model):
 
     name = models.CharField(max_length=4,
                             unique=True)
-    lmid = models.CharField(max_length=20,  # if not in LipidMaps, create a new ID by using LI (for limonada)
-                            unique=True)    # + subclass + id (increment)
+    lmid = models.CharField(max_length=20,
+                            unique=True)
     com_name = models.CharField(max_length=200,
                                 unique=True)
     search_name = models.CharField(max_length=300,
@@ -163,6 +161,20 @@ class Topology(models.Model):  # If not in CG recommend use of CGtools
 
     def get_absolute_url(self):
         return reverse('toplist')
+
+
+class TopComment(models.Model):
+
+    topology = models.ForeignKey('lipids.Topology',
+                                 on_delete=models.CASCADE)
+    comment = models.TextField(blank=True)
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return '%s %s %s %s' % (self.user.username, self.topology.lipid.name, self.topology.version,
+            localize(self.date))
 
 
 def _delete_file(path):

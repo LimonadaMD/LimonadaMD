@@ -62,7 +62,7 @@ class Reference(models.Model):
     volume = models.CharField(max_length=30,
                               null=True)
     year = models.PositiveSmallIntegerField(validators=[validate_year])
-    doi = models.CharField(max_length=30,
+    doi = models.CharField(max_length=100,
                            validators=[validate_doi],
                            unique=True,
                            null=True)

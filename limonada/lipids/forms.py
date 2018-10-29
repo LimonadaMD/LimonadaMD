@@ -32,7 +32,7 @@ from forcefields.choices import SFTYPE_CHOICES
 
 # local Django
 from .functions import gmxrun
-from .models import Lipid, Topology, validate_file_extension, validate_lmid, validate_name
+from .models import TopComment, Lipid, Topology, validate_file_extension, validate_lmid, validate_name
 
 
 class LmidForm(forms.Form):
@@ -165,8 +165,32 @@ class TopologyAdminForm(forms.ModelForm):
 
 class SelectTopologyForm(forms.Form):
 
+    software = forms.ChoiceField(required=False)
+    forcefield = forms.ChoiceField(required=False)
     lipid = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(),
                                            widget=autocomplete.ModelSelect2Multiple(url='lipid-autocomplete'),
                                            required=False)
-    software = forms.ChoiceField(required=False)
-    forcefield = forms.ChoiceField(required=False)
+    category = forms.ChoiceField(label='Category',
+                                 required=False)
+    main_class = forms.ChoiceField(label='Main Class',
+                                   required=False)
+    sub_class = forms.ChoiceField(label='Sub Class',
+                                  required=False)
+    l4_class = forms.ChoiceField(label='Class Level 4',
+                                 required=False)
+
+
+class TopCommentForm(forms.ModelForm):
+
+    class Meta:
+        model = TopComment
+        fields = ['comment']
+        widgets = {'comment': Select(attrs={'class': 'form-control'})}
+
+
+class TopCommentAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = TopComment
+        fields = ('__all__')
+        widgets = {'user': autocomplete.ModelSelect2(url='user-autocomplete')}

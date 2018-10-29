@@ -33,7 +33,7 @@ urlpatterns = [
     url(r'^membranes/$', MemList, name='memlist'),
     url(r'^membranes/create/$', MemCreate, {'formset_class': MemFormSet, 'template': 'membranes/mem_form.html'},
         name='memcreate'),
-    url(r'^membranes/(?P<pk>\d+)/$', never_cache(MemDetail.as_view()), name='memdetail'),
+    url(r'^membranes/(?P<pk>\d+)/$', MemDetail, name='memdetail'),
     url(r'^membranes/(?P<pk>\d+)/update/$', MemUpdate, name='memupdate'),
     url(r'^membranes/(?P<pk>\d+)/delete/$', MemDelete, name='memdelete'),
     url(r'^membrane-autocomplete/$', MembraneAutocomplete.as_view(), name='membrane-autocomplete'),

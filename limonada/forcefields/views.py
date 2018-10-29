@@ -45,10 +45,6 @@ from homepage.functions import FileData
 from lipids.models import Topology
 from membranes.models import MembraneTopol
 
-headers = {'software': 'asc',
-           'forcefield_type': 'asc',
-           'name': 'asc'}
-
 
 @never_cache
 def FfList(request):
@@ -86,13 +82,12 @@ def FfList(request):
             ff_list = ff_list.filter(curator=User.objects.filter(id=curator))
 
     sort = request.GET.get('sort')
-    if sort is not None:
+    sortdir = request.GET.get('dir')
+    headers = ['software', 'forcefield_type', 'name']
+    if sort is not None and sort in headers:
         ff_list = ff_list.order_by(sort)
-        if headers[sort] == 'des':
+        if sortdir == 'des':
             ff_list = ff_list.reverse()
-            headers[sort] = 'asc'
-        else:
-            headers[sort] = 'des'
 
     per_page = 25
     if 'per_page' in request.GET.keys():
@@ -119,8 +114,8 @@ def FfList(request):
     data['page_objects'] = forcefields
     data['per_page'] = per_page
     data['sort'] = sort
-    if sort is not None:
-        data['dir'] = headers[sort]
+    if sort is not None and sort in headers:
+        data['dir'] = sortdir
     data['forcefields'] = True
     data['params'] = params
 

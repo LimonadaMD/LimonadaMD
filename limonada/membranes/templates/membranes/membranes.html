@@ -71,18 +71,44 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th claa="w-15">
+            <th class="w-20">
               {% if sort == "name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="name" dir="des" %}">Name</a></th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="name" dir="asc" %}">Name</a></th>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="name" dir="asc" %}">Name</a></th>
               {% endif %}
-              <a href="?{% url_replace sort="name" %}">Name</a></th>
-            <th class="w-30">Lipids</th>
-            <th class="w-25">Tags</th>
-            <th class="w-20">Files</th>
+            <th class="w-30">Tags</th>
+            <th class="w-15">
+              {% if sort == "nbliptypes" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="nbliptypes" dir="des" %}"># of lipid species</th>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="nbliptypes" dir="asc" %}"># of lipid species</th>
+                {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="nbliptypes" dir="asc" %}"># of lipid species</th>
+              {% endif %}
+            <th class="w-15">
+              {% if sort == "nb_lipids" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="nb_lipids" dir="des" %}"># of lipids</th>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="nb_lipids" dir="asc" %}"># of lipids</th>
+                {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="nb_lipids" dir="asc" %}"># of lipids</th>
+              {% endif %}
+            <th class="w-10">Files</th>
             {% if user.is_authenticated %}
               <th class="w-10"></th>
             {% endif %}
@@ -91,22 +117,23 @@
         <tbody>
           {% for membrane in page_objects %}
             <tr>
-              <td><a class="text-success" href="{% url 'memdetail' membrane.pk %}">{{ membrane.name }}</a></td>
-              <td>
-                {% lipidnames membrane.topolcomposition_set.all as lipids %}
-                {% for lip in lipids %}
-                  <a class="text-success" href="{% url 'lipdetail' lip.slug %}">
-                      {{ lip.name }}{% if not forloop.last %},{% endif %}</a>
-                {% endfor %}
-              </td>
+              <td><a {% if membrane.mem_file %}class="text-success"{% else %}class="text-info"{% endif %}
+                  href="{% url 'memdetail' membrane.pk %}">{{ membrane.name }}</a></td>
               <td>{{ membrane.membrane.tag.all|join:", " }}</td>
+              <td>
+                {{ membrane.membrane.nb_liptypes }}
+              </td>
+              <td>{{ membrane.nb_lipids }}</td>
               <td>
                 {% if membrane.mem_file %} 
                   <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">
-                      {{ membrane.mem_file.url|basename }}</a>
+                      Membrane</a>
+                  <a href="{{ membrane.compo_file.url }}" class="text-success" target="blank">
+                      Composition</a>
+                {% else %}
+                  <a href="{{ membrane.compo_file.url }}" class="text-info" target="blank">
+                      Composition</a>
                 {% endif %}
-                <a href="{{ membrane.compo_file.url }}" class="text-success" target="blank">
-                    {{ membrane.compo_file.url|basename }}</a>
               </td>
               {% if user.is_authenticated %}
                 {% if user == membrane.curator %}

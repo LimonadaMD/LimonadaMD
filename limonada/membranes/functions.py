@@ -31,7 +31,7 @@ from django.conf import settings
 from lipids.models import Lipid
 
 aminoacids = ['ARG', 'HIS', 'LYS', 'ASP', 'GLU', 'SER', 'THR', 'ASN', 'GLN', 'CYS', 'GLY', 'PRO', 'ALA', 'VAL', 'ILE',
-              'LEU', 'MET', 'PHE', 'TYR', 'TRP']
+              'LEU', 'MET', 'PHE', 'TYR', 'TRP', 'ACE', 'NH2']
 
 
 def Atom(a):
@@ -111,7 +111,14 @@ class Membrane:
 class LipidRes:
     def __init__(self, atoms=None):
         self.name = atoms[0][0]
-        self.hgndx = atoms[0][3]
+        if atoms[0][1][0:1] != "H":
+            self.hgndx = atoms[0][3]
+        elif atoms[1][1][0:1] != "H":
+            self.hgndx = atoms[1][3]
+        elif atoms[2][1][0:1] != "H":
+            self.hgndx = atoms[2][3]
+        else: 
+            self.hgndx = atoms[3][3]
         self.atoms = atoms
         self.leaflet = ''
 
