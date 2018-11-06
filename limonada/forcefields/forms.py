@@ -27,10 +27,10 @@ from django import forms
 from django.forms.widgets import Select, Textarea, TextInput
 
 # Django apps
-from forcefields.choices import FFTYPE_CHOICES, SFTYPE_CHOICES
+from forcefields.choices import FFTYPE_CHOICES
 
 # local Django
-from .models import Forcefield
+from .models import Forcefield, Software
 
 
 class ForcefieldForm(forms.ModelForm):
@@ -41,17 +41,27 @@ class ForcefieldForm(forms.ModelForm):
                                         widget=Select(attrs={'class': 'form-control'}))
     ff_file = forms.FileField(label='Forcefield files')
     mdp_file = forms.FileField(label='Parameters files')
-    software = forms.ChoiceField(choices=SFTYPE_CHOICES,
-                                 initial='GR50',
-                                 widget=Select(attrs={'class': 'form-control'}))
     description = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
                                   required=False)
 
     class Meta:
         model = Forcefield
         fields = ['name', 'forcefield_type', 'ff_file', 'mdp_file', 'software', 'description', 'reference']
-        widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete')}
+        widgets = {'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
+                   'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete')}
         labels = {'reference': 'References'}
+
+    def clean(self):
+        cleaned_data = super(ForcefieldForm, self).clean()
+        name = cleaned_data.get('name')
+        softindex = cleaned_data.get('software')[0]
+
+        if name and softindex:
+            software = Software.objects.filter(name=softindex)
+            if Forcefield.objects.filter(
+                    name=name, software=software).exclude(pk=self.instance.id).exists():
+                self.add_error('name', mark_safe(
+                    'This name is already taken by another forcefield entry for the %s software.' % (software.abbreviation)))
 
 
 class ForcefieldAdminForm(forms.ModelForm):
@@ -60,14 +70,15 @@ class ForcefieldAdminForm(forms.ModelForm):
         model = Forcefield
         fields = ('__all__')
         widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
+                   'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
                    'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
 class SelectForcefieldForm(forms.Form):
 
-    software = forms.ChoiceField(choices=SFTYPE_CHOICES,
-                                 widget=Select(attrs={'class': 'form-control'}),
-                                 required=False)
+    software = forms.ModelMultipleChoiceField(queryset=Software.objects.all(),
+                                              widget=autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
+                                              required=False)
     forcefield_type = forms.ChoiceField(choices=FFTYPE_CHOICES,
                                         widget=Select(attrs={'class': 'form-control'}),
                                         required=False)

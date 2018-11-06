@@ -29,12 +29,15 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.signals import pre_delete
+from django.db.models.signals import m2m_changed, pre_delete, pre_save
 from django.dispatch.dispatcher import receiver
 
 # local Django
 from .choices import FFTYPE_CHOICES, SFTYPE_CHOICES
 
+
+_UNSAVED_FFFILE = 'unsaved_fffile'
+_UNSAVED_MDPFILE = 'unsaved_mdpfile'
 
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1]
@@ -45,7 +48,7 @@ def validate_file_extension(value):
 
 def ff_path(instance, filename):
     name = unicodedata.normalize('NFKD', instance.name).encode('ascii', 'ignore').replace(' ', '_')
-    filepath = 'forcefields/Gromacs/{0}.ff.zip'.format(name)
+    filepath = 'forcefields/{0}/{1}.ff.zip'.format(instance.software.all()[0].abbreviation, name)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath
@@ -53,7 +56,7 @@ def ff_path(instance, filename):
 
 def mdp_path(instance, filename):
     name = unicodedata.normalize('NFKD', instance.name).encode('ascii', 'ignore').replace(' ', '_')
-    filepath = 'forcefields/Gromacs/{0}.mdp.zip'.format(name)
+    filepath = 'forcefields/{0}/{1}.mdp.zip'.format(instance.software.all()[0].abbreviation, name)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath
@@ -61,8 +64,7 @@ def mdp_path(instance, filename):
 
 class Forcefield(models.Model):
 
-    name = models.CharField(max_length=30,
-                            unique=True)
+    name = models.CharField(max_length=50)
     forcefield_type = models.CharField(max_length=2,
                                        choices=FFTYPE_CHOICES,
                                        default='AA')
@@ -72,9 +74,7 @@ class Forcefield(models.Model):
     mdp_file = models.FileField(upload_to=mdp_path,
                                 validators=[validate_file_extension],
                                 help_text='Use a zip file containing the mdps for the version X of Gromacs')
-    software = models.CharField(max_length=4,
-                                choices=SFTYPE_CHOICES,
-                                default='GR50')
+    software = models.ManyToManyField('forcefields.Software')
     description = models.TextField(blank=True)
     reference = models.ManyToManyField('homepage.Reference')
     curator = models.ForeignKey(User,
@@ -88,6 +88,15 @@ class Forcefield(models.Model):
         return reverse('fflist')
 
 
+class Software(models.Model):
+
+    name = models.CharField(max_length=50)
+    abbreviation = models.CharField(max_length=4)
+
+    def __unicode__(self):
+        return self.name
+
+
 def _delete_file(path):
     if os.path.isfile(path):
         os.remove(path)
@@ -99,3 +108,22 @@ def delete_file_pre_delete_ff(sender, instance, *args, **kwargs):
         _delete_file(instance.ff_file.path)
     if instance.mdp_file:
         _delete_file(instance.mdp_file.path)
+
+
+@receiver(pre_save, sender=Forcefield)
+def skip_saving_file(sender, instance, **kwargs):
+    if not instance.pk and not hasattr(instance, _UNSAVED_FFFILE):
+        setattr(instance, _UNSAVED_FFFILE, instance.ff_file)
+        instance.ff_file = None
+        setattr(instance, _UNSAVED_MDPFILE, instance.mdp_file)
+        instance.mdp_file = None
+
+
+@receiver(m2m_changed, sender=Forcefield.software.through)
+def save_file_on_m2m(sender, instance, action, **kwargs):
+    if action == 'post_add' and hasattr(instance, _UNSAVED_FFFILE) and hasattr(instance, _UNSAVED_MDPFILE):
+        instance.ff_file = getattr(instance, _UNSAVED_FFFILE)
+        instance.mdp_file = getattr(instance, _UNSAVED_MDPFILE)
+        instance.save()
+        instance.__dict__.pop(_UNSAVED_FFFILE)
+        instance.__dict__.pop(_UNSAVED_MDPFILE)

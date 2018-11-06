@@ -33,7 +33,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import m2m_changed, pre_delete, pre_save
 from django.dispatch.dispatcher import receiver
 from django.utils.formats import localize
 from django.utils.translation import ugettext_lazy as _
@@ -41,6 +41,9 @@ from django.utils.translation import ugettext_lazy as _
 # Django apps
 from forcefields.choices import SFTYPE_CHOICES
 
+
+_UNSAVED_ITPFILE = 'unsaved_itpfile'
+_UNSAVED_GROFILE = 'unsaved_grofile'
 
 def validate_name(value):
     if len(value) != 4 or not re.match(r'[0-9A-Z]{4}', value):
@@ -89,9 +92,10 @@ def img_path(instance, filename):
 def file_path(instance, filename):
     ext = os.path.splitext(filename)[1]
     version = unicodedata.normalize('NFKD', instance.version).encode('ascii', 'ignore').replace(' ', '_')
+    forcefield = unicodedata.normalize('NFKD', instance.forcefield.name).encode('ascii', 'ignore').replace(' ', '_')
 #   ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro} (we assume gromacs for now)
-    filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software, instance.forcefield, instance.lipid.name,
-                                                          version, ext)
+    filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software.all()[0].abbreviation, forcefield,
+                                                          instance.lipid.name, version, ext)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath
@@ -139,9 +143,7 @@ class Lipid(models.Model):
 
 class Topology(models.Model):  # If not in CG recommend use of CGtools
 
-    software = models.CharField(max_length=4,
-                                choices=SFTYPE_CHOICES,
-                                default='GR50')
+    software = models.ManyToManyField('forcefields.Software')
     forcefield = models.ForeignKey('forcefields.Forcefield',
                                    on_delete=models.CASCADE)
     lipid = models.ForeignKey(Lipid,
@@ -194,3 +196,22 @@ def delete_file_pre_delete_top(sender, instance, *args, **kwargs):
          _delete_file(instance.itp_file.path)
     if instance.gro_file:
          _delete_file(instance.gro_file.path)
+
+
+@receiver(pre_save, sender=Topology)
+def skip_saving_file(sender, instance, **kwargs):
+    if not instance.pk and not hasattr(instance, _UNSAVED_GROFILE):
+        setattr(instance, _UNSAVED_ITPFILE, instance.itp_file)
+        instance.itp_file = None
+        setattr(instance, _UNSAVED_GROFILE, instance.gro_file)
+        instance.gro_file = None
+
+
+@receiver(m2m_changed, sender=Topology.software.through)
+def save_file_on_m2m(sender, instance, action, **kwargs):
+    if action == 'post_add' and hasattr(instance, _UNSAVED_ITPFILE) and hasattr(instance, _UNSAVED_GROFILE):
+        instance.itp_file = getattr(instance, _UNSAVED_ITPFILE)
+        instance.gro_file = getattr(instance, _UNSAVED_GROFILE)
+        instance.save()        
+        instance.__dict__.pop(_UNSAVED_ITPFILE)
+        instance.__dict__.pop(_UNSAVED_GROFILE)

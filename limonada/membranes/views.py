@@ -52,10 +52,9 @@ from django.views.decorators.cache import never_cache
 from django.views.generic import DeleteView, DetailView
 
 # Django apps
-from forcefields.models import Forcefield
+from forcefields.models import Forcefield, Software
 from homepage.functions import FileData
 from lipids.models import Lipid, Topology
-from lipids.views import sf_ff_dict
 
 # local Django
 from .forms import MemCommentForm, MembraneForm, MembraneTopolForm, MemFormSet, SelectMembraneForm
@@ -78,10 +77,6 @@ def cd(newdir):
         yield
     finally:
         os.chdir(prevdir)
-
-
-def display_data(request, data, **kwargs):
-    return render(request, 'membranes/posted-data.html', dict(data=data, **kwargs))
 
 
 @never_cache
@@ -420,9 +415,8 @@ def MemCreate(request, formset_class, template):
         memform = MembraneForm()
         formset = formset_class()
     return render(request, template, {
-        'topform': topform, 'memform': memform, 'formset': formset, 'sf_ff': sf_ff_dict(),
-        'tops': Topology.objects.all(), 'ffs': Forcefield.objects.all(), 'membranes': True, 'memcreate': True,
-        'merrors': merrors, 'minfos': minfos, 'rand': rand, 'fname': fname, 'mempath': mempath})
+        'topform': topform, 'memform': memform, 'formset': formset, 'tops': Topology.objects.all(), 'membranes': True,
+        'memcreate': True, 'merrors': merrors, 'minfos': minfos, 'rand': rand, 'fname': fname, 'mempath': mempath})
 
 
 @login_required
@@ -465,6 +459,11 @@ def MemUpdate(request, pk=None):
                                 nb_liplo += number
                             topcomp.append(TopolComposition(membrane=mt, lipid=lipid, topology=topology, number=number,
                                                             side=side))
+                mt.nb_lipids = nb_lipids
+                mt.reference.clear()
+                refs = topform.cleaned_data['reference']
+                for ref in refs:
+                    mt.reference.add(ref)
                 mt.nb_lipids = nb_lipids
 
 #               Build a unique name based on the lipid composition
@@ -610,9 +609,8 @@ def MemUpdate(request, pk=None):
                 i += 1
             formset = MemFormSet(data)
         return render(request, 'membranes/mem_form.html', {
-            'topform': topform, 'memform': memform, 'formset': formset, 'sf_ff': sf_ff_dict(),
-            'tops': Topology.objects.all(), 'ffs': Forcefield.objects.all(), 'membranes': True,
-            'merrors': merrors, 'minfos': minfos, 'rand': rand, 'fname': fname, 'mempath': mempath})
+            'topform': topform, 'memform': memform, 'formset': formset, 'tops': Topology.objects.all(), 
+            'membranes': True, 'merrors': merrors, 'minfos': minfos, 'rand': rand, 'fname': fname, 'mempath': mempath})
     else:
         return HttpResponseRedirect(reverse('memlist'))
 

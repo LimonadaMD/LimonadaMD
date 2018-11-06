@@ -29,6 +29,7 @@ from django.forms.widgets import NumberInput, Select, Textarea, TextInput
 
 # Django apps
 from forcefields.choices import SFTYPE_CHOICES
+from forcefields.models import Forcefield
 from lipids.models import Lipid
 
 # local Django
@@ -39,9 +40,7 @@ class MembraneTopolForm(ModelForm):
 
     name = forms.CharField(label='Name',
                            widget=TextInput(attrs={'class': 'form-control'}))
-    software = forms.ChoiceField(choices=SFTYPE_CHOICES,
-                                 initial='GR50',
-                                 widget=Select(attrs={'class': 'form-control'}))
+    forcefield = forms.ModelChoiceField(queryset=Forcefield.objects.all())
     temperature = forms.IntegerField(label='Temperature (°K)',
                                      widget=NumberInput(attrs={'class': 'form-control'}))
     equilibration = forms.IntegerField(label='Equilibration (ns)',
@@ -56,6 +55,7 @@ class MembraneTopolForm(ModelForm):
         fields = ['name', 'software', 'forcefield', 'temperature', 'equilibration', 'mem_file', 'description',
                   'reference']
         widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
+                   'software': autocomplete.ModelSelect2(url='software-autocomplete'),
                    'forcefield': Select(attrs={'class': 'form-control'})}
         labels = {'reference': 'References'}
 

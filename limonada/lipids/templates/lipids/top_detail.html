@@ -29,7 +29,7 @@
                   {{ topology.forcefield }}</a>
             </td>
           </tr>
-          <tr><td class="font-weight-bold">Software:</td><td>{{ topology.get_software_display }}</td></tr>
+          <tr><td class="font-weight-bold">Software:</td><td>{{ topology.software.all|join:", " }}</td></tr>
           <tr><td class="font-weight-bold">Version:</td><td>{{ topology.version }}</td></tr>
           <tr>
             <td class="font-weight-bold">Files:</td>

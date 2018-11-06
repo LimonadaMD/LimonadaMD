@@ -44,7 +44,7 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db.models.functions import Substr
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
@@ -52,7 +52,7 @@ from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 
 # Django apps
 from forcefields.choices import SFTYPE_CHOICES
-from forcefields.models import Forcefield
+from forcefields.models import Forcefield, Software
 from homepage.functions import FileData
 from membranes.models import Membrane, MembraneTopol, TopolComposition
 
@@ -152,13 +152,24 @@ def GetLiIndex(request):
     return HttpResponse(simplejson.dumps(data), content_type='application/json')
 
 
-def sf_ff_dict():
-    sf_ff = {}
-    for ff in Forcefield.objects.values_list('software', 'id', 'name'):
-        if ff[0] not in sf_ff.keys():
-            sf_ff[ff[0].encode('utf-8')] = []
-        sf_ff[ff[0].encode('utf-8')].append([ff[1], ff[2].encode('utf-8')])
-    return sf_ff
+def GetFfList(request):
+    softlist = simplejson.loads(request.POST.get('software', None))
+    if type(softlist) is int:
+        softlist = [softlist]
+    op = request.POST.get('operator', None)
+    ff_list = Forcefield.objects.all()
+    if op == 'AND':
+        for i in softlist:
+            ff_list = ff_list.filter(software=Software.objects.filter(id=i))
+    else:
+        querylist = []
+        for i in softlist:
+            querylist.append(Q(software=Software.objects.filter(id=i)))
+        ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
+    data = []
+    for ff in ff_list:
+       data.append({'value': ff.id, 'name': ff.name})
+    return HttpResponse(simplejson.dumps(data), content_type='application/json')
 
 
 @never_cache
@@ -448,35 +459,43 @@ def TopList(request):
     params = request.GET.copy()
 
     selectparams = {}
+    selectclass = {}
     for param in ['software', 'forcefield', 'lipid', 'category', 'main_class', 'sub_class', 'l4_class']:
         if param in request.GET.keys():
             if request.GET[param] != '':
                 if param == 'lipid':
                     liplist = request.GET[param].split(',')
                     selectparams['lipid'] = liplist
-                else:
+                elif param == 'software':
+                    softlist = request.GET[param].split(',')
+                    selectparams['software'] = softlist
+                elif param == 'forcefield':
                     selectparams[param] = request.GET[param]
+                else:
+                    selectclass[param] = request.GET[param]
+    form_select = SelectTopologyForm(selectparams)
     if 'software' in selectparams.keys():
-        top_list = top_list.filter(software=selectparams['software'])
+        if form_select.is_valid():
+            querylist = []
+            for i in softlist:
+                querylist.append(Q(software=Software.objects.filter(id=i)))
+            top_list = top_list.filter(reduce(operator.or_, querylist))
     if 'forcefield' in selectparams.keys():
         top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
-    if 'category' in selectparams.keys():
-        top_list = top_list.filter(lipid__core=lmdict[selectparams['category']])
-    if 'main_class' in selectparams.keys():
-        top_list = top_list.filter(lipid__main_class=lmdict[selectparams['main_class']])
-    if 'sub_class' in selectparams.keys():
-        top_list = top_list.filter(lipid__sub_class=lmdict[selectparams['sub_class']])
-    if 'l4_class' in selectparams.keys():
-        top_list = top_list.filter(lipid__l4_class=lmdict[selectparams['l4_class']])
+    if 'category' in selectclass.keys():
+        top_list = top_list.filter(lipid__core=lmdict[selectclass['category']])
+    if 'main_class' in selectclass.keys():
+        top_list = top_list.filter(lipid__main_class=lmdict[selectclass['main_class']])
+    if 'sub_class' in selectclass.keys():
+        top_list = top_list.filter(lipid__sub_class=lmdict[selectclass['sub_class']])
+    if 'l4_class' in selectclass.keys():
+        top_list = top_list.filter(lipid__l4_class=lmdict[selectclass['l4_class']])
     if 'lipid' in selectparams.keys():
-        form_select = SelectTopologyForm({'lipid': selectparams['lipid']})
         if form_select.is_valid():
             querylist = []
             for i in liplist:
                 querylist.append(Q(lipid=Lipid.objects.filter(id=i)))
             top_list = top_list.filter(reduce(operator.or_, querylist))
-    else:
-        form_select = SelectTopologyForm()
 
     if 'topid' in request.GET.keys():
         try:
@@ -496,7 +515,7 @@ def TopList(request):
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')
-    topheaders = ['version', 'forcefield', 'lipid', 'software']
+    topheaders = ['version', 'forcefield', 'lipid']
     if sort is not None and sort in topheaders:
         if sort == 'forcefield':
             top_list = top_list.order_by('forcefield__name')
@@ -587,20 +606,22 @@ def TopCreate(request):
             top = form.save(commit=False)
             top.curator = request.user
             top.save()
-            if os.path.isfile('media/' + itppath):
-                os.remove('media/' + itppath)
-            if os.path.isfile('media/' + gropath):
-                os.remove('media/' + gropath)
+            softwares = form.cleaned_data['software']
+            for soft in softwares:
+                top.software.add(soft)
             refs = form.cleaned_data['reference']
             for ref in refs:
                 top.reference.add(ref)
             top.save()
+            if os.path.isfile('media/' + itppath):
+                os.remove('media/' + itppath)
+            if os.path.isfile('media/' + gropath):
+                os.remove('media/' + gropath)
             return HttpResponseRedirect(reverse('toplist'))
     else:
         form = TopologyForm()
-    return render(request, 'lipids/top_form.html', {'form': form, 'ffs': Forcefield.objects.all(),
-        'sf_ff': sf_ff_dict(), 'sfchoices': SFTYPE_CHOICES, 'topologies': True, 'topcreate': True,
-        'itppath': itppath, 'gropath': gropath})
+    return render(request, 'lipids/top_form.html', {'form': form, 'sfchoices': SFTYPE_CHOICES, 'topologies': True,
+        'topcreate': True, 'itppath': itppath, 'gropath': gropath})
 
 
 @login_required
@@ -609,9 +630,9 @@ def TopUpdate(request, pk=None):
     if Topology.objects.filter(pk=pk).exists():
         top = Topology.objects.get(pk=pk)
         version_init = top.version
-        software_init = top.software
+        software_init = top.software.all()[0]
         forcefield_init = top.forcefield
-        dir_init = 'media/topologies/%s/%s/%s/%s' % (top.software, top.forcefield, top.lipid.name, top.version)
+        dir_init = 'media/topologies/%s/%s/%s/%s' % (top.software.all()[0].abbreviation, top.forcefield, top.lipid.name, top.version)
         if top.curator != request.user:
             return redirect('homepage')
         if request.method == 'POST':
@@ -620,12 +641,21 @@ def TopUpdate(request, pk=None):
             file_data, gropath = FileData(request, 'gro_file', 'gropath', file_data)
             form = TopologyForm(request.POST, file_data, instance=top)
             if form.is_valid():
-                form.save()
+                top = form.save(commit=False)
+                top.software.clear()
+                softwares = form.cleaned_data['software']
+                for soft in softwares:
+                    top.software.add(soft)
+                top.reference.clear()
+                refs = form.cleaned_data['reference']
+                for ref in refs:
+                    top.reference.add(ref)
+                top.save()
                 if os.path.isfile('media/' + itppath):
                     os.remove('media/' + itppath)
                 if os.path.isfile('media/' + gropath):
                     os.remove('media/' + gropath)
-                if version_init != top.version or software_init != top.software or forcefield_init != top.forcefield:
+                if version_init != top.version or software_init != top.software.all()[0] or forcefield_init != top.forcefield:
                     if os.path.isdir(dir_init):
                         shutil.rmtree(dir_init, ignore_errors=True)
                 return HttpResponseRedirect(reverse('toplist'))
@@ -635,8 +665,7 @@ def TopUpdate(request, pk=None):
             gropath = 'tmp/%s' % os.path.basename(top.gro_file.name)
             shutil.copy(top.gro_file.url[1:], 'media/tmp/')
             form = TopologyForm(instance=top)
-        return render(request, 'lipids/top_form.html', {'form': form, 'ffs': Forcefield.objects.all(),
-            'sf_ff': sf_ff_dict(), 'sfchoices': SFTYPE_CHOICES, 'topologies': True,
+        return render(request, 'lipids/top_form.html', {'form': form, 'sfchoices': SFTYPE_CHOICES, 'topologies': True,
             'itppath': itppath, 'gropath': gropath})
     else:
         return HttpResponseRedirect(reverse('toplist'))

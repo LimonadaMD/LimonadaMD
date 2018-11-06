@@ -70,9 +70,7 @@ class MembraneTopol(models.Model):
     compo_file = models.FileField(upload_to=directory_path,
                                   blank=True,
                                   null=True)
-    software = models.CharField(max_length=4,
-                                choices=SFTYPE_CHOICES,
-                                default='GR50')
+    software = models.ForeignKey('forcefields.Software')
     forcefield = models.ForeignKey('forcefields.Forcefield',
                                    on_delete=models.CASCADE)
     nb_lipids = models.PositiveIntegerField(null=True)

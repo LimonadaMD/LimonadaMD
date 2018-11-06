@@ -23,6 +23,7 @@
 from django import template
 
 # local Django
+from lipids.models import Topology
 from lipids.views import lm_class
 
 register = template.Library()
@@ -34,6 +35,14 @@ def lm_select(val):
     options = []
     if val in lmclass.keys():
         options = lmclass[val]
+    return options
+
+
+@register.simple_tag()
+def top_select(lipid, forcefield):
+    top_list = Topology.objects.filter(lipid__id=lipid)
+    top_list = top_list.filter(forcefield__id=forcefield)
+    options = list((obj.id, obj.version) for obj in top_list)
     return options
 
 

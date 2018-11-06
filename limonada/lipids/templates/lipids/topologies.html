@@ -31,37 +31,20 @@
         {% include 'per_page.html' %}
     </div>
     <div id="collapseselect" class="col-12 col-xl-9 col-lg-8 order-last"
-         {% if not params.software %}style="display: none"{% endif %}>
+         {% if not params.software and not params.category and not params.lipid %}style="display: none"{% endif %}>
       <div class="container">
         <form id="select_form" method="get">
+          {% csrf_token %}
           <div class="row pt-1">
             {% for field in form_select %}
               {% if field.name == 'software' or field.name == 'forcefield' %} 
                 <div class="col-auto d-flex">
                   <div class="pr-2 py-1">{{ field.label_tag }}</div>
                   <div>
-                    {% ff_select "all" as ffall %}
-                    {% if field.name == 'software' %}
-                      <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control"
-                              onchange="populate({{ ffall }});">
-                      {% for value,name in sfchoices %}
-                        {% if params.software %}
-                          <option value="{{ value }}" {% if value == params.software %}selected="selected"{% endif %}>
-                            {{ name }}
-                          </option>
-                        {% else %}
-                          <option value="{{ value }}" {% if value == "GR50" %}selected="selected"{% endif %}>
-                            {{ name }}
-                          </option>
-                        {% endif %}
-                      {% endfor %}
-                      </select>
-                    {% elif field.name == 'forcefield' %}
+                    {% if field.name == 'forcefield' %}
                       <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
                       {% if params.software %}
                         {% ff_select params.software as ffobjects %}
-                      {% else %}
-                        {% ff_select "GR50" as ffobjects %}
                       {% endif %}
                       {% if ffobjects %}
                         {% for value,name in ffobjects %}
@@ -247,18 +230,7 @@
               {% else %}
                 <a href="?{% url_replace sort="lipid" dir="asc" %}">Lipid</a></th>
               {% endif %}
-            <th class="w-15">
-              {% if sort == "software" %}
-                {% if dir == "asc" %}
-                  <i class="fas fa-sort-up"></i>
-                  <a href="?{% url_replace sort="software" dir="des" %}">Software</a></th>
-                {% else %}
-                  <i class="fas fa-sort-down"></i>
-                  <a href="?{% url_replace sort="software" dir="asc" %}">Software</a></th>
-                {% endif %}
-              {% else %}
-                <a href="?{% url_replace sort="software" dir="asc" %}">Software</a></th>
-              {% endif %}
+            <th class="w-15">Software</th>
             <th class="w-20">Files</th>
             {% if user.is_authenticated %}
               <th class="w-10"></th>
@@ -280,7 +252,7 @@
                 <a class="text-success" href="{% url 'lipdetail' topology.lipid.slug %}">
                     {{ topology.lipid.name }} - {{ topology.lipid.com_name|slashbreak|safe }}</a>
               </td>
-              <td>{{ topology.get_software_display }}</td>
+              <td>{{ topology.software.all|join:", " }}</td>
               <td>
                 <a href="{{ topology.gro_file.url }}" class="text-success" target="blank">
                     {{ topology.gro_file.url|basename }}</a>,
@@ -316,6 +288,19 @@
 {% block script %}
 
   <script>
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            // if not safe, set csrftoken
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
     function updateselect(s0){
       var val = document.getElementById(s0).value;
       if (s0 == 'id_category') {
@@ -368,28 +353,32 @@
       s1.style.display = 'none'
       document.getElementById(label).style.display = 'none';
     }
-    function populate(ffall){
-      var val = document.getElementById("id_software").value;
+    function populate(){
+      var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+      var val = $("#id_software").val();
       var s1  = document.getElementById("id_forcefield");
       while (s1.options.length > 0) {
         s1.remove(0);
       }
-      var i = -1;
-      if (ffall[val].length > 0) {
-        for(var option in ffall[val]){
-          i++;
-          var newOption = document.createElement("option");
-          newOption.value = ffall[val][i][0];
-          newOption.innerHTML = ffall[val][i][1];
-          s1.options.add(newOption);
+      $.ajax({
+        url: '{% url "load_fflist" %}',
+        data: ({'software': JSON.stringify(val), 'operator': 'OR'}),
+        type: 'POST',
+        dataType: 'json',
+        success: function (data) {
+          if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+              $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+            };
+          } else {
+            $(s1).append('<option value="">---------</option>');
+          }
         }
-      } else {
-        var newOption = document.createElement("option");
-        newOption.value = "";
-        newOption.innerHTML = "---------";
-        s1.options.add(newOption);
-      }
+      });
     }
+    $("#id_software").change(function() {
+      populate();
+    });
   </script>
   {{ form_select.media }}
 

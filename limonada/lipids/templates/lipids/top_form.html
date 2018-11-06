@@ -1,5 +1,6 @@
 {% extends "homepage/layout.html" %}
 
+{% load forcefield_extras %}
 {% load homepage_extras %}
 
 {% block title %}Topologies{% endblock %}
@@ -31,15 +32,18 @@
           {% elif field.name == 'forcefield' %}
             <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
             {% if form.software.value %}
-              {% query ffs software=form.software.value as ffobjects %}
-            {% else %}
-              {% query ffs software="GR50" as ffobjects %}
+              {% ff_select form.software.value as ffobjects %}
             {% endif %}
-            {% for ff in ffobjects %}
-              <option value="{{ ff.id }}"
-                  {% if ff.id|stringformat:"s" == field.value|stringformat:"s" %}selected="selected"{% endif %}>
-                  {{ ff.name }}</option>
-            {% endfor %}
+            {% if ffobjects %}
+              {% for value,name in ffobjects %}
+                <option value="{{ value }}"
+                        {% if value|stringformat:"s" == field.value|stringformat:"s" %}selected="selected"{% endif %}>
+                  {{ name }}
+                </option>
+              {% endfor %}
+            {% else %}
+              <option value="">---------</option>
+            {% endif %}
             </select>
           {% else %}
             {{ field }}
@@ -64,33 +68,46 @@
 {% block script %}
 
   <script>
-    var sf_ff = {{ sf_ff|safe }};
-  </script>
-  <script>
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            // if not safe, set csrftoken
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
     function basename(){
       filefield = arguments[0];
       textfield = arguments[1];
       $(textfield).text($(filefield).val().split('\\').slice(-1)[0])
     }
     function populate(){
-      var val = document.getElementById("id_software").value;
+      var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+      var val = $("#id_software").val();
       var s1  = document.getElementById("id_forcefield");
       while (s1.options.length > 0) {
         s1.remove(0);
       }
-      if (sf_ff[val]) {
-        for(var option in sf_ff[val]){
-          var newOption = document.createElement("option");
-          newOption.value = sf_ff[val][option][0];
-          newOption.innerHTML = sf_ff[val][option][1];
-          s1.options.add(newOption);
+      $.ajax({
+        url: '{% url "load_fflist" %}',
+        data: ({'software': JSON.stringify(val), 'operator': 'AND'}),
+        type: 'POST',
+        dataType: 'json',
+        success: function (data) {
+          if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+              $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+            };
+          } else {
+            $(s1).append('<option value="">---------</option>');
+          }
         }
-      } else {
-        var newOption = document.createElement("option");
-        newOption.value = "";
-        newOption.innerHTML = "---------";
-        s1.options.add(newOption);
-      }
+      });
     }
     $("#id_software").change(function() {
       populate();

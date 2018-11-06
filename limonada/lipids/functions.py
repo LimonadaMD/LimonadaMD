@@ -83,7 +83,7 @@ def gmxrun(lipname, ff_file, mdp_file, itp_file, gro_file, software):
 
     with cd(dirname):
         try:
-            args = shlex.split('%sgrompp -f em.mdp -p topol.top -c %s.gro -o em.tpr -maxwarn 1' % (softdir, lipname))
+            args = shlex.split('%sgrompp -f %s.mdp -p topol.top -c %s.gro -o em.tpr -maxwarn 1' % (softdir, software, lipname))
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = process.communicate()
         except OSError:

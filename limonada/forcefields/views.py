@@ -20,8 +20,12 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+import operator
 import os
 import shutil
+
+# third-party
+from dal import autocomplete
 
 # Django
 from django.contrib.admin.views.decorators import staff_member_required
@@ -30,6 +34,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
@@ -38,7 +43,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView
 
 # local Django
 from .forms import ForcefieldForm, SelectForcefieldForm
-from .models import Forcefield
+from .models import Forcefield, Software
 
 # Django apps
 from homepage.functions import FileData
@@ -57,13 +62,22 @@ def FfList(request):
     for param in ['software', 'forcefield_type']:
         if param in request.GET.keys():
             if request.GET[param] != '':
-                selectparams[param] = request.GET[param]
+                if param == 'software':
+                    softlist = request.GET[param].split(',')
+                    selectparams['software'] = softlist
+                else:
+                    selectparams[param] = request.GET[param]
     form_select = SelectForcefieldForm(selectparams)
     if form_select.is_valid():
         if 'software' in selectparams.keys():
-            ff_list = ff_list.filter(software=selectparams['software'])
+            querylist = []
+            for i in softlist:
+                querylist.append(Q(software=Software.objects.filter(id=i)))
+            ff_list = ff_list.filter(reduce(operator.or_, querylist))
         if 'forcefield_type' in selectparams.keys():
             ff_list = ff_list.filter(forcefield_type=selectparams['forcefield_type'])
+    else:
+        form_select = SelectForcefieldForm()
 
     if 'ffid' in request.GET.keys():
         try:
@@ -83,7 +97,7 @@ def FfList(request):
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')
-    headers = ['software', 'forcefield_type', 'name']
+    headers = ['forcefield_type', 'name']
     if sort is not None and sort in headers:
         ff_list = ff_list.order_by(sort)
         if sortdir == 'des':
@@ -140,6 +154,9 @@ def FfCreate(request):
                 os.remove('media/' + ffpath)
             if os.path.isfile('media/' + mdppath):
                 os.remove('media/' + mdppath)
+            softwares = form.cleaned_data['software']
+            for soft in softwares:
+                ff.software.add(soft)
             refs = form.cleaned_data['reference']
             for ref in refs:
                 ff.reference.add(ref)
@@ -156,6 +173,8 @@ def FfCreate(request):
 def FfUpdate(request, pk=None):
     if Forcefield.objects.filter(pk=pk).exists():
         ff = Forcefield.objects.get(pk=pk)
+        software_init = ff.software.all()[0]
+        dir_init = 'media/forcefields/%s' % (ff.software.all()[0].abbreviation)
         if ff.curator != request.user:
             return redirect('homepage')
         if request.method == 'POST':
@@ -164,11 +183,23 @@ def FfUpdate(request, pk=None):
             file_data, mdppath = FileData(request, 'mdp_file', 'mdppath', file_data)
             form = ForcefieldForm(request.POST, file_data, instance=ff)
             if form.is_valid():
-                form.save()
+                ff = form.save(commit=False)
+                ff.software.clear()
+                softwares = form.cleaned_data['software']
+                for soft in softwares:
+                    ff.software.add(soft)
+                ff.reference.clear()
+                refs = form.cleaned_data['reference']
+                for ref in refs:
+                    ff.reference.add(ref)
+                ff.save()
                 if os.path.isfile('media/' + ffpath):
                     os.remove('media/' + ffpath)
                 if os.path.isfile('media/' + mdppath):
                     os.remove('media/' + mdppath)
+                if software_init != ff.software.all()[0]:
+                    if os.path.isdir(dir_init):
+                        shutil.rmtree(dir_init, ignore_errors=True)
                 return HttpResponseRedirect(reverse('fflist'))
         else:
             ffpath = 'tmp/%s' % os.path.basename(ff.ff_file.name)
@@ -210,3 +241,12 @@ def FfDelete(request, pk=None):
                 {'forcefields': True, 'ff': ff, 'nbtop': len(top), 'nbmem': len(mt)})
         return render(request, 'forcefields/ff_notdelete.html',
             {'forcefields': True, 'ff': ff, 'nbtop': len(top), 'nbmem': len(mt)})
+
+
+class SoftwareAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        qs = Software.objects.all()
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+        return qs

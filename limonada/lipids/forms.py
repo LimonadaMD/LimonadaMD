@@ -29,6 +29,7 @@ from django.utils.safestring import mark_safe
 
 # Django apps
 from forcefields.choices import SFTYPE_CHOICES
+from forcefields.models import Forcefield, Software
 
 # local Django
 from .functions import gmxrun
@@ -40,7 +41,7 @@ class LmidForm(forms.Form):
     lmidsearch = forms.CharField(label='LipidMaps ID',
                                  widget=TextInput(attrs={'placeholder': 'e.g., LMGP01010005',
                                                          'class': 'form-control'}),
-                                  validators=[validate_lmid])
+                                 validators=[validate_lmid])
 
 
 class LipidForm(forms.ModelForm):
@@ -111,9 +112,7 @@ class SelectLipidForm(forms.Form):
 
 class TopologyForm(forms.ModelForm):
 
-    software = forms.ChoiceField(choices=SFTYPE_CHOICES,
-                                 initial='GR50',
-                                 widget=Select(attrs={'class': 'form-control'}))
+    forcefield = forms.ModelChoiceField(queryset=Forcefield.objects.all())
     itp_file = forms.FileField(label='Topology file')
     gro_file = forms.FileField(label='Structure file')
     version = forms.CharField(widget=TextInput(attrs={'class': 'form-control',
@@ -125,12 +124,13 @@ class TopologyForm(forms.ModelForm):
         model = Topology
         fields = ['software', 'forcefield', 'lipid', 'itp_file', 'gro_file', 'version', 'description', 'reference']
         widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete'),
+                   'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
                    'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete')}
         labels = {'reference': 'References'}
 
     def clean(self):
         cleaned_data = super(TopologyForm, self).clean()
-        software = cleaned_data.get('software')
+        softindex = cleaned_data.get('software')
         ff = cleaned_data.get('forcefield')
         lipid = cleaned_data.get('lipid')
         version = cleaned_data.get('version')
@@ -141,14 +141,16 @@ class TopologyForm(forms.ModelForm):
                 self.add_error('version', mark_safe(
                     'This version name is already taken by another topology entry for this lipid and forcefield.'))
 
-        if lipid and ff and software and 'itp_file' in cleaned_data.keys() and 'gro_file' in cleaned_data.keys():
+        if lipid and ff and softindex and 'itp_file' in cleaned_data.keys() and 'gro_file' in cleaned_data.keys():
             itp_file = cleaned_data['itp_file']
             gro_file = cleaned_data['gro_file']
-            error, rand = gmxrun(lipid.name, ff.ff_file.url, ff.mdp_file.url, itp_file, gro_file, software)
-            if error:
-                logpath = '/media/tmp/%s/gromacs.log' % rand
-                self.add_error('itp_file', mark_safe(
-                    'Topology file is not valid. See <a class="text-success" href="%s">gromacs.log</a>' % logpath))
+            for name in softindex:
+                software = Software.objects.filter(name=name).values_list('abbreviation', flat=True)[0]
+                error, rand = gmxrun(lipid.name, ff.ff_file.url, ff.mdp_file.url, itp_file, gro_file, software)
+                if error:
+                    logpath = '/media/tmp/%s/gromacs.log' % rand
+                    self.add_error('itp_file', mark_safe(
+                        'Topology file is not valid. See <a class="text-success" href="%s">gromacs.log</a>' % logpath))
 
         return cleaned_data
 
@@ -159,14 +161,18 @@ class TopologyAdminForm(forms.ModelForm):
         model = Topology
         fields = ('__all__')
         widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete'),
+                   'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
                    'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
                    'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
 class SelectTopologyForm(forms.Form):
 
-    software = forms.ChoiceField(required=False)
-    forcefield = forms.ChoiceField(required=False)
+    software = forms.ModelMultipleChoiceField(queryset=Software.objects.all(),
+                                              widget=autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
+                                              required=False)
+    forcefield = forms.ModelChoiceField(queryset=Forcefield.objects.all(),
+                                        required=False)
     lipid = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(),
                                            widget=autocomplete.ModelSelect2Multiple(url='lipid-autocomplete'),
                                            required=False)

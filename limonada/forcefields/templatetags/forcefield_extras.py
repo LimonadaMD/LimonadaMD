@@ -19,22 +19,32 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
+# standard library
+import operator
+
 # Django
 from django import template
+from django.db.models import Q
 
 # local Django
 from forcefields.choices import SFTYPE_CHOICES
-from forcefields.models import Forcefield
+from forcefields.models import Forcefield, Software
 
 register = template.Library()
 
 
 @register.simple_tag()
 def ff_select(val):
-    if val == 'all':
-        options = {}
-        for ff in SFTYPE_CHOICES:
-            options[ff[0]] = [[obj.id, str(obj.name)] for obj in Forcefield.objects.filter(software=ff[0])]
+    if type(val) is list:
+        softlist = val
+    elif type(val) is int:
+        softlist = [val]
     else:
-        options = list((obj.id, obj.name) for obj in Forcefield.objects.filter(software=val))
+        softlist = val.split(',')
+    querylist = []
+    for i in softlist:
+        querylist.append(Q(software=Software.objects.filter(id=i)))
+    ff_list = Forcefield.objects.all() 
+    ff_list = ff_list.filter(reduce(operator.or_, querylist))
+    options = list((obj.id, obj.name) for obj in ff_list)
     return options

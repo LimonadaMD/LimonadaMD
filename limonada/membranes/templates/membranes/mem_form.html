@@ -1,6 +1,7 @@
 {% extends "homepage/layout.html" %}
 
 {% load homepage_extras %}
+{% load lipid_extras %}
 {% load forcefield_extras %}
 
 {% block title %}Membranes{% endblock %}
@@ -41,15 +42,18 @@
           <div class="col-9 col-lg-4 col-md-7">
             <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
             {% if topform.software.value %}
-              {% query ffs software=topform.software.value as ffobjects %}
-            {% else %}
-              {% query ffs software="GR50" as ffobjects %}
+              {% ff_select topform.software.value as ffobjects %}
             {% endif %}
-            {% for ff in ffobjects %}
-              <option value="{{ ff.id }}"
-                  {% if ff.id|stringformat:"s" == field.value|stringformat:"s" %}selected="selected"{% endif %}>
-                  {{ ff.name }}</option>
-            {% endfor %}
+            {% if ffobjects %}
+              {% for value,name in ffobjects %}
+                <option value="{{ value }}"
+                        {% if value|stringformat:"s" == field.value|stringformat:"s" %}selected="selected"{% endif %}>
+                  {{ name }}
+                </option>
+              {% endfor %}
+            {% else %}
+              <option value="">---------</option>
+            {% endif %}
             </select>
             {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
             {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
@@ -79,7 +83,7 @@
                   <div class="col-12 col-lg-5 col-md-6 col-sm-8 pt-1">{{ lip.lipid }}</div>
                   <div class="col-5 col-lg-2 col-md-3 col-sm-4 pt-1">
                     {% if lip.topology.value %}
-                      {% query tops lipid_id=lip.lipid.value forcefield=topform.forcefield.value as topobjects %}
+                      {% top_select lip.lipid.value topform.forcefield.value as topobjects %}
                     {% endif %}
                     {% if lip.lipid.value and not lip.topology.value %}
                       <select id="id_{{ lip.prefix }}-topology" name="{{ lip.prefix }}-topology"
@@ -91,14 +95,17 @@
                       <select id="id_{{ lip.prefix }}-topology" name="{{ lip.prefix }}-topology"
                               class="form-control-sm w-100">
                     {% endif %}
-                    {% if lip.topology.value %}
-                      {% for top in topobjects %}
-                        <option value="{{ top.id }}"
-                            {% if top.id|stringformat:"s" == lip.topology.value|stringformat:"s" %}
-                            selected="selected"{% endif %}>{{ top.version }}</option>
+                    {% if ffobjects %}
+                      {% for value,name in topobjects %}
+                        <option value="{{ value }}"
+                          {% if value|stringformat:"s" == lip.topology.value|stringformat:"s" %}
+                            selected="selected"
+                          {% endif %}>
+                          {{ name }}
+                        </option>
                       {% endfor %}
                     {% else %}
-                      <option value="" selected="selected">---------</option>
+                      <option value="">---------</option>
                     {% endif %}
                     </select>
                   </div>
@@ -164,12 +171,22 @@
 {% block script %}
 
   <script>
-    var sf_ff = {{ sf_ff|safe }};
-  </script>
-
-  <script>
     $(document).ready(function(){
       $('[data-toggle="popover"]').popover();
+    });
+
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            // if not safe, set csrftoken
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
     });
 
     $(document).on('click', '.add-form-row', function(){
@@ -268,30 +285,32 @@
       if (el.name) el.name = el.name.replace(id_regex, replacement);
     };
 
-    $(document).on('change', '#id_software', function(e){
-      populate();
-    });
-
     function populate(){
-      var val = document.getElementById("id_software").value;
+      var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+      var val = $("#id_software").val();
       var s1  = document.getElementById("id_forcefield");
       while (s1.options.length > 0) {
         s1.remove(0);
       }
-      if (sf_ff[val]) {
-        for(var option in sf_ff[val]){
-          var newOption = document.createElement("option");
-          newOption.value = sf_ff[val][option][0];
-          newOption.innerHTML = sf_ff[val][option][1];
-          s1.options.add(newOption);
+      $.ajax({
+        url: '{% url "load_fflist" %}',
+        data: ({'software': JSON.stringify(val), 'operator': 'AND'}),
+        type: 'POST',
+        dataType: 'json',
+        success: function (data) {
+          if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+              $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+            };
+          } else {
+            $(s1).append('<option value="">---------</option>');
+          }
         }
-      } else {
-        var newOption = document.createElement("option");
-        newOption.value = "";
-        newOption.innerHTML = "---------";
-        s1.options.add(newOption);
-      }
+      });
     }
+    $("#id_software").change(function() {
+      populate();
+    });
 
     $(document).on('change', '#id_software', function(e){
       var total = parseInt($('#id_form-TOTAL_FORMS').val());
@@ -312,7 +331,6 @@
     });
 
     function updatetopselect(s1){
-      console.log(s1.val());
       var valueSelected = s1.val();
       var lipid_name = s1.text();
       var ff = $('#id_forcefield').val();

@@ -284,7 +284,6 @@ def mail(request):
 
     if request.method == 'POST':
         form = MailForm(request.POST)
-        print request.POST
         if form.is_valid():
             curation = form.cleaned_data['curation']
             subject = form.cleaned_data['subject']

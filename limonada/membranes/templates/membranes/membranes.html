@@ -120,9 +120,7 @@
               <td><a {% if membrane.mem_file %}class="text-success"{% else %}class="text-info"{% endif %}
                   href="{% url 'memdetail' membrane.pk %}">{{ membrane.name }}</a></td>
               <td>{{ membrane.membrane.tag.all|join:", " }}</td>
-              <td>
-                {{ membrane.membrane.nb_liptypes }}
-              </td>
+              <td>{{ membrane.membrane.nb_liptypes }}</td>
               <td>{{ membrane.nb_lipids }}</td>
               <td>
                 {% if membrane.mem_file %} 

@@ -23,7 +23,7 @@
 from django.contrib import admin
 
 # local Django
-from .models import Forcefield
+from .models import Forcefield, Software
 from .forms import ForcefieldAdminForm
 
 
@@ -31,4 +31,5 @@ class ForcefieldAdmin(admin.ModelAdmin):
     form = ForcefieldAdminForm
 
 
+admin.site.register(Software)
 admin.site.register(Forcefield, ForcefieldAdmin)

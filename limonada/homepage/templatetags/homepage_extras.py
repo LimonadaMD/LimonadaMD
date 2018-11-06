@@ -59,31 +59,6 @@ def inrange(value, end, dx):
             return end
 
 
-@register.assignment_tag
-def query(qs, **kwargs):
-    """ template tag which allows queryset filtering. Usage:
-          {% query ffs software=topform.software.value as ffobjects %}
-          {% for ff in ffs %}
-            ...
-          {% endfor %}
-    """
-    return qs.filter(**kwargs).distinct()
-
-
-@register.assignment_tag
-def queryorder(qs, param, direction):
-    """ template tag which allows queryset ordering. Usage:
-          {% queryorder ffs software=topform.software.value 'asc' as ffobjects %}
-          {% for ff in ffs %}
-            ...
-          {% endfor %}
-    """
-    if direction == 'asc':
-        return qs.order_by(param)
-    else:
-        return qs.order_by(param).reverse()
-
-
 @register.filter(name='basename')
 def split(value):
     return str(value).split("/")[-1]
