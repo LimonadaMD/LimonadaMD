@@ -26,6 +26,16 @@
               <td>{{ lipid.lmid }}</td>
             {% endif %}
           </tr>
+          <tr>
+            <td class="font-weight-bold">PubChem CID:</td>
+            <td>
+              {% if lipid.pubchem_cid %}
+                <a class="text-success" 
+                    href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid={{ lipid.pubchem_cid }}">
+                    {{ lipid.pubchem_cid }}</a>
+              {% endif %}
+            </td>
+          </tr>
           <tr><td class="font-weight-bold">Common name:</td><td>{{ lipid.com_name|slashbreak|safe }}</td></tr>
           <tr><td class="font-weight-bold">Systematic name:</td><td>{{ lipid.sys_name }}</td></tr>
           <tr><td class="font-weight-bold">IUPAC name:</td><td>{{ lipid.iupac_name }}</td></tr>

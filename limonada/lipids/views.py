@@ -51,9 +51,8 @@ from django.views.decorators.cache import never_cache
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 
 # Django apps
-from forcefields.choices import SFTYPE_CHOICES
 from forcefields.models import Forcefield, Software
-from homepage.functions import FileData
+from limonada.functions import FileData
 from membranes.models import Membrane, MembraneTopol, TopolComposition
 
 # local Django
@@ -165,10 +164,12 @@ def GetFfList(request):
         querylist = []
         for i in softlist:
             querylist.append(Q(software=Software.objects.filter(id=i)))
-        ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
+        if querylist:
+            ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
     data = []
-    for ff in ff_list:
-       data.append({'value': ff.id, 'name': ff.name})
+    if ff_list and softlist:
+        for ff in ff_list:
+           data.append({'value': ff.id, 'name': ff.name})
     return HttpResponse(simplejson.dumps(data), content_type='application/json')
 
 
@@ -207,6 +208,14 @@ def LipList(request):
             lipid_list = lipid_list.filter(reduce(operator.or_, querylist))
     else:
         form_select = SelectLipidForm()
+
+    if 'curator' in request.GET.keys():
+        try:
+            curator = int(request.GET['curator'])
+        except ValidationError:
+            curator = 0
+        if curator > 0:
+            lipid_list = lipid_list.filter(curator=User.objects.filter(id=curator))
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')
@@ -373,7 +382,9 @@ def LipUpdate(request, slug=None):
             return redirect('homepage')
         if request.method == 'POST':
             file_data = {}
-            file_data, imgpath = FileData(request, 'img', 'imgpath', file_data)
+            imgpath = ''
+            if lipid.img:
+                file_data, imgpath = FileData(request, 'img', 'imgpath', file_data)
             form_add = LipidForm(request.POST, file_data, instance=lipid)
             if form_add.is_valid():
                 lipid = form_add.save(commit=False)
@@ -383,12 +394,14 @@ def LipUpdate(request, slug=None):
                 lipid.search_name = '%s - %s - %s' % (name, lmid, com_name)
                 lipid.slug = slugify('%s' % (lmid), allow_unicode=True)
                 lipid.save()
-                if os.path.isfile("media/" + imgpath):
+                if imgpath != '' and os.path.isfile("media/" + imgpath):
                     os.remove("media/" + imgpath)
                 return HttpResponseRedirect(reverse('liplist'))
         else:
-            imgpath = 'tmp/%s' % os.path.basename(lipid.img.name)
-            shutil.copy(lipid.img.url[1:], 'media/tmp/')
+            imgpath = ''
+            if lipid.img:
+                imgpath = 'tmp/%s' % os.path.basename(lipid.img.name)
+                shutil.copy(lipid.img.url[1:], 'media/tmp/')
             form_add = LipidForm(instance=lipid)
         return render(request, 'lipids/lip_form.html', {'form_add': form_add, 'lipids': True, 'search': False,
             'imgpath': imgpath})
@@ -443,7 +456,7 @@ def LipDelete(request, slug=None):
 class LipAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
-        qs = Lipid.objects.all()
+        qs = Lipid.objects.all().order_by('name')
         if self.q:
             qs = qs.filter(search_name__icontains=self.q)
         return qs
@@ -454,7 +467,7 @@ def TopList(request):
 
     lmclass, lmdict = lm_class()
 
-    top_list = Topology.objects.all()
+    top_list = Topology.objects.all().order_by('forcefield', 'lipid__lmid')
 
     params = request.GET.copy()
 
@@ -554,7 +567,6 @@ def TopList(request):
     if sort is not None and sort in topheaders:
         data['dir'] = sortdir
     data['topologies'] = True
-    data['sfchoices'] = SFTYPE_CHOICES
     data['params'] = params
     data['memtops'] = MembraneTopol.objects.all()
     data['mems'] = Membrane.objects.all()
@@ -579,11 +591,11 @@ def TopDetail(request, pk=None):
                 if request.user != topology.curator:
                     email = request.user.email
                     subject = 'New comment on your Limonada entry %s_%s' % (topology.lipid.name, topology.version)
-                    text = ''.join(('Dear Mr/Ms %s %s,' % (topology.curator.first_name, topology.curator.last_name),
+                    message = ''.join(('Dear Mr/Ms %s %s,' % (topology.curator.first_name, topology.curator.last_name),
                                    '\n\n%s %s has published ' % (comment.user.first_name, comment.user.last_name), 
                                    'the following comment on %s.\n\n' % (comment.date.strftime("%b. %d, %Y at %H:%M")),
                                    '%s\n\nSincerely,\nThe Limonada Team' % (comment.comment)))
-                    send_mail(subject, text, settings.VERIFIED_EMAIL_MAIL_FROM, [email, ])
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email, ])
                 form = TopCommentForm()
         else:
             form = TopCommentForm()
@@ -620,7 +632,7 @@ def TopCreate(request):
             return HttpResponseRedirect(reverse('toplist'))
     else:
         form = TopologyForm()
-    return render(request, 'lipids/top_form.html', {'form': form, 'sfchoices': SFTYPE_CHOICES, 'topologies': True,
+    return render(request, 'lipids/top_form.html', {'form': form, 'topologies': True,
         'topcreate': True, 'itppath': itppath, 'gropath': gropath})
 
 
@@ -630,9 +642,9 @@ def TopUpdate(request, pk=None):
     if Topology.objects.filter(pk=pk).exists():
         top = Topology.objects.get(pk=pk)
         version_init = top.version
-        software_init = top.software.all()[0]
+        software_init = top.software.all()[0].name
         forcefield_init = top.forcefield
-        dir_init = 'media/topologies/%s/%s/%s/%s' % (top.software.all()[0].abbreviation, top.forcefield, top.lipid.name, top.version)
+        dir_init = 'media/topologies/%s/%s/%s/%s' % (top.software.all()[0].name, top.forcefield, top.lipid.name, top.version)
         if top.curator != request.user:
             return redirect('homepage')
         if request.method == 'POST':
@@ -655,7 +667,7 @@ def TopUpdate(request, pk=None):
                     os.remove('media/' + itppath)
                 if os.path.isfile('media/' + gropath):
                     os.remove('media/' + gropath)
-                if version_init != top.version or software_init != top.software.all()[0] or forcefield_init != top.forcefield:
+                if version_init != top.version or software_init != top.software.all()[0].name or forcefield_init != top.forcefield:
                     if os.path.isdir(dir_init):
                         shutil.rmtree(dir_init, ignore_errors=True)
                 return HttpResponseRedirect(reverse('toplist'))
@@ -665,7 +677,7 @@ def TopUpdate(request, pk=None):
             gropath = 'tmp/%s' % os.path.basename(top.gro_file.name)
             shutil.copy(top.gro_file.url[1:], 'media/tmp/')
             form = TopologyForm(instance=top)
-        return render(request, 'lipids/top_form.html', {'form': form, 'sfchoices': SFTYPE_CHOICES, 'topologies': True,
+        return render(request, 'lipids/top_form.html', {'form': form, 'topologies': True,
             'itppath': itppath, 'gropath': gropath})
     else:
         return HttpResponseRedirect(reverse('toplist'))

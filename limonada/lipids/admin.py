@@ -23,12 +23,8 @@
 from django.contrib import admin
 
 # local Django
-from .models import TopComment, Lipid, Topology
-from .forms import TopCommentAdminForm, LipidAdminForm, TopologyAdminForm
-
-
-class TopCommentAdmin(admin.ModelAdmin):
-    form = TopCommentAdminForm
+from .models import Lipid, TopComment, Topology
+from .forms import LipidAdminForm, TopCommentAdminForm, TopologyAdminForm
 
 
 class LipidAdmin(admin.ModelAdmin):
@@ -40,6 +36,10 @@ class TopologyAdmin(admin.ModelAdmin):
     form = TopologyAdminForm
 
 
-admin.site.register(TopComment, TopCommentAdmin)
+class TopCommentAdmin(admin.ModelAdmin):
+    form = TopCommentAdminForm
+
+
 admin.site.register(Lipid, LipidAdmin)
 admin.site.register(Topology, TopologyAdmin)
+admin.site.register(TopComment, TopCommentAdmin)

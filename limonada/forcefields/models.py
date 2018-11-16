@@ -32,8 +32,11 @@ from django.db import models
 from django.db.models.signals import m2m_changed, pre_delete, pre_save
 from django.dispatch.dispatcher import receiver
 
+# Django apps
+from limonada.functions import delete_file
+
 # local Django
-from .choices import FFTYPE_CHOICES, SFTYPE_CHOICES
+from .choices import FFTYPE_CHOICES
 
 
 _UNSAVED_FFFILE = 'unsaved_fffile'
@@ -48,7 +51,7 @@ def validate_file_extension(value):
 
 def ff_path(instance, filename):
     name = unicodedata.normalize('NFKD', instance.name).encode('ascii', 'ignore').replace(' ', '_')
-    filepath = 'forcefields/{0}/{1}.ff.zip'.format(instance.software.all()[0].abbreviation, name)
+    filepath = 'forcefields/{0}/{1}.ff.zip'.format(instance.software.all()[0].name, name)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath
@@ -56,7 +59,7 @@ def ff_path(instance, filename):
 
 def mdp_path(instance, filename):
     name = unicodedata.normalize('NFKD', instance.name).encode('ascii', 'ignore').replace(' ', '_')
-    filepath = 'forcefields/{0}/{1}.mdp.zip'.format(instance.software.all()[0].abbreviation, name)
+    filepath = 'forcefields/{0}/{1}.mdp.zip'.format(instance.software.all()[0].name, name)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath
@@ -73,7 +76,8 @@ class Forcefield(models.Model):
                                help_text='Use a zip file containing the forcefield directory')
     mdp_file = models.FileField(upload_to=mdp_path,
                                 validators=[validate_file_extension],
-                                help_text='Use a zip file containing the mdps for the version X of Gromacs')
+                                help_text='Use a zip file containing the mdps for the version X of Gromacs',
+                                null=True)
     software = models.ManyToManyField('forcefields.Software')
     description = models.TextField(blank=True)
     reference = models.ManyToManyField('homepage.Reference')
@@ -91,23 +95,20 @@ class Forcefield(models.Model):
 class Software(models.Model):
 
     name = models.CharField(max_length=50)
+    version = models.CharField(max_length=50)
     abbreviation = models.CharField(max_length=4)
+    order = models.CharField(max_length=1) 
 
     def __unicode__(self):
-        return self.name
-
-
-def _delete_file(path):
-    if os.path.isfile(path):
-        os.remove(path)
+        return "%s %s" % (self.name, self.version)
 
 
 @receiver(pre_delete, sender=Forcefield)
 def delete_file_pre_delete_ff(sender, instance, *args, **kwargs):
     if instance.ff_file:
-        _delete_file(instance.ff_file.path)
+        delete_file(instance.ff_file.path)
     if instance.mdp_file:
-        _delete_file(instance.mdp_file.path)
+        delete_file(instance.mdp_file.path)
 
 
 @receiver(pre_save, sender=Forcefield)
@@ -121,6 +122,10 @@ def skip_saving_file(sender, instance, **kwargs):
 
 @receiver(m2m_changed, sender=Forcefield.software.through)
 def save_file_on_m2m(sender, instance, action, **kwargs):
+    """ The directory where the forcefield files will be saved involve in its path the name of the software
+        familly with which it can be used. For the Forcefield table, software is a ManyToMany field that
+        can only be saved once the Forcefield instance has an id.
+    """
     if action == 'post_add' and hasattr(instance, _UNSAVED_FFFILE) and hasattr(instance, _UNSAVED_MDPFILE):
         instance.ff_file = getattr(instance, _UNSAVED_FFFILE)
         instance.mdp_file = getattr(instance, _UNSAVED_MDPFILE)

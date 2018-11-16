@@ -27,7 +27,6 @@ from django import template
 from django.db.models import Q
 
 # local Django
-from forcefields.choices import SFTYPE_CHOICES
 from forcefields.models import Forcefield, Software
 
 register = template.Library()
@@ -35,6 +34,9 @@ register = template.Library()
 
 @register.simple_tag()
 def ff_select(val):
+    """ This function finds the forcefields that can be used with one or several
+        softwares in order to fill dropdown select field on page load.
+    """
     if type(val) is list:
         softlist = val
     elif type(val) is int:
@@ -45,6 +47,6 @@ def ff_select(val):
     for i in softlist:
         querylist.append(Q(software=Software.objects.filter(id=i)))
     ff_list = Forcefield.objects.all() 
-    ff_list = ff_list.filter(reduce(operator.or_, querylist))
+    ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
     options = list((obj.id, obj.name) for obj in ff_list)
     return options

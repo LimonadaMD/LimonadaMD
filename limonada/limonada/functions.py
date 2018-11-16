@@ -29,7 +29,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 def FileData(request, key, hiddenkey, filedata):
     """ Allows to save files uploaded in forms when invalid POST. If files are
-        not saved and a new request.FILES build these data are lost in the
+        not saved and a new request.FILES is build these data are lost in the
         refreshed form. Local path to the saved files also needs to be passed
         as hidden field.
     """
@@ -50,3 +50,8 @@ def FileData(request, key, hiddenkey, filedata):
         f = file(mediapath)
         filedata[key] = SimpleUploadedFile(f.name, f.read())
     return filedata, keypath
+
+
+def delete_file(path):
+    if os.path.isfile(path):
+        os.remove(path)

@@ -1,5 +1,6 @@
 {% extends "homepage/layout.html" %}
 
+{% load forcefield_extras %}
 {% load homepage_extras %}
 {% load membrane_extras %}
 
@@ -30,12 +31,45 @@
       {% include 'per_page.html' %}
     </div>
     <div id="collapseselect" class="col-12 col-xl-9 col-lg-8 order-last"
-         {% if not params.equilibration and not params.lipids and not params.tags and not params.nbliptypes and not params.nblipids %}
+         {% if not params.software and not params.forcefield and not params.lipids and not params.tags %}
            style="display: none"
          {% endif %}>
       <div class="container">
         <form id="select_form" method="get">
+          {% csrf_token %}
           <div class="row pt-1">
+            {% for field in form_select %}
+              {% if field.name == 'software' or field.name == 'forcefield' %}
+                <div class="col-auto d-flex">
+                  <div class="pr-2 py-1">{{ field.label_tag }}</div>
+                  <div>
+                    {% if field.name == 'forcefield' %}
+                      <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
+                      {% if params.software %}
+                        {% ff_select params.software as ffobjects %}
+                      {% endif %}
+                      {% if ffobjects %}
+                        {% for value,name in ffobjects %}
+                          <option value="{{ value }}"
+                                  {% if value|slugify == params.forcefield %}selected="selected"{% endif %}>
+                            {{ name }}
+                          </option>
+                        {% endfor %}
+                      {% else %}
+                        <option value="">---------</option>
+                      {% endif %}
+                      </select>
+                    {% else %}
+                      {{ field }}
+                    {% endif %}
+                    {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                    {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div class="row pt-1 pl-3">
             {% for field in form_select %}
               {% if field.name == 'lipids' or field.name == 'tags' %}
                 <div class="col-2 col-md-1 p-1">{{ field.label_tag }}</div>
@@ -45,17 +79,10 @@
                   {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                 </div>
                 <div class="col-0 col-xl-3 col-lg-2 col-md-3"></div>
-              {% else %}
-                <div class="col-0 p-1">{{ field.label_tag }}</div>
-                <div class="col-6 col-xl-2 col-lg-3 col-md-3 col-sm-7 pb-1">
-                  {{ field }}
-                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
-                  {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
-                </div>
               {% endif %}
             {% endfor %}
           </div>
-          <a onclick="url_replace('equilibration','lipids','tags','nbliptypes','nblipids')"
+          <a onclick="url_replace('software','forcefield','lipids','tags')"
              class="btn btn-primary btn-sm text-white">Select</a>
         </form>
       </div>
@@ -71,7 +98,7 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th class="w-20">
+            <th class="w-20 align-top">
               {% if sort == "name" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
@@ -83,32 +110,45 @@
               {% else %}
                 <a href="?{% url_replace sort="name" dir="asc" %}">Name</a></th>
               {% endif %}
-            <th class="w-30">Tags</th>
-            <th class="w-15">
+            <th class="w-25 align-top">Tags</th>
+            <th class="w-10 align-top">
               {% if sort == "nbliptypes" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
-                  <a href="?{% url_replace sort="nbliptypes" dir="des" %}"># of lipid species</th>
+                  <a href="?{% url_replace sort="nbliptypes" dir="des" %}">#lipid species</th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
-                  <a href="?{% url_replace sort="nbliptypes" dir="asc" %}"># of lipid species</th>
+                  <a href="?{% url_replace sort="nbliptypes" dir="asc" %}">#lipid species</th>
                 {% endif %}
               {% else %}
-                <a href="?{% url_replace sort="nbliptypes" dir="asc" %}"># of lipid species</th>
+                <a href="?{% url_replace sort="nbliptypes" dir="asc" %}">#lipid species</th>
               {% endif %}
-            <th class="w-15">
+            <th class="w-10 align-top">
               {% if sort == "nb_lipids" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
-                  <a href="?{% url_replace sort="nb_lipids" dir="des" %}"># of lipids</th>
+                  <a href="?{% url_replace sort="nb_lipids" dir="des" %}">#lipids</th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
-                  <a href="?{% url_replace sort="nb_lipids" dir="asc" %}"># of lipids</th>
+                  <a href="?{% url_replace sort="nb_lipids" dir="asc" %}">#lipids</th>
                 {% endif %}
               {% else %}
-                <a href="?{% url_replace sort="nb_lipids" dir="asc" %}"># of lipids</th>
+                <a href="?{% url_replace sort="nb_lipids" dir="asc" %}">#lipids</th>
               {% endif %}
-            <th class="w-10">Files</th>
+            <th class="w-15 align-top">
+              {% if sort == "forcefield" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="forcefield" dir="des" %}">Forcefield</a></th>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="forcefield" dir="asc" %}">Forcefield</a></th>
+                {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="forcefield" dir="asc" %}">Forcefield</a></th>
+              {% endif %}
+            </th>
+            <th class="w-10 align-top">Files</th>
             {% if user.is_authenticated %}
               <th class="w-10"></th>
             {% endif %}
@@ -122,6 +162,10 @@
               <td>{{ membrane.membrane.tag.all|join:", " }}</td>
               <td>{{ membrane.membrane.nb_liptypes }}</td>
               <td>{{ membrane.nb_lipids }}</td>
+              <td>
+                <a class="text-success" href="{% url 'fflist' %}?ffid={{ membrane.forcefield.pk }}">
+                    {{ membrane.forcefield }}</a>
+              </td>
               <td>
                 {% if membrane.mem_file %} 
                   <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">
@@ -160,5 +204,53 @@
 
 
 {% block script %}
+
+  <script>
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            // if not safe, set csrftoken
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    function populate(){
+      var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+      var val = $("#id_software").val();
+      var ff = $("#id_forcefield").val();
+      var s1  = document.getElementById("id_forcefield");
+      while (s1.options.length > 0) {
+        s1.remove(0);
+      }
+      $.ajax({
+        url: '{% url "load_fflist" %}',
+        data: ({'software': JSON.stringify(val), 'operator': 'OR'}),
+        type: 'POST',
+        dataType: 'json',
+        success: function (data) {
+          if (data.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+              if (ff == data[i].value) {
+                $(s1).append('<option value='+ data[i].value +' selected="selected">'+ data[i].name +'</option>');
+              } else {
+                $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+              }
+            };
+          } else {
+            $(s1).append('<option value="">---------</option>');
+          }
+        }
+      });
+    }
+    $("#id_software").change(function() {
+      populate();
+    });
+  </script>
   {{ form_select.media }}
+
 {% endblock %}

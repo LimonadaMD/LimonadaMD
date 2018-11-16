@@ -1,5 +1,7 @@
 {% extends "homepage/layout.html" %}
 
+{% block title %}Update{% endblock %}
+
 {% block content %}
 
   <h2>Account settings</h2>
@@ -9,8 +11,14 @@
     {% csrf_token %}
     {% for field in form %}
       <div class="row py-1 ml-5">
-        <div class="col-3 col-lg-2 col-md-3 pt-1">{{ field.label_tag }}</div>
+        <div class="col-3 col-lg-2 col-md-3 pt-1">
+          {% if field.name == "address" or field.name == "miscellaneous" %}<br>{% endif %}
+          {{ field.label_tag }}
+        </div>
         <div class="col-9 col-lg-4">
+          {% if field.name == "address" or field.name == "miscellaneous" %}
+            <small class="float-right text-secondary">optional</small>
+          {% endif %}
           {% if field.name == "utype" %}
             <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
               <option value="AC">Academic</option>
@@ -29,6 +37,7 @@
       <div class="col-9 col-lg-4">
         Raw passwords are not stored but you can change your password
         using <a href="{% url 'password_reset' %}">this form</a>.
+        The email address specified in this form must be used.
       </div>
     </div>
     <div class="row ml-5">

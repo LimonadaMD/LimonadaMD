@@ -33,7 +33,7 @@ from django.dispatch.dispatcher import receiver
 from django.utils.formats import localize
 
 # Django apps
-from forcefields.choices import SFTYPE_CHOICES
+from limonada.functions import delete_file
 
 
 def validate_file_extension(value):
@@ -164,14 +164,9 @@ class MemComment(models.Model):
         return '%s %s %s' % (self.user.username, self.membrane.name, localize(self.date))
 
 
-def _delete_file(path):
-    if os.path.isfile(path):
-        os.remove(path)
-
-
 @receiver(pre_delete, sender=MembraneTopol)
 def delete_file_pre_delete_mem(sender, instance, *args, **kwargs):
     if instance.mem_file:
-        _delete_file(instance.mem_file.path)
+        delete_file(instance.mem_file.path)
     if instance.compo_file:
-        _delete_file(instance.compo_file.path)
+        delete_file(instance.compo_file.path)

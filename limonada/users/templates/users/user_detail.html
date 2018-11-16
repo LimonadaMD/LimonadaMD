@@ -23,7 +23,9 @@
             <tr>
               <td><b>Curation:</b></td>
               <td>
+                <a class="text-success" href="{% url 'liplist' %}?curator={{ user.pk }}">Lipids</a><br>
                 <a class="text-success" href="{% url 'toplist' %}?curator={{ user.pk }}">Topologies</a><br>
+                <a class="text-success" href="{% url 'fflist' %}?curator={{ user.pk }}">Forcefileds</a><br>
                 <a class="text-success" href="{% url 'memlist' %}?curator={{ user.pk }}">Membranes</a>
               </td>
             </tr>

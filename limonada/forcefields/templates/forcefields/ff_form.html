@@ -24,6 +24,7 @@
               </span>
             </label>
           {% elif field.name == "mdp_file" %}
+            <br>
             <label for="{{ field.id_for_label }}">Parameters files:
               <span data-toggle="popover" data-trigger="hover" title="Parameters files" data-html="true"
                     data-content="Use a zip file containing the parameters files for minimization, nvt, npt and
@@ -33,16 +34,20 @@
               </span>
             </label>
           {% else %}
+            {% if field.name == "description" %}<br>{% endif %}
             {{ field.label_tag }}
           {% endif %}
         </div>
-        <div class="col-8 col-lg-4">
+        <div class="col-7 col-lg-4">
+          {% if field.name == "mdp_file" or field.name == "description" %}
+            <small class="float-right text-secondary">optional</small> 
+          {% endif %}
           {% if field.name == "ff_file" or field.name == "mdp_file"%}
             <div class="input-group">
               <div class="custom-file">
                 <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}"
                        class="custom-file-input"  accept=".zip">
-                <label class="custom-file-label" for="{{ field.id_for_label }}">{{ field.value|basename }}</label>
+                <label id="label_{{ field.html_name }}" class="custom-file-label" for="{{ field.id_for_label }}">{{ field.value|basename }}</label>
               </div>
             </div>
           {% else %}
@@ -51,6 +56,15 @@
           {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
           {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
         </div>
+<!--
+        {% if field.name == "mdp_file" %}
+          <div class="col-0">
+            <br>
+            <button id="id_mdp_file-remove" type="button" class="btn btn-danger btn-sm file-remove"
+                name="mdp_file-remove"><i class="fas fa-times"></i></button>
+          </div>
+        {% endif %}
+-->
       </div>
     {% endfor %}
     <div class="row ml-5">
@@ -58,8 +72,8 @@
         <button type="submit" class="btn btn-primary">{% if ffcreate %}Add{% else %}Update{% endif %}</button>
       </div>
     </div>
-  <input type="hidden" name="ffpath" value="{{ ffpath }}"/>
-  <input type="hidden" name="mdppath" value="{{ mdppath }}"/>
+  <input id="id_ffpath" type="hidden" name="ffpath" value="{{ ffpath }}"/>
+  <input id="id_mdppath" type="hidden" name="mdppath" value="{{ mdppath }}"/>
   </form>
 
 {% endblock %}
@@ -71,6 +85,17 @@
     $(document).ready(function(){
       $('[data-toggle="popover"]').popover();
     });
+    /*$(document).on('click', '.file-remove', function(e){*/
+      /*document.getElementById('#id_mdp_file').value = "";*/
+      /*$('#id_name').val('test');*/
+      /*$('#id_mdp_file').val(null);*/
+      /*$('#label_mdp_file').val('test');*/
+      /*$('.custom-file-label').val('test');*/
+      /*$('#id_mdp_file').next().text('this button is disabled')
+      $('#id_mdppath').val('');
+      /*delForm($(this));*/
+      /*alert('test');*/
+    /*});*/
   </script>
   {{ form.media }}
 

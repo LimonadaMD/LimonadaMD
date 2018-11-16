@@ -1,0 +1,9 @@
+integrator            = steep
+nsteps                = 10
+nstlist               = 10
+rlist                 = 1.2
+coulombtype           = cut-off
+rcoulomb              = 1.2
+vdw-type              = cut-off
+rvdw                  = 1.2
+nstenergy             = 10

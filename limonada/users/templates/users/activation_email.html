@@ -1,0 +1,13 @@
+{% autoescape off %}
+Dear {{ user.get_username }},
+
+Please click on the link below to confirm your registration on LimonadaMD,
+
+http://{{ domain }}{% url 'activation' uidb64=uid token=token %}
+
+If clicking the link above doesn't work, please copy and paste the URL in a new browser
+window instead.
+
+Sincerely,
+The Limonada Team
+{% endautoescape %}

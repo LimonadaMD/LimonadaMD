@@ -53,7 +53,7 @@ from django.views.generic import DeleteView, DetailView
 
 # Django apps
 from forcefields.models import Forcefield, Software
-from homepage.functions import FileData
+from limonada.functions import FileData
 from lipids.models import Lipid, Topology
 
 # local Django
@@ -82,13 +82,13 @@ def cd(newdir):
 @never_cache
 def MemList(request):
 
-    mem_list = MembraneTopol.objects.all()
+    mem_list = MembraneTopol.objects.all().order_by('-membrane__nb_liptypes')
 
     params = request.GET.copy()
 
     form_select = SelectMembraneForm()
     selectparams = {}
-    for param in ['equilibration', 'lipids', 'tags', 'nbliptypes', 'nblipids']:
+    for param in ['software', 'forcefield','lipids', 'tags']:
         if param in request.GET.keys():
             if request.GET[param] != '':
                 if param == 'lipids':
@@ -97,12 +97,20 @@ def MemList(request):
                 elif param == 'tags':
                     taglist = request.GET[param].split(',')
                     selectparams['tags'] = taglist
+                elif param == 'software':
+                    softlist = request.GET[param].split(',')
+                    selectparams['software'] = softlist
                 else:
                     selectparams[param] = request.GET[param]
     form_select = SelectMembraneForm(selectparams)
     if form_select.is_valid():
-        if 'equilibration' in selectparams.keys():
-            mem_list = mem_list.filter(equilibration__gte=selectparams['equilibration'])
+        if 'software' in selectparams.keys():
+            querylist = []
+            for i in softlist:
+                querylist.append(Q(software=Software.objects.filter(id=i)))
+            mem_list = mem_list.filter(reduce(operator.or_, querylist))
+        if 'forcefield' in selectparams.keys():
+            mem_list = mem_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
         if 'lipids' in selectparams.keys():
             querylist = []
             for i in liplist:
@@ -113,10 +121,6 @@ def MemList(request):
             for i in taglist:
                 querylist.append(Q(membrane=Membrane.objects.filter(tag=i)))
             mem_list = mem_list.filter(reduce(operator.or_, querylist)).distinct()
-        if 'nbliptypes' in selectparams.keys():
-            mem_list = mem_list.filter(membrane=Membrane.objects.filter(nb_liptypes__gt=selectparams['nbliptypes']))
-        if 'nblipids' in selectparams.keys():
-            mem_list = mem_list.filter(nb_lipids__gt=selectparams['nblipids'])
 
     if 'memid' in request.GET.keys():
         try:
@@ -144,10 +148,12 @@ def MemList(request):
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')
-    headers = ['name', 'nbliptypes', 'nb_lipids']
+    headers = ['name', 'nbliptypes', 'nb_lipids', 'forcefield']
     if sort is not None and sort in headers:
         if sort == 'nbliptypes':
             mem_list = mem_list.order_by('membrane__nb_liptypes')
+        elif sort == 'forcefield':
+            mem_list = mem_list.order_by('forcefield__name')
         else:
             mem_list = mem_list.order_by(sort)
         if sortdir == 'des':
@@ -435,7 +441,9 @@ def MemUpdate(request, pk=None):
             return redirect('homepage')
         if request.method == 'POST' and 'add' in request.POST:
             file_data = {}
-            file_data, mempath = FileData(request, 'mem_file', 'mempath', file_data)
+            mempath = ''
+            if mt.mem_file:
+                file_data, mempath = FileData(request, 'mem_file', 'mempath', file_data)
             topform = MembraneTopolForm(request.POST, file_data, instance=mt)
             memform = MembraneForm(request.POST, instance=mt.membrane)
             formset = MemFormSet(request.POST)
@@ -559,7 +567,7 @@ def MemUpdate(request, pk=None):
 
                 if rand:
                     shutil.rmtree(os.path.join(settings.MEDIA_ROOT, 'tmp', rand), ignore_errors=True)
-                if mempath_init != mt.mem_file:
+                if mempath_init != mt.mem_file and os.path.isfile('media/' + mempath_init):
                     os.remove('media/' + mempath_init)
                 if compopath_init != mt.compo_file:
                     os.remove('media/' + compopath_init)
@@ -640,7 +648,7 @@ def MemDetail(request, pk=None):
                                    '\n\n%s %s has published ' % (comment.user.first_name, comment.user.last_name),
                                    'the following comment on %s.\n\n' % (comment.date.strftime("%b. %d, %Y at %H:%M")),
                                    '%s\n\nSincerely,\nThe Limonada Team' % (comment.comment)))
-                    send_mail(subject, text, settings.VERIFIED_EMAIL_MAIL_FROM, [email, ])
+                    send_mail(subject, text, settings.DEFAULT_FROM_EMAIL, [email, ])
                 form = MemCommentForm()
         else:
             form = MemCommentForm()
@@ -780,7 +788,7 @@ def GetFiles(request):
 class MembraneTagAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
-        qs = MembraneTag.objects.all()
+        qs = MembraneTag.objects.all().order_by('tag')
         if self.q:
             qs = qs.filter(tag__icontains=self.q)
         return qs

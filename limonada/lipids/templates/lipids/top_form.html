@@ -14,8 +14,14 @@
     {% csrf_token %}
     {% for field in form %}
       <div class="row py-1 ml-5">
-        <div class="col-3 col-lg-2 col-md-3 pt-1">{{ field.label_tag }}</div>
+        <div class="col-3 col-lg-2 col-md-3 pt-1">
+          {% if field.name == "description" %}<br>{% endif %}
+          {{ field.label_tag }}
+        </div>
         <div class="col-9 col-lg-4 col-md-7">
+          {% if field.name == "description" %}
+            <small class="float-right text-secondary">optional</small>
+          {% endif %}
           {% if field.name == "itp_file" or field.name == "gro_file" %}
             <div class="input-group">
               <div class="custom-file">
@@ -89,6 +95,7 @@
     function populate(){
       var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
       var val = $("#id_software").val();
+      var ff = $("#id_forcefield").val();
       var s1  = document.getElementById("id_forcefield");
       while (s1.options.length > 0) {
         s1.remove(0);
@@ -101,7 +108,11 @@
         success: function (data) {
           if (data.length > 0) {
             for (var i = 0; i < data.length; i++) {
-              $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+              if (ff == data[i].value) {
+                $(s1).append('<option value='+ data[i].value +' selected="selected">'+ data[i].name +'</option>');
+              } else {
+                $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+              }
             };
           } else {
             $(s1).append('<option value="">---------</option>');

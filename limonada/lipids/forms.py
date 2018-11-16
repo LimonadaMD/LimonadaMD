@@ -28,12 +28,19 @@ from django.forms.widgets import Select, Textarea, TextInput
 from django.utils.safestring import mark_safe
 
 # Django apps
-from forcefields.choices import SFTYPE_CHOICES
 from forcefields.models import Forcefield, Software
 
 # local Django
 from .functions import gmxrun
 from .models import TopComment, Lipid, Topology, validate_file_extension, validate_lmid, validate_name
+
+
+class LipidAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = Lipid
+        fields = ('__all__')
+        widgets = {'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
 class LmidForm(forms.Form):
@@ -76,6 +83,9 @@ class LipidForm(forms.ModelForm):
     formula = forms.CharField(label='Formula',
                               widget=TextInput(attrs={'class': 'form-control'}),
                               required=False)
+    pubchem_cid = forms.CharField(label='PubChem CID',
+                                  widget=TextInput(attrs={'class': 'form-control'}),
+                                  required=False)
     img = forms.ImageField(widget=forms.FileInput(attrs={'accept': '.jpg,.png'}),
                            validators=[validate_file_extension],
                            required=False)
@@ -83,15 +93,7 @@ class LipidForm(forms.ModelForm):
     class Meta:
         model = Lipid
         fields = ['name', 'lmid', 'core', 'main_class', 'sub_class', 'l4_class', 'com_name', 'sys_name', 'iupac_name',
-                  'formula', 'img']
-
-
-class LipidAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = Lipid
-        fields = ('__all__')
-        widgets = {'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
+                  'formula', 'pubchem_cid', 'img']
 
 
 class SelectLipidForm(forms.Form):
@@ -108,6 +110,17 @@ class SelectLipidForm(forms.Form):
                                   required=False)
     l4_class = forms.ChoiceField(label='Class Level 4',
                                  required=False)
+
+
+class TopologyAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = Topology
+        fields = ('__all__')
+        widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete'),
+                   'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
+                   'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
+                   'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
 class TopologyForm(forms.ModelForm):
@@ -130,7 +143,7 @@ class TopologyForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(TopologyForm, self).clean()
-        softindex = cleaned_data.get('software')
+        software = cleaned_data.get('software')
         ff = cleaned_data.get('forcefield')
         lipid = cleaned_data.get('lipid')
         version = cleaned_data.get('version')
@@ -141,29 +154,17 @@ class TopologyForm(forms.ModelForm):
                 self.add_error('version', mark_safe(
                     'This version name is already taken by another topology entry for this lipid and forcefield.'))
 
-        if lipid and ff and softindex and 'itp_file' in cleaned_data.keys() and 'gro_file' in cleaned_data.keys():
+        if lipid and ff and software and 'itp_file' in cleaned_data.keys() and 'gro_file' in cleaned_data.keys():
             itp_file = cleaned_data['itp_file']
             gro_file = cleaned_data['gro_file']
-            for name in softindex:
-                software = Software.objects.filter(name=name).values_list('abbreviation', flat=True)[0]
-                error, rand = gmxrun(lipid.name, ff.ff_file.url, ff.mdp_file.url, itp_file, gro_file, software)
+            for soft in software:
+                error, rand = gmxrun(lipid.name, ff.ff_file.url, itp_file, gro_file, soft.abbreviation)
                 if error:
                     logpath = '/media/tmp/%s/gromacs.log' % rand
                     self.add_error('itp_file', mark_safe(
                         'Topology file is not valid. See <a class="text-success" href="%s">gromacs.log</a>' % logpath))
 
         return cleaned_data
-
-
-class TopologyAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = Topology
-        fields = ('__all__')
-        widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete'),
-                   'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
-                   'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
-                   'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
 class SelectTopologyForm(forms.Form):
@@ -186,17 +187,17 @@ class SelectTopologyForm(forms.Form):
                                  required=False)
 
 
-class TopCommentForm(forms.ModelForm):
-
-    class Meta:
-        model = TopComment
-        fields = ['comment']
-        widgets = {'comment': Select(attrs={'class': 'form-control'})}
-
-
 class TopCommentAdminForm(forms.ModelForm):
 
     class Meta:
         model = TopComment
         fields = ('__all__')
         widgets = {'user': autocomplete.ModelSelect2(url='user-autocomplete')}
+
+
+class TopCommentForm(forms.ModelForm):
+
+    class Meta:
+        model = TopComment
+        fields = ['comment']
+        widgets = {'comment': Select(attrs={'class': 'form-control'})}

@@ -61,30 +61,39 @@
               {% if sort == "refid" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="refid" dir="des" %}">Name</a>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="refid" dir="asc" %}">Name</a>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="refid" dir="asc" %}">Name</a>
               {% endif %}
-              <a href="?{% url_replace sort="refid" %}"> Name</a>
             </th>
             <th class="w-70">
               {% if sort == "title" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="title" dir="des" %}">Title</a></th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="title" dir="asc" %}">Title</a></th>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="title" dir="asc" %}">Title</a></th>
               {% endif %}
-              <a href="?{% url_replace sort="title" %}">Title</a></th>
             <th class="w-5">
               {% if sort == "year" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="year" dir="asc" %}">Year</a></th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="year" dir="asc" %}">Year</a></th>
                 {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="year" dir="asc" %}">Year</a></th>
               {% endif %}
-              <a href="?{% url_replace sort="year" %}">Year</a></th>
             {% if user.is_authenticated %}
               <th class="w-10"></th>
             {% endif %}

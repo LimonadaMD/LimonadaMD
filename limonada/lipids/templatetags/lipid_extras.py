@@ -31,6 +31,9 @@ register = template.Library()
 
 @register.simple_tag()
 def lm_select(val):
+    """ This function finds the child elements of a LipidMaps class
+        in order to fill a dropdown select field on page load.
+    """
     lmclass, lmdict = lm_class()
     options = []
     if val in lmclass.keys():
@@ -40,6 +43,9 @@ def lm_select(val):
 
 @register.simple_tag()
 def top_select(lipid, forcefield):
+    """ This function finds the topologies available for a particular lipid and
+        forcefield in order to fill dropdown select field on page load.
+    """
     top_list = Topology.objects.filter(lipid__id=lipid)
     top_list = top_list.filter(forcefield__id=forcefield)
     options = list((obj.id, obj.version) for obj in top_list)

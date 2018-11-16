@@ -3,7 +3,6 @@ netifaces
 django-autocomplete-light==3.2.10
 django-debug-toolbar
 django-cors-headers
-django-verified-email-field
 requests
 simplejson
 Pillow

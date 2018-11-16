@@ -19,18 +19,35 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
+# standard library
+import os
+import zipfile
+
 # third-party
 from dal import autocomplete
 
 # Django
 from django import forms
+from django.conf import settings
+from django.core.files.storage import default_storage
 from django.forms.widgets import Select, Textarea, TextInput
+from django.utils.safestring import mark_safe
 
 # Django apps
 from forcefields.choices import FFTYPE_CHOICES
 
 # local Django
 from .models import Forcefield, Software
+
+
+class ForcefieldAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = Forcefield
+        fields = ('__all__')
+        widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
+                   'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
+                   'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
 class ForcefieldForm(forms.ModelForm):
@@ -40,7 +57,8 @@ class ForcefieldForm(forms.ModelForm):
                                         initial='AA',
                                         widget=Select(attrs={'class': 'form-control'}))
     ff_file = forms.FileField(label='Forcefield files')
-    mdp_file = forms.FileField(label='Parameters files')
+    mdp_file = forms.FileField(label='Parameters files',
+                               required=False)
     description = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
                                   required=False)
 
@@ -54,24 +72,44 @@ class ForcefieldForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ForcefieldForm, self).clean()
         name = cleaned_data.get('name')
-        softindex = cleaned_data.get('software')[0]
+        soft = cleaned_data.get('software')[0]
+        ff_file = cleaned_data.get('ff_file')
+        mdp_file = cleaned_data.get('mdp_file')
 
-        if name and softindex:
-            software = Software.objects.filter(name=softindex)
+        if name and soft:
+            software = Software.objects.filter(name=soft)
             if Forcefield.objects.filter(
                     name=name, software=software).exclude(pk=self.instance.id).exists():
                 self.add_error('name', mark_safe(
-                    'This name is already taken by another forcefield entry for the %s software.' % (software.abbreviation)))
+                    'This name is already taken by another forcefield entry for the %s software.' % (software.name)))
 
+        if ff_file:
+            path = os.path.join('tmp/', 'clean_%s' % ff_file.name)
+            mediapath = os.path.join('media/', path)
+            if os.path.isfile(mediapath):
+                os.remove(mediapath)
+            with default_storage.open(path, 'wb+') as destination:
+                for chunk in ff_file.chunks():
+                    destination.write(chunk)
+            try:
+                ffzip = zipfile.ZipFile(mediapath)
+                if not ffzip.namelist():
+                    self.add_error('ff_file', mark_safe('Empty ZIP file'))
+            except:
+                self.add_error('ff_file', mark_safe('Invalid ZIP file'))
 
-class ForcefieldAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = Forcefield
-        fields = ('__all__')
-        widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
-                   'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
-                   'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
+        if mdp_file:
+            path = os.path.join('tmp/', 'clean_%s' % mdp_file.name)
+            mediapath = os.path.join('media/', path)
+            if os.path.isfile(mediapath):
+                os.remove(mediapath)
+            with default_storage.open(path, 'wb+') as destination:
+                for chunk in mdp_file.chunks():
+                    destination.write(chunk)
+            try:
+                mdpzip = zipfile.ZipFile(mediapath)
+            except:
+                self.add_error('mdp_file', mark_safe('Invalid ZIP file'))
 
 
 class SelectForcefieldForm(forms.Form):

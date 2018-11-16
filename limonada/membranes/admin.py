@@ -23,13 +23,9 @@
 from django.contrib import admin
 
 # local Django
-from .models import MemComment, Composition, Membrane, MembraneTag, MembraneTopol, TopolComposition
-from .forms import (MemCommentAdminForm, CompositionAdminForm, MembraneAdminForm, MembraneTopolAdminForm,
+from .models import Composition, Membrane, MembraneTag, MembraneTopol, MemComment, TopolComposition
+from .forms import (CompositionAdminForm, MembraneAdminForm, MembraneTopolAdminForm, MemCommentAdminForm,
                     TopolCompositionAdminForm)
-
-
-class MemCommentAdmin(admin.ModelAdmin):
-    form = MemCommentAdminForm
 
 
 class CompositionInline(admin.TabularInline):
@@ -54,7 +50,11 @@ class MembraneTopolAdmin(admin.ModelAdmin):
     inlines = (TopolCompositionInline,)
 
 
-admin.site.register(MemComment, MemCommentAdmin)
-admin.site.register(MembraneTopol, MembraneTopolAdmin)
-admin.site.register(MembraneTag)
+class MemCommentAdmin(admin.ModelAdmin):
+    form = MemCommentAdminForm
+
+
 admin.site.register(Membrane, MembraneAdmin)
+admin.site.register(MembraneTag)
+admin.site.register(MembraneTopol, MembraneTopolAdmin)
+admin.site.register(MemComment, MemCommentAdmin)

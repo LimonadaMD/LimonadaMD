@@ -31,6 +31,14 @@ from django.forms.widgets import Textarea, TextInput, CheckboxInput
 from .models import Reference, validate_doi, validate_year
 
 
+class ReferenceAdminForm(ModelForm):
+
+    class Meta:
+        model = Reference
+        fields = ('__all__')
+        widgets = {'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
+
+
 class DoiForm(Form):
 
     doisearch = forms.CharField(widget=TextInput(attrs={'placeholder': 'e.g., 10.1021/jp101759q',
@@ -58,14 +66,6 @@ class ReferenceForm(ModelForm):
     class Meta:
         model = Reference
         fields = ['refid', 'authors', 'title', 'journal', 'volume', 'year', 'doi']
-
-
-class ReferenceAdminForm(ModelForm):
-
-    class Meta:
-        model = Reference
-        fields = ('__all__')
-        widgets = {'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
 class SelectForm(Form):

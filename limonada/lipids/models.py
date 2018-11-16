@@ -39,7 +39,7 @@ from django.utils.formats import localize
 from django.utils.translation import ugettext_lazy as _
 
 # Django apps
-from forcefields.choices import SFTYPE_CHOICES
+from limonada.functions import delete_file
 
 
 _UNSAVED_ITPFILE = 'unsaved_itpfile'
@@ -94,7 +94,7 @@ def file_path(instance, filename):
     version = unicodedata.normalize('NFKD', instance.version).encode('ascii', 'ignore').replace(' ', '_')
     forcefield = unicodedata.normalize('NFKD', instance.forcefield.name).encode('ascii', 'ignore').replace(' ', '_')
 #   ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro} (we assume gromacs for now)
-    filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software.all()[0].abbreviation, forcefield,
+    filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software.all()[0].name, forcefield,
                                                           instance.lipid.name, version, ext)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
@@ -126,6 +126,8 @@ class Lipid(models.Model):
     l4_class = models.CharField(max_length=200,
                                 null=True,
                                 blank=True)
+    pubchem_cid = models.CharField(max_length=50,
+                                   null=True)
     img = models.ImageField(upload_to=img_path,
                             validators=[validate_file_extension],
                             null=True)
@@ -141,7 +143,7 @@ class Lipid(models.Model):
         return reverse('liplist')
 
 
-class Topology(models.Model):  # If not in CG recommend use of CGtools
+class Topology(models.Model):
 
     software = models.ManyToManyField('forcefields.Software')
     forcefield = models.ForeignKey('forcefields.Forcefield',
@@ -179,23 +181,18 @@ class TopComment(models.Model):
             localize(self.date))
 
 
-def _delete_file(path):
-    if os.path.isfile(path):
-        os.remove(path)
-
-
 @receiver(pre_delete, sender=Lipid)
 def delete_file_pre_delete_lip(sender, instance, *args, **kwargs):
     if instance.img:
-         _delete_file(instance.img.path)
+         delete_file(instance.img.path)
 
 
 @receiver(pre_delete, sender=Topology)
 def delete_file_pre_delete_top(sender, instance, *args, **kwargs):
     if instance.itp_file:
-         _delete_file(instance.itp_file.path)
+         delete_file(instance.itp_file.path)
     if instance.gro_file:
-         _delete_file(instance.gro_file.path)
+         delete_file(instance.gro_file.path)
 
 
 @receiver(pre_save, sender=Topology)
@@ -209,6 +206,10 @@ def skip_saving_file(sender, instance, **kwargs):
 
 @receiver(m2m_changed, sender=Topology.software.through)
 def save_file_on_m2m(sender, instance, action, **kwargs):
+    """ The directory where the topology files will be saved involve in its path the name of the software
+        familly with which it can be used. For the Topology table, software is a ManyToMany field that
+        can only be saved once the Topology instance has an id.
+    """
     if action == 'post_add' and hasattr(instance, _UNSAVED_ITPFILE) and hasattr(instance, _UNSAVED_GROFILE):
         instance.itp_file = getattr(instance, _UNSAVED_ITPFILE)
         instance.gro_file = getattr(instance, _UNSAVED_GROFILE)

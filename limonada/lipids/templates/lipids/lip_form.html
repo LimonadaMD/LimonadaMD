@@ -51,8 +51,10 @@
           {% csrf_token %}
           {% for field in form_add %}
             <div class="row p-1">
-    
               <div class="col-3 pt-1">
+                {% if field.name == "iupac_name" or field.name == "formula" or field.name == "img" %}
+                  <br>
+                {% endif %}
                 {% if field.name == "name" %}
                   <label for="{{ field.id_for_label }}">Name:
                     <span data-toggle="popover" data-trigger="hover" title="Lipid naming"
@@ -96,6 +98,9 @@
               </div>
     
               <div class="col-9">
+                {% if field.name == "sys_name" or field.name == "iupac_name" or field.name == "formula" or field.name == "pubchem_cid" or field.name == "img" %}
+                  <small class="float-right text-secondary">optional</small>
+                {% endif %}
                 {% if field.name == "img" %}
                   <div class="input-group">
                     <div class="custom-file">

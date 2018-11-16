@@ -6,13 +6,9 @@
 
   <h1>Topologies</h1>
   <br>
-
-  <form method="post">
-    {% csrf_token %}
-    <p>The topology record "{{ top }}" is associated with {{ nbmem }} membrane objects.<br>
-        As you are not the curator of all these objects, you cannot delete "{{ top }}".<br>
-        If you still want to delete this record, please contact the other curators or the Limonada Team.</p>
-  </form>
+  <p>The topology record "{{ top }}" is associated with {{ nbmem }} membrane objects.<br>
+      As you are not the curator of all these objects, you cannot delete "{{ top }}".<br>
+      If you still want to delete this record, please contact the other curators or the Limonada Team.</p>
   <br>
 
 {% endblock %}

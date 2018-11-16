@@ -25,13 +25,15 @@ from django.contrib.auth import views as auth_views
 
 # local Django
 from .forms import LoginForm
-from .views import UserAutocomplete, UserDetail, signup, update, userinfo
+from .views import activation, UserAutocomplete, UserDetail, signup, update, userinfo
 
 urlpatterns = [
     url(r'^login/$', auth_views.login, {'template_name': 'homepage/index.html', 'authentication_form': LoginForm,
         'extra_context': {'homepage': True}}, name='login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
     url(r'^signup/$', signup, name='signup'),
+    url(r'^activation/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        activation, name='activation'),
     url(r'^update/$', update, name='update'),
     url(r'^userinfo/$', userinfo, name='userinfo'),
     url(r'^users/(?P<pk>\d+)/$', UserDetail.as_view(), name='userdetail'),
@@ -43,5 +45,4 @@ urlpatterns = [
         auth_views.password_reset_confirm, {'extra_context': {'homepage': True}}, name='password_reset_confirm'),
     url(r'^reset/done/$', auth_views.password_reset_complete, {'extra_context': {'homepage': True}},
         name='password_reset_complete'),
-    url(r'^verified-email-field/', include('verified_email_field.urls')),
 ]

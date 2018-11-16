@@ -252,7 +252,7 @@
                 <a class="text-success" href="{% url 'lipdetail' topology.lipid.slug %}">
                     {{ topology.lipid.name }} - {{ topology.lipid.com_name|slashbreak|safe }}</a>
               </td>
-              <td>{{ topology.software.all|join:", " }}</td>
+              <td>{% with topology.software.all|first as soft %}{{ soft.name }}{% endwith %}</td>
               <td>
                 <a href="{{ topology.gro_file.url }}" class="text-success" target="blank">
                     {{ topology.gro_file.url|basename }}</a>,
@@ -356,6 +356,7 @@
     function populate(){
       var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
       var val = $("#id_software").val();
+      var ff = $("#id_forcefield").val();
       var s1  = document.getElementById("id_forcefield");
       while (s1.options.length > 0) {
         s1.remove(0);
@@ -368,7 +369,11 @@
         success: function (data) {
           if (data.length > 0) {
             for (var i = 0; i < data.length; i++) {
-              $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+              if (ff == data[i].value) {
+                $(s1).append('<option value='+ data[i].value +' selected="selected">'+ data[i].name +'</option>');
+              } else {
+                $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+              }
             };
           } else {
             $(s1).append('<option value="">---------</option>');

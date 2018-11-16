@@ -37,9 +37,9 @@ urlpatterns = [
     url(r'^membranes/(?P<pk>\d+)/update/$', MemUpdate, name='memupdate'),
     url(r'^membranes/(?P<pk>\d+)/delete/$', MemDelete, name='memdelete'),
     url(r'^membrane-autocomplete/$', MembraneAutocomplete.as_view(), name='membrane-autocomplete'),
-    url(r'^getliptops/$', GetLipTops, name='getliptops'),
-    url(r'^getfiles/$', GetFiles, name='getfiles'),
+    url(r'^tag-autocomplete/$', MembraneTagAutocomplete.as_view(), name='tag-autocomplete'),
     url(r'^membranetag-autocomplete/$', MembraneTagAutocomplete.as_view(create_field='tag'),
         name='membranetagautocomplete'),
-    url(r'^tag-autocomplete/$', MembraneTagAutocomplete.as_view(), name='tag-autocomplete'),
+    url(r'^getliptops/$', GetLipTops, name='getliptops'),
+    url(r'^getfiles/$', GetFiles, name='getfiles'),
 ]

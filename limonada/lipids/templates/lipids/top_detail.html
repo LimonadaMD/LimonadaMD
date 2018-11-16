@@ -29,7 +29,15 @@
                   {{ topology.forcefield }}</a>
             </td>
           </tr>
-          <tr><td class="font-weight-bold">Software:</td><td>{{ topology.software.all|join:", " }}</td></tr>
+          <tr>
+            <td class="font-weight-bold">Software:</td>
+            <td>
+              {% with topology.software.all|first as soft %}{{ soft.name }}{% endwith %}
+              {% for soft in topology.software.all|dictsort:"order" %}
+                {{ soft.version }}{% if not forloop.last %},{% endif %}
+              {% endfor %}            
+            </td>
+          </tr>
           <tr><td class="font-weight-bold">Version:</td><td>{{ topology.version }}</td></tr>
           <tr>
             <td class="font-weight-bold">Files:</td>

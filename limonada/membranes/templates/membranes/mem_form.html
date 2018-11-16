@@ -15,9 +15,13 @@
     {% csrf_token %}
     {% for field in topform %}
       <div class="row py-1 ml-5">
-        <div class="col-3 col-lg-2 col-md-3 pt-1">{{ field.label_tag }}</div>
+        <div class="col-3 col-lg-2 col-md-3 pt-1">
+          {% if field.name == "mem_file" or field.name == "description" %}<br>{% endif %}
+          {{ field.label_tag }}
+        </div>
         {% if field.name == "mem_file" %}
           <div class="col-7 col-lg-4 col-md-7">
+            <small class="float-right text-secondary">optional</small>
             <div class="input-group">
               <div class="custom-file">
                 <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="custom-file-input"
@@ -30,7 +34,8 @@
             {% for info in minfos %}<span class="text-warning">{{ info }}<br></span>{% endfor %}
             {% for error in merrors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
           </div>
-          <div class="col-2 pt-1">
+          <div class="col-2">
+            <br>
             <button class="btn btn-sm" name="analyze" onclick="readfile();">Analyze</button>
             <span data-toggle="popover" data-trigger="hover" title="Membrane analysis"
                   data-content='This function allows to fill the composition form from a membrane structrure file.
@@ -60,6 +65,9 @@
           </div>
         {% else %}
           <div class="col-9 col-lg-4 col-md-7">
+            {% if field.name == "description" %}
+              <small class="float-right text-secondary">optional</small>
+            {% endif %}
             {{ field }}
             {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
             {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
@@ -95,7 +103,7 @@
                       <select id="id_{{ lip.prefix }}-topology" name="{{ lip.prefix }}-topology"
                               class="form-control-sm w-100">
                     {% endif %}
-                    {% if ffobjects %}
+                    {% if ffobjects and lip.topology.value %}
                       {% for value,name in topobjects %}
                         <option value="{{ value }}"
                           {% if value|stringformat:"s" == lip.topology.value|stringformat:"s" %}
@@ -137,6 +145,7 @@
     {% for memfield in memform %}
       <div class="row py-1 ml-5">
         <div class="col-3 col-lg-2 col-md-3 pt-1">
+          {% if memfield.name == "tag" %}<br>{% endif %}
           {{ memfield.label_tag }}
           {% if memfield.name == "tag" %}
             <span data-toggle="popover" data-trigger="hover" title="Membrane tags"
@@ -146,6 +155,9 @@
           {% endif %}
         </div>
         <div class="col-9 col-lg-4 col-md-7">
+          {% if memfield.name == "tag" %}
+            <small class="float-right text-secondary">optional</small>
+          {% endif %}
           {{ memfield }}
           {% if memfield.help_text %}<small class="text-secondary">{{ memfield.help_text }}<br></small>{% endif %}
           {% for error in memfield.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
@@ -288,6 +300,7 @@
     function populate(){
       var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
       var val = $("#id_software").val();
+      var ff = $("#id_forcefield").val();
       var s1  = document.getElementById("id_forcefield");
       while (s1.options.length > 0) {
         s1.remove(0);
@@ -300,7 +313,11 @@
         success: function (data) {
           if (data.length > 0) {
             for (var i = 0; i < data.length; i++) {
-              $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+              if (ff == data[i].value) {
+                $(s1).append('<option value='+ data[i].value +' selected="selected">'+ data[i].name +'</option>');
+              } else {
+                $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
+              }
             };
           } else {
             $(s1).append('<option value="">---------</option>');

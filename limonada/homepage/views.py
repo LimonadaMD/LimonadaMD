@@ -57,14 +57,9 @@ def links(request):
     return render(request, 'homepage/links.html', data)
 
 
-headers = {'refid': 'asc',
-           'title': 'asc',
-           'year': 'asc'}
-
-
 def RefList(request):
 
-    ref_list = Reference.objects.all()
+    ref_list = Reference.objects.all().order_by('-year')
 
     params = request.GET.copy()
 
@@ -77,13 +72,12 @@ def RefList(request):
                 ref_list = Reference.objects.filter(year=year)
 
     sort = request.GET.get('sort')
-    if sort is not None:
+    sortdir = request.GET.get('dir')
+    headers = ['refid', 'title', 'year']
+    if sort is not None and sort in headers:
         ref_list = ref_list.order_by(sort)
-        if headers[sort] == 'des':
+        if sortdir == 'des':
             ref_list = ref_list.reverse()
-            headers[sort] = 'asc'
-        else:
-            headers[sort] = 'des'
 
     per_page = 25
     if 'per_page' in request.GET.keys():
@@ -110,8 +104,8 @@ def RefList(request):
     data['page_objects'] = refs
     data['per_page'] = per_page
     data['sort'] = sort
-    if sort is not None:
-        data['dir'] = headers[sort]
+    if sort is not None and sort in headers:
+        data['dir'] = sortdir
     data['references'] = True
     data['params'] = params
 
@@ -206,7 +200,7 @@ class RefDelete(DeleteView):
 class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
-        qs = Reference.objects.all()
+        qs = Reference.objects.all().order_by('refid')
         if self.q:
             qs = qs.filter(refid__icontains=self.q)
         return qs
@@ -289,10 +283,10 @@ def mail(request):
             subject = form.cleaned_data['subject']
             comment = form.cleaned_data['comment']
             if curation:
-                send_mail(subject, comment, settings.VERIFIED_EMAIL_MAIL_FROM,
+                send_mail(subject, comment, settings.DEFAULT_FROM_EMAIL,
                           [email, 'jean-marc.crowet@univ-reims.fr'])
             else:
-                send_mail(subject, comment, settings.VERIFIED_EMAIL_MAIL_FROM, [email, ])
+                send_mail(subject, comment, settings.DEFAULT_FROM_EMAIL, [email, ])
             if 'lipid' in request.GET.keys():
                 return redirect('liplist')
             if 'topid' in request.GET.keys():

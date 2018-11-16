@@ -28,12 +28,21 @@ from django.forms import ModelForm, formset_factory
 from django.forms.widgets import NumberInput, Select, Textarea, TextInput
 
 # Django apps
-from forcefields.choices import SFTYPE_CHOICES
-from forcefields.models import Forcefield
+from forcefields.models import Forcefield, Software
 from lipids.models import Lipid
 
 # local Django
 from .models import MemComment, Composition, Membrane, MembraneTag, MembraneTopol, TopolComposition
+
+
+class MembraneTopolAdminForm(ModelForm):
+
+    class Meta:
+        model = MembraneTopol
+        fields = ('__all__')
+        widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
+                   'membrane': autocomplete.ModelSelect2(url='membrane-autocomplete'),
+                   'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
 class MembraneTopolForm(ModelForm):
@@ -60,14 +69,12 @@ class MembraneTopolForm(ModelForm):
         labels = {'reference': 'References'}
 
 
-class MembraneTopolAdminForm(ModelForm):
+class MembraneAdminForm(ModelForm):
 
     class Meta:
-        model = MembraneTopol
+        model = Membrane
         fields = ('__all__')
-        widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
-                   'membrane': autocomplete.ModelSelect2(url='membrane-autocomplete'),
-                   'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
+        widgets = {'tag': autocomplete.ModelSelect2Multiple(url='tag-autocomplete')}
 
 
 class MembraneForm(ModelForm):
@@ -77,29 +84,6 @@ class MembraneForm(ModelForm):
         fields = ['tag']
         widgets = {'tag': autocomplete.ModelSelect2Multiple(url='membranetagautocomplete',
                                                             attrs={'data-placeholder': 'e.g., plasma membrane'})}
-
-
-class MembraneAdminForm(ModelForm):
-
-    class Meta:
-        model = Membrane
-        fields = ('__all__')
-        widgets = {'tag': autocomplete.ModelSelect2Multiple(url='tag-autocomplete')}
-
-
-class CompositionForm(ModelForm):
-
-    number = forms.IntegerField(widget=NumberInput(attrs={'class': 'form-control-sm'}))
-
-    class Meta:
-        model = TopolComposition
-        fields = ['lipid', 'topology', 'number', 'side']
-        widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete',
-                                                      attrs={'class': 'dal-lipid'}),
-                   'side': Select(attrs={'class': 'form-control-sm'})}
-
-
-MemFormSet = formset_factory(CompositionForm)
 
 
 class TopolCompositionAdminForm(ModelForm):
@@ -119,31 +103,34 @@ class CompositionAdminForm(ModelForm):
         widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete')}
 
 
+class CompositionForm(ModelForm):
+
+    number = forms.IntegerField(widget=NumberInput(attrs={'class': 'form-control-sm'}))
+
+    class Meta:
+        model = TopolComposition
+        fields = ['lipid', 'topology', 'number', 'side']
+        widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete',
+                                                      attrs={'class': 'dal-lipid'}),
+                   'side': Select(attrs={'class': 'form-control-sm'})}
+
+
+MemFormSet = formset_factory(CompositionForm)
+
+
 class SelectMembraneForm(forms.Form):
 
+    software = forms.ModelMultipleChoiceField(queryset=Software.objects.all(),
+                                              widget=autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
+                                              required=False)
+    forcefield = forms.ModelChoiceField(queryset=Forcefield.objects.all(),
+                                        required=False)
     lipids = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(),
                                             widget=autocomplete.ModelSelect2Multiple(url='lipid-autocomplete'),
                                             required=False)
     tags = forms.ModelMultipleChoiceField(queryset=MembraneTag.objects.all(),
                                           widget=autocomplete.ModelSelect2Multiple(url='tag-autocomplete'),
                                           required=False)
-    nbliptypes = forms.IntegerField(label='Lipid species > ',
-                                    widget=NumberInput(attrs={'class': 'form-control'}),
-                                    required=False)
-    nblipids = forms.IntegerField(label='Lipids > ',
-                                  widget=NumberInput(attrs={'class': 'form-control'}),
-                                  required=False)
-    equilibration = forms.IntegerField(label='Equilibration (ns) > ',
-                                       widget=NumberInput(attrs={'class': 'form-control'}),
-                                       required=False)
-
-
-class MemCommentForm(forms.ModelForm):
-
-    class Meta:
-        model = MemComment
-        fields = ['comment']
-        widgets = {'comment': Select(attrs={'class': 'form-control'})}
 
 
 class MemCommentAdminForm(forms.ModelForm):
@@ -152,3 +139,11 @@ class MemCommentAdminForm(forms.ModelForm):
         model = MemComment
         fields = ('__all__')
         widgets = {'user': autocomplete.ModelSelect2(url='user-autocomplete')}
+
+
+class MemCommentForm(forms.ModelForm):
+
+    class Meta:
+        model = MemComment
+        fields = ['comment']
+        widgets = {'comment': Select(attrs={'class': 'form-control'})}

@@ -20,19 +20,14 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # Django
-from django import template
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils import six
 
-register = template.Library()
 
-
-@register.assignment_tag
-def lipidnames(qs):
-    """ This function makes a list of lipid species in the composition.
-    """
-    lipids = []
-    for comp in qs:
-        lip = comp.topology.lipid
-        if lip not in lipids:
-            lipids.append(lip)
-
-    return lipids
+class TokenGenerator(PasswordResetTokenGenerator):
+    def _make_hash_value(self, user, timestamp):
+        return (
+            six.text_type(user.pk) + six.text_type(timestamp) +
+            six.text_type(user.is_active)
+        )
+account_activation_token = TokenGenerator()

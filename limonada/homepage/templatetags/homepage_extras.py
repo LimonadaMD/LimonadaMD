@@ -40,6 +40,9 @@ def version():
 
 @register.simple_tag(takes_context=True)
 def url_replace(context, **kwargs):
+    """ This function keeps the web URL with all the GET parameters
+        and only updates the ones specified.
+    """
     query = context['request'].GET.dict()
     query.update(kwargs)
     return urllib.urlencode(query)
@@ -47,20 +50,20 @@ def url_replace(context, **kwargs):
 
 @register.simple_tag
 def inrange(value, end, dx):
-    if dx < 0:
-        if value + dx >= 1:
-            return value + dx
-        else:
-            return 1
+    """ This function is used for pagination to slide the
+        pages window when there is to many pages.
+    """
+    if value + dx >= 1 and  value + dx <= end:
+        return value + dx
+    elif dx < 0:
+        return 1
     else:
-        if value + dx <= end:
-            return value + dx
-        else:
-            return end
+        return end
 
 
 @register.filter(name='basename')
-def split(value):
+def basename(value):
+#    return os.path.basename(value)
     return str(value).split("/")[-1]
 
 
@@ -71,4 +74,7 @@ def dirname(value):
 
 @register.filter(name='slashbreak')
 def slashbreak(value):
+    """ This function is used to add an invisible space in a string
+        after a "/" and enable a carriage return when necessary.
+    """
     return re.sub(r'/', '/&#8203;', value) 

@@ -19,9 +19,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
-# third-party
-from verified_email_field.forms import VerifiedEmailField
-
 # Django
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserChangeForm, UserCreationForm
@@ -41,7 +38,10 @@ class SignUpForm(UserCreationForm):
                                   widget=TextInput(attrs={'class': 'form-control'}))
     position = forms.CharField(max_length=30,
                                widget=TextInput(attrs={'class': 'form-control'}))
-    email = VerifiedEmailField(label='email', required=True)
+    email = forms.EmailField(label='email',
+                             max_length=200,
+                             widget=TextInput(attrs={'class': 'form-control'}),
+                             required=True)
     address = forms.CharField(widget=TextInput(attrs={'class': 'form-control'}),
                               required=False)
     miscellaneous = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
@@ -54,6 +54,13 @@ class SignUpForm(UserCreationForm):
         widgets = {'username': TextInput(attrs={'class': 'form-control'}),
                    'first_name': TextInput(attrs={'class': 'form-control'}),
                    'last_name': TextInput(attrs={'class': 'form-control'})}
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        username = self.cleaned_data.get('username')
+        if email and User.objects.filter(email=email).exclude(username=username).exists():
+            raise forms.ValidationError(u'Email addresses must be unique.')
+        return email
 
 
 class UpdateForm(forms.ModelForm):

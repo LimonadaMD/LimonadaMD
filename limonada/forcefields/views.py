@@ -36,7 +36,7 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.generic import CreateView, DeleteView, UpdateView
@@ -46,7 +46,7 @@ from .forms import ForcefieldForm, SelectForcefieldForm
 from .models import Forcefield, Software
 
 # Django apps
-from homepage.functions import FileData
+from limonada.functions import FileData
 from lipids.models import Topology
 from membranes.models import MembraneTopol
 
@@ -54,7 +54,7 @@ from membranes.models import MembraneTopol
 @never_cache
 def FfList(request):
 
-    ff_list = Forcefield.objects.all()
+    ff_list = Forcefield.objects.all().order_by('name')
 
     params = request.GET.copy()
 
@@ -136,7 +136,7 @@ def FfList(request):
     return render(request, 'forcefields/forcefields.html', data)
 
 
-@staff_member_required
+@login_required
 @never_cache
 def FfCreate(request):
     ffpath = ''
@@ -168,19 +168,21 @@ def FfCreate(request):
         'ffpath': ffpath, 'mdppath': mdppath})
 
 
-@staff_member_required
+@login_required
 @never_cache
 def FfUpdate(request, pk=None):
     if Forcefield.objects.filter(pk=pk).exists():
         ff = Forcefield.objects.get(pk=pk)
-        software_init = ff.software.all()[0]
-        dir_init = 'media/forcefields/%s' % (ff.software.all()[0].abbreviation)
+        software_init = ff.software.all()[0].name
+        dir_init = 'media/forcefields/%s' % (ff.software.all()[0].name)
         if ff.curator != request.user:
             return redirect('homepage')
         if request.method == 'POST':
             file_data = {}
             file_data, ffpath = FileData(request, 'ff_file', 'ffpath', file_data)
-            file_data, mdppath = FileData(request, 'mdp_file', 'mdppath', file_data)
+            mdppath = ''
+            if ff.mdp_file:
+                file_data, mdppath = FileData(request, 'mdp_file', 'mdppath', file_data)
             form = ForcefieldForm(request.POST, file_data, instance=ff)
             if form.is_valid():
                 ff = form.save(commit=False)
@@ -195,23 +197,25 @@ def FfUpdate(request, pk=None):
                 ff.save()
                 if os.path.isfile('media/' + ffpath):
                     os.remove('media/' + ffpath)
-                if os.path.isfile('media/' + mdppath):
+                if mdppath != '' and os.path.isfile('media/' + mdppath):
                     os.remove('media/' + mdppath)
-                if software_init != ff.software.all()[0]:
+                if software_init != ff.software.all()[0].name:
                     if os.path.isdir(dir_init):
                         shutil.rmtree(dir_init, ignore_errors=True)
                 return HttpResponseRedirect(reverse('fflist'))
         else:
             ffpath = 'tmp/%s' % os.path.basename(ff.ff_file.name)
             shutil.copy(ff.ff_file.url[1:], 'media/tmp/')
-            mdppath = 'tmp/%s' % os.path.basename(ff.mdp_file.name)
-            shutil.copy(ff.mdp_file.url[1:], 'media/tmp/')
+            mdppath = ''
+            if ff.mdp_file:
+                mdppath = 'tmp/%s' % os.path.basename(ff.mdp_file.name)
+                shutil.copy(ff.mdp_file.url[1:], 'media/tmp/')
             form = ForcefieldForm(instance=ff)
         return render(request, 'forcefields/ff_form.html', {'form': form, 'forcefields': True,
             'ffpath': ffpath, 'mdppath': mdppath})
 
 
-@staff_member_required
+@login_required
 def FfDelete(request, pk=None):
     if Forcefield.objects.filter(pk=pk).exists():
         ff = Forcefield.objects.get(pk=pk)
@@ -246,7 +250,7 @@ def FfDelete(request, pk=None):
 class SoftwareAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
-        qs = Software.objects.all()
+        qs = Software.objects.all().order_by('order')
         if self.q:
             qs = qs.filter(name__icontains=self.q)
         return qs

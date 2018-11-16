@@ -31,5 +31,5 @@ class ForcefieldAdmin(admin.ModelAdmin):
     form = ForcefieldAdminForm
 
 
-admin.site.register(Software)
 admin.site.register(Forcefield, ForcefieldAdmin)
+admin.site.register(Software)

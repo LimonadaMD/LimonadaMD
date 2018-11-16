@@ -42,7 +42,6 @@ PREREQ_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
     'corsheaders',
-    'verified_email_field',
 ]
 
 PROJECT_APPS = [
@@ -207,11 +206,11 @@ def ip_addresses():
 
 INTERNAL_IPS = ['127.0.0.1']
 
-# settings of django-verified-email-field
-VERIFIED_EMAIL_CODE_LENGTH = 10
-VERIFIED_EMAIL_MAIL_FROM = 'contact@limonadamd.eu'
-
-
 # User configuration
-GROMACS_50_PATH = '/home/jmcrowet/Software/gmx507/build/bin/'
+GROMACS_33_PATH = '/home/jmcrowet/Software/gmx334/bin/'
+GROMACS_40_PATH = '/home/jmcrowet/Software/gmx407/bin/'
 GROMACS_45_PATH = '/home/jmcrowet/Software/gmx457/build/bin/'
+GROMACS_46_PATH = '/home/jmcrowet/Software/gmx467/build/bin/'
+GROMACS_50_PATH = '/home/jmcrowet/Software/gmx507/build/bin/'
+GROMACS_51_PATH = '/home/jmcrowet/Software/gmx515/build/bin/'
+GROMACS_16_PATH = '/home/jmcrowet/Software/gmx165/build/bin/'
