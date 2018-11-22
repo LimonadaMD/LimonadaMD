@@ -44,6 +44,14 @@ def cd(newdir):
         os.chdir(prevdir)
 
 
+def residuetypes():
+    residuefile = open(os.path.join(settings.MEDIA_ROOT, 'residuetypes.dat')).readlines()
+    residues = {}
+    for line in residuefile:
+       residues[line.split()[0]] = line.split()[1]
+    return residues
+ 
+
 def gmxrun(lipname, ff_file, itp_file, gro_file, software):
 
     mediadir = settings.MEDIA_ROOT
@@ -53,67 +61,76 @@ def gmxrun(lipname, ff_file, itp_file, gro_file, software):
                 'GR46': settings.GROMACS_46_PATH, 'GR50': settings.GROMACS_50_PATH, 'GR51': settings.GROMACS_51_PATH,
                 'GR16': settings.GROMACS_16_PATH}
     softdir = softpath[software]
-
+    installed = True
+    if software in ['GR51', 'GR16', 'GR18']:
+        if not os.path.isfile(os.path.join(softdir, 'gmx')):
+            installed = False
+    else:
+        if not os.path.isfile(os.path.join(softdir, 'grompp')):
+            installed = False
+    
     rand = str(random.randrange(1000))
     while os.path.isdir(os.path.join(mediadir, 'tmp', rand)):
         rand = random.randrange(1000)
-    dirname = os.path.join(mediadir, 'tmp', rand)
-    os.makedirs(dirname)
 
-    ffzip = zipfile.ZipFile('%s%s' % (settings.BASE_DIR, ff_file))
-    ffdir = os.path.join(dirname, ffzip.namelist()[0])
-    ffzip.extractall(dirname)
+    if installed == True:
+        dirname = os.path.join(mediadir, 'tmp', rand)
+        os.makedirs(dirname)
 
-    if software == 'GR40':
-        copydir = ffdir
-    else:
-        copydir = dirname
+        ffzip = zipfile.ZipFile('%s%s' % (settings.BASE_DIR, ff_file))
+        ffdir = os.path.join(dirname, ffzip.namelist()[0])
+        ffzip.extractall(dirname)
 
-    shutil.copy('media/em.mdp', copydir)
+        if software == 'GR40':
+            copydir = ffdir
+        else:
+            copydir = dirname
 
-    fs = FileSystemStorage(location=copydir)
-    fs.save('%s.itp' % lipname, itp_file)
-    fs.save('%s.gro' % lipname, gro_file)
+        shutil.copy('media/em.mdp', copydir)
 
-    topfile = open(os.path.join(copydir, 'topol.top'), 'w')
-    topfile.write('')
-    topfile.write('#include "%sforcefield.itp"\n\n' % ffdir)
-    topfile.write('#include "./%s.itp"\n\n' % lipname)
-    topfile.write('[ system ]\n')
-    topfile.write('itp test\n\n')
-    topfile.write('[ molecules ]\n')
-    topfile.write('%s          1' % lipname)
-    topfile.close()
+        fs = FileSystemStorage(location=copydir)
+        fs.save('%s.itp' % lipname, itp_file)
+        fs.save('%s.gro' % lipname, gro_file)
 
-    with cd(copydir):
-        try:
-            if software in ['GR51', 'GR16', 'GR18']: # 
-                args = shlex.split('%sgmx grompp -f em.mdp -p topol.top -c %s.gro -o em.tpr -maxwarn 1' % (softdir, lipname))
-            else:
-                args = shlex.split('%sgrompp -f em.mdp -p topol.top -c %s.gro -o em.tpr -maxwarn 1' % (softdir, lipname))
-            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err = process.communicate()
-        except OSError:
-            err = 'grompp has failed or has not been found.'
-        if not os.path.isfile('em.tpr'):
-            error = True
-            errorfile = open('gromacs.log', 'w')
-            errorfile.write(err)
-            errorfile.close()
-        if not error:
-            if software in ['GR51', 'GR16', 'GR18']:
-                args = shlex.split('%sgmx mdrun -v -deffnm em' % softdir)
-            else:
-                args = shlex.split('%smdrun -v -deffnm em' % softdir)
-            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err = process.communicate()
-            if not os.path.isfile('em.gro'):
+        topfile = open(os.path.join(copydir, 'topol.top'), 'w')
+        topfile.write('')
+        topfile.write('#include "%sforcefield.itp"\n\n' % ffdir)
+        topfile.write('#include "./%s.itp"\n\n' % lipname)
+        topfile.write('[ system ]\n')
+        topfile.write('itp test\n\n')
+        topfile.write('[ molecules ]\n')
+        topfile.write('%s          1' % lipname)
+        topfile.close()
+
+        with cd(copydir):
+            try:
+                if software in ['GR51', 'GR16', 'GR18']:
+                    args = shlex.split('%sgmx grompp -f em.mdp -p topol.top -c %s.gro -o em.tpr -maxwarn 1' % (softdir, lipname))
+                else:
+                    args = shlex.split('%sgrompp -f em.mdp -p topol.top -c %s.gro -o em.tpr -maxwarn 1' % (softdir, lipname))
+                process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = process.communicate()
+            except OSError:
+                err = 'grompp has failed or has not been found.'
+            if not os.path.isfile('em.tpr'):
                 error = True
                 errorfile = open('gromacs.log', 'w')
                 errorfile.write(err)
                 errorfile.close()
-    if not error:
-        shutil.rmtree(dirname, ignore_errors=True)
+            if not error:
+                if software in ['GR51', 'GR16', 'GR18']:
+                    args = shlex.split('%sgmx mdrun -v -deffnm em' % softdir)
+                else:
+                    args = shlex.split('%smdrun -v -deffnm em' % softdir)
+                process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = process.communicate()
+                if not os.path.isfile('em.gro'):
+                    error = True
+                    errorfile = open('gromacs.log', 'w')
+                    errorfile.write(err)
+                    errorfile.close()
+        if not error:
+            shutil.rmtree(dirname, ignore_errors=True)
 
     return error, rand
 

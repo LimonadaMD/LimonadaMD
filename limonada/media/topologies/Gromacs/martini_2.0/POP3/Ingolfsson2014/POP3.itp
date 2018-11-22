@@ -1,0 +1,107 @@
+; PHOSPHATIDILINOSITOL 3-4-5 tri-PHOSPHATE - PIP3 with the phosphates at position 3, 4 and 5
+; with a PO tail (First a Palmitic acid or Stearoyl tail then a Palmitoleic acid or Oleic acid tail) therfore called POP3 (tail string would be -altail "CCDC CCCC")
+;
+; WARNING this one is losly based on Cesar Lopez DIPALMITOYLPHOSPHATIDILINOSITOL 3-4 BI-PHOSPHATE ( PIP2(3,4) ) named "PI34" from martini_v2.0_glycolipids.itp
+; Was just placed opposite to the P1 – this needs to be redone with proper mapping from atomistic simulations as the C1, C2, C3 beads are not evenly distributed 
+; on the inositol ring. Also charge state should be altered / check – at pH 7, PIP3 normally has one or two reduced charges. 
+; - Also dihedral for head oriantation was removed to make the molecule more stable - should be tested / compaired to atomistic sims
+; 
+; Note: bonds with force constant > 25000 are treated as constraints, but use harmonic bonds for minimization. 
+;       Add define=-DFLEXIBLE to select harmonic bonds for minimization purposes.
+;
+
+
+[ moleculetype ]
+; molname      nrexcl
+POP3               1
+
+[ atoms ]
+; id    type    resnr   residu  atom    cgnr    charge
+   1        P1     1   POP3      C1      1          0       72.000
+   2        Na     1   POP3      C2      2          0       72.000
+   3        P4     1   POP3      C3      3          0       72.000
+   4        Qa     1   POP3      CP      4         -1       72.000
+   5        Qa     1   POP3      P1      5         -2       72.000
+   6        Qa     1   POP3      P2      6         -2       72.000
+   7        Qa     1   POP3      P3      7         -2       72.000 ; New P3 bead
+; Tail part (uses standar Martini v2.0 tail rules)
+   8        Na     1   POP3      GL1     8          0       72.000
+   9        Na     1   POP3      GL2     9          0       72.000
+  10        C1     1   POP3      C1A    10          0       72.000
+  11        C1     1   POP3      C2A    11          0       72.000
+  12        C3     1   POP3      D3A    12          0       72.000
+  13        C1     1   POP3      C4A    13          0       72.000
+  14        C1     1   POP3      C1B    14          0       72.000
+  15        C1     1   POP3      C2B    15          0       72.000
+  16        C1     1   POP3      C3B    16          0       72.000
+  17        C1     1   POP3      C4B    17          0       72.000
+
+[ bonds ]
+; i j   funct   length  force.c.i
+#ifdef FLEXIBLE
+; Using bonds not constraints
+  1     2         1 0.4 30000
+  1     3         1 0.4 30000
+  2     3         1 0.4 30000
+  2     5         1 0.3  30000
+  2     6         1 0.35 30000
+  1     5         1 0.40 25000
+  3     6         1 0.31 30000
+;  5     6         1 0.60 25000
+  1     7         1 0.40 25000 ; New to add P3 bad - not messured just placed 
+  3     7         1 0.3  30000 ; New to add P3 bad - not messured just placed
+;  6     7         1 0.60 25000 ; New to add P3 bad - not messured just placed
+#endif
+  5     6         1 0.60 25000 ; added just as bonds to increase stability
+  6     7         1 0.60 25000 ; New to add P3 bad - not messured just placed ; added just as bonds to increase stability
+  1     4         1 0.35 1250
+  4     8         1 0.47 1250
+; Tail part (uses standar Martini v2.0 tail rules)
+  8     9         1 0.37 1250
+  8    10         1 0.47 1250
+ 10    11         1 0.47 1250
+ 11    12         1 0.47 1250
+ 12    13         1 0.47 1250
+  9    14         1 0.47 1250
+ 14    15         1 0.47 1250
+ 15    16         1 0.47 1250
+ 16    17         1 0.47 1250
+
+[ angles ]
+; i j k         funct   angle   force.c.
+; Here we have less angles than in PI, replaced by bonds/constraints
+; Orient Head
+  1    4    8         2 140.00 25 ; link to lipid - PI has 30
+; 4    8    9         2 120.00 25.0 ; These are part of the default lipids rules but not used here
+; 4    8   10         2 180.00 25.0 ; These are part of the default lipids rules but not used here
+  8    10    11         2 180.00 25.0
+ 10    11    12         2 180.00 25.0
+ 11    12    13         2 120.00 45.0
+  9    14    15         2 180.00 25.0 
+ 14    15    16         2 180.00 25.0 
+ 15    16    17         2 180.00 25.0 
+
+[ dihedrals ]
+;3 1 4 5 1 -30.00 5.00 1   ; Removed as it was unstable - WARNING has not been tested
+
+[ constraints ]
+#ifndef FLEXIBLE 
+; Using constraints not bonds
+  1     2         1 0.4 
+  1     3         1 0.4 
+  2     3         1 0.4 
+  2     5         1 0.3  
+  2     6         1 0.35 
+  1     5         1 0.40 
+  3     6         1 0.31 
+;  5     6         1 0.60 ; added just as bonds to increase stability
+  1     7         1 0.40 ; New to add P3 bad - not messured just placed
+  3     7         1 0.3  ; New to add P3 bad - not messured just placed
+;  6     7         1 0.60 ; New to add P3 bad - not messured just placed ; added just as bonds to increase stability
+#endif
+
+; Include Position restraint file
+#ifdef POSRES
+#include "POP3_posre.itp"
+#endif
+ 

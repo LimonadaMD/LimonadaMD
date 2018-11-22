@@ -21,6 +21,7 @@
 
 # standard library
 import os
+import random
 import shlex
 import subprocess
 
@@ -28,10 +29,8 @@ import subprocess
 from django.conf import settings
 
 # Django apps
+from lipids.functions import residuetypes
 from lipids.models import Lipid
-
-aminoacids = ['ARG', 'HIS', 'LYS', 'ASP', 'GLU', 'SER', 'THR', 'ASN', 'GLN', 'CYS', 'GLY', 'PRO', 'ALA', 'VAL', 'ILE',
-              'LEU', 'MET', 'PHE', 'TYR', 'TRP', 'ACE', 'NH2']
 
 
 def Atom(a):
@@ -54,6 +53,7 @@ class Membrane:
         self.nblf = 0
 
         lipids = Lipid.objects.all().values_list('name', flat=True)
+        restypes = residuetypes()
 
         atoms = []
         lines = open(filename).readlines()
@@ -76,21 +76,24 @@ class Membrane:
                         self.lipids[resname].append(LipidRes(resatoms))
                     elif restype == 'protein':
                         self.prot.append(resatoms)
-                    elif restype == 'solvent' and len(resatoms) > 5:
+                    elif restype == 'solvent':
+                        self.solvent.append(resatoms)
+                    elif resid != '':
                         if resname not in self.unkres.keys():
                             self.unkres[resname] = []
                         self.unkres[resname].append(resatoms)
-                    elif resid != '':
-                        self.solvent.append(resatoms)
                     resid = atom[2]
                     resname = atom[0]
                     resatoms = []
                     if resname in lipids:
                         restype = 'lipid'
-                    elif resname in aminoacids:
-                        restype = 'protein'
+                    elif resname in restypes:
+                        if restypes[resname] in ['Protein', 'DNA', 'RNA']:
+                            restype = 'protein'
+                        else:
+                            restype = 'solvent'
                     else:
-                        restype = 'solvent'
+                        restype = 'unknown'
                 resatoms.append(atom)
             if restype == 'lipid':
                 if resname not in self.lipids.keys():
@@ -98,12 +101,12 @@ class Membrane:
                 self.lipids[resname].append(LipidRes(resatoms))
             elif restype == 'protein':
                 self.prot.append(resatoms)
-            elif restype == 'solvent' and len(resatoms) > 5:
+            elif restype == 'solvent':
+                self.solvent.append(resatoms)
+            elif resid != '':
                 if resname not in self.unkres.keys():
                     self.unkres[resname] = []
                 self.unkres[resname].append(resatoms)
-            else:
-                self.solvent.append(resatoms)
         else:
             self.title = 'error'
 
@@ -120,7 +123,7 @@ class LipidRes:
         else: 
             self.hgndx = atoms[3][3]
         self.atoms = atoms
-        self.leaflet = ''
+        self.leaflet = 'unk'
 
 
 def membraneanalysis(filename, rand):
@@ -131,19 +134,20 @@ def membraneanalysis(filename, rand):
     fatslimfilepath = os.path.join(dirname, '%s_fatslim-hg' % fname)
     sortedgrofilepath = os.path.join(dirname, '%s_sorted.gro' % fname)
 
+    ndxin = {}
     compo = {}
     compo['unk'] = {}
     membrane = Membrane(grofilepath)
     if membrane.title != 'error':
-        ndx = []
+        ndx = {}
         for lipid in membrane.lipids.keys():
             for res in membrane.lipids[lipid]:
-                ndx.append(res.hgndx)
+                ndx[res.hgndx] = "%d%s" % (res.atoms[0][2], lipid)
         ndxfile = open(ndxfilepath, 'w')
         ndxfile.write('[ headgroups ]\n')
         i = 0
         lines = ''
-        for index in sorted(ndx):
+        for index in sorted(ndx.keys()):
             i += 1
             if i == 16:
                 i = 1
@@ -166,6 +170,7 @@ def membraneanalysis(filename, rand):
             error = True
 
         if not error:
+            ndxin = ndx
             ndx = {}
             ndxfile = open(fatslimfilepath + '_0000.ndx').readlines()
             for line in ndxfile:
@@ -175,6 +180,7 @@ def membraneanalysis(filename, rand):
                 else:
                     for index in line.split():
                         ndx[leaflet].append(index)
+                        ndxin.pop(int(index), None)
 
             if len(ndx.keys()) > 0:
                 leaflet = ndx.keys()[0]
@@ -229,19 +235,6 @@ def membraneanalysis(filename, rand):
                     an = atom[1]
                     coord = atom[4]
                     outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
-            for resname in membrane.unkres.keys():
-                for res in membrane.unkres[resname]:
-                    ri += 1
-                    if ri == 100000:
-                        ri = 0
-                    for atom in res:
-                        ai += 1
-                        if ai == 100000:
-                            ai = 0
-                        rn = atom[0]
-                        an = atom[1]
-                        coord = atom[4]
-                        outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
             for leaflet in ['up','lo','unk']:
                 for key in sorted(compo[leaflet], key=compo[leaflet].__getitem__, reverse=True):
                     for lipid in membrane.lipids[key]:
@@ -269,7 +262,120 @@ def membraneanalysis(filename, rand):
                     an = atom[1]
                     coord = atom[4]
                     outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
+            for resname in membrane.unkres.keys():
+                for res in membrane.unkres[resname]:
+                    ri += 1
+                    if ri == 100000:
+                        ri = 0
+                    for atom in res:
+                        ai += 1
+                        if ai == 100000:
+                            ai = 0
+                        rn = atom[0]
+                        an = atom[1]
+                        coord = atom[4]
+                        outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
             outfile.write(membrane.box)
             outfile.close()
 
-    return compo, membrane
+    return compo, membrane, ndxin
+
+
+def membrane_residues(filename):
+    grofilepath = os.path.join(settings.MEDIA_ROOT, filename)
+
+    lipids = Lipid.objects.all().values_list('name', flat=True)
+    restypes = residuetypes()
+
+    reslist = []
+    lines = open(grofilepath).readlines()
+    if len(lines) > 3:
+        resid = ''
+        for line in lines[2:-1]:
+            atom = Atom(line)
+            if atom[2] != resid:
+                resname = atom[0]
+                resid = atom[2]
+                if resname in lipids:
+                    restype = 'lipid'
+                elif resname in restypes:
+                    restype = restypes[resname] 
+                else:
+                    restype = 'unknown'
+                reslist.append([resname, restype])
+    resnb = 0
+    memresidues = []
+    lipresidues = []
+    othermol = {}
+    resname_prev = '' 
+    restype_prev = ''
+    for line in reslist:
+        resname = line[0]
+        restype = line[1]
+        if restype in ['lipid', 'Ion', 'unknown']:
+             if resname == resname_prev or resname_prev == '':
+                 resnb += 1
+             else:
+                 if restype_prev in ['lipid', 'Ion', 'unknown']: 
+                     memresidues.append([resname_prev, str(resnb), restype_prev])
+                     if restype_prev == 'lipid': 
+                         lipresidues.append([resname_prev, str(resnb)])
+                 elif restype_prev == 'Water':
+                     memresidues.append([resname_prev, str(resnb), restype_prev])
+                 else:
+                     memresidues.append([restype_prev, str(resnb), restype_prev])
+                 resnb = 1
+        else:
+             if restype == restype_prev or restype_prev == '':
+                 resnb += 1
+             else:
+                 if restype_prev in ['lipid', 'Ion', 'unknown']: 
+                     memresidues.append([resname_prev, str(resnb), restype_prev])
+                     if restype_prev == 'lipid': 
+                         lipresidues.append([resname_prev, str(resnb)])
+                 elif restype_prev == 'Water':
+                     memresidues.append([resname_prev, str(resnb), restype_prev])
+                 else:
+                     memresidues.append([restype_prev, str(resnb), restype_prev])
+                 resnb = 1
+        resname_prev = line[0]
+        restype_prev = line[1]
+        if restype in ['Protein', 'DNA', 'RNA', 'Ion', 'Water'] and restype not in othermol.keys():
+            othermol[restype] = True
+    if restype_prev in ['lipid', 'Ion', 'unknown']: 
+        memresidues.append([resname_prev, str(resnb), restype_prev])
+        if restype_prev == 'lipid': 
+            lipresidues.append([resname_prev, str(resnb)])
+    elif restype_prev == 'Water':
+        memresidues.append([resname_prev, str(resnb), restype_prev])
+    else:
+        memresidues.append([restype_prev, str(resnb), restype_prev])
+
+    return memresidues, lipresidues, othermol
+
+
+def compo_isvalid(filename, data):
+    memresidues, lipresidues, othermol = membrane_residues(filename)
+    comporesidues = []
+    Nb = data['form-TOTAL_FORMS']
+    for i in range(int(Nb)):
+        if 'form-'+str(i)+'-lipid' in data.keys():
+            index = data['form-'+str(i)+'-lipid']
+        if 'form-'+str(i)+'-number' in data.keys():
+            number = data['form-'+str(i)+'-number']
+        if index and number:
+            if Lipid.objects.filter(id=index).exists():
+                lipid = Lipid.objects.filter(id=index)
+                comporesidues.append([lipid[0].name, number])
+    compomatch = True
+    if len(comporesidues) != len(lipresidues):   
+        compomatch = False
+    else:
+        for i in range(len(comporesidues)):
+            if ''.join(comporesidues[i]) != ''.join(lipresidues[i]):
+                compomatch = False
+    merrors = []
+    if compomatch == False:
+        merrors = ['The lipid composition does not match with the membrane file.']
+
+    return merrors

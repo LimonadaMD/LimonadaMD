@@ -43,6 +43,14 @@ def validate_file_extension(value):
         raise ValidationError(u'File not supported!')
 
 
+def validate_mem_size(value):
+    filesize= value.size
+    if filesize > 104857600:
+        raise ValidationError("The maximum file size that can be uploaded is 100MB")
+    else:
+        return value
+
+
 def directory_path(instance, filename):
     ext = os.path.splitext(filename)[1]
     name = unicodedata.normalize('NFKD', instance.name).encode('ascii', 'ignore').replace(' ', '_')
@@ -64,7 +72,8 @@ class MembraneTopol(models.Model):
     equilibration = models.PositiveIntegerField()
     mem_file = models.FileField(upload_to=directory_path,
                                 help_text='.pdb and .gro files are supported',
-                                validators=[validate_file_extension],
+                                validators=[validate_file_extension,
+                                            validate_mem_size],
                                 blank=True,
                                 null=True)
     compo_file = models.FileField(upload_to=directory_path,

@@ -49,12 +49,28 @@ def validate_file_extension(value):
         raise ValidationError(u'File not supported!')
 
 
+def validate_ff_size(value):
+    filesize= value.size
+    if filesize > 2097152:
+        raise ValidationError("The maximum file size that can be uploaded is 2MB")
+    else:
+        return value
+
+
 def ff_path(instance, filename):
     name = unicodedata.normalize('NFKD', instance.name).encode('ascii', 'ignore').replace(' ', '_')
     filepath = 'forcefields/{0}/{1}.ff.zip'.format(instance.software.all()[0].name, name)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath
+
+
+def validate_mdp_size(value):
+    filesize= value.size
+    if filesize > 209715:
+        raise ValidationError("The maximum file size that can be uploaded is 200KB")
+    else:
+        return value
 
 
 def mdp_path(instance, filename):
@@ -72,10 +88,12 @@ class Forcefield(models.Model):
                                        choices=FFTYPE_CHOICES,
                                        default='AA')
     ff_file = models.FileField(upload_to=ff_path,
-                               validators=[validate_file_extension],
+                               validators=[validate_file_extension,
+                                           validate_ff_size],
                                help_text='Use a zip file containing the forcefield directory')
     mdp_file = models.FileField(upload_to=mdp_path,
-                                validators=[validate_file_extension],
+                                validators=[validate_file_extension,
+                                            validate_mdp_size],
                                 help_text='Use a zip file containing the mdps for the version X of Gromacs',
                                 null=True)
     software = models.ManyToManyField('forcefields.Software')

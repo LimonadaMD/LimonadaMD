@@ -1,0 +1,54 @@
+;;;;;; Martini lipid topology auto generated using:
+; Martini lipid itp generator version dev-v03  Args are: -o POPA_Martini_v2.0_lipid.itp, -alname POPA, -alhead P, -allink G G, -altail CCDC CCCC
+; WARNING: Lipids topology was generated following the Martini 2.0 guidelines but specific lipids type has
+;          most likely not been tested and should therefore be used with care. 
+; WARNING: 
+; 
+
+[moleculetype]
+; molname      nrexcl
+   POPA          1
+
+[atoms]
+; id 	type 	resnr 	residu 	atom 	cgnr 	charge
+1 	Qa 	1 	POPA 	PO4 	1 	-2.0
+2 	Na 	1 	POPA 	GL1 	2 	0
+3 	Na 	1 	POPA 	GL2 	3 	0
+4 	C1 	1 	POPA 	C1A 	4 	0
+5 	C1 	1 	POPA 	C2A 	5 	0
+6 	C3 	1 	POPA 	D3A 	6 	0
+7 	C1 	1 	POPA 	C4A 	7 	0
+8 	C1 	1 	POPA 	C1B 	8 	0
+9 	C1 	1 	POPA 	C2B 	9 	0
+10 	C1 	1 	POPA 	C3B 	10 	0
+11 	C1 	1 	POPA 	C4B 	11 	0
+
+[bonds]
+; i j 	funct 	length 	force.c.
+  1 2	1 	0.47 	1250
+  2 3	1 	0.37 	1250
+  2 4	1 	0.47 	1250
+  4 5	1 	0.47 	1250
+  5 6	1 	0.47 	1250
+  6 7	1 	0.47 	1250
+  3 8	1 	0.47 	1250
+  8 9	1 	0.47 	1250
+  9 10	1 	0.47 	1250
+  10 11	1 	0.47 	1250
+
+[angles]
+; i j k 	funct 	angle 	force.c.
+  1 2 3 	2 	120.0 	25.0
+  1 2 4 	2 	180.0 	25.0
+  2 4 5 	2 	180.0 	25.0
+  4 5 6 	2 	180.0 	25.0
+  5 6 7 	2 	120.0 	45.0
+  3 8 9 	2 	180.0 	25.0
+  8 9 10 	2 	180.0 	25.0
+  9 10 11 	2 	180.0 	25.0
+
+; Include Position restraint file
+#ifdef POSRES
+#include "POPA_posre.itp"
+#endif
+

@@ -21,7 +21,7 @@
             <tr><td><b>Address:</b></td><td>{{ request.user.profile.address }}</td></tr>
             <tr><td><b>Miscellaneous:</b></td><td>{{ request.user.profile.miscellaneous|linebreaks }}</td></tr>
             <tr>
-              <td><b>Curation:</b></td>
+              <td><b>Curator:</b></td>
               <td>
                 <a class="text-success" href="{% url 'liplist' %}?curator={{ request.user.pk }}">Lipids</a><br>
                 <a class="text-success" href="{% url 'toplist' %}?curator={{ request.user.pk }}">Topologies</a><br>

@@ -10,27 +10,31 @@
 {% block content %}
 
   <h1>About Limonada</h1>
-  <p>Limonada intends to provide an open library of lipid forcefield parameters for molecular dynamic simulation of
-      membranes and a repository for equilibrated membranes, notably of more complex compositions representative of
-      biological membranes.</p>
-  <p>Structure, topology and forcefield files are available on this website and new files can be added by
-      registered users.</p>
-  <p>The whole website, scripts and database are also freely available and open to modifications on GitHub:
-      <a class="text-success" href="https://github.com/jmcrowet/limonada">limonada</a></p>
+  <p>The main goal of Limonada ("<b>Li</b>pid <b>M</b>embrane <b>O</b>pen <b>N</b>etwork <b>A</b>nd <b>Da</b>tabase")
+      is to provide an online library of membranes, notably of more complex compositions representative of biological
+      membranes, along with the description of lipids, topologies and forcefields mandatory for their molecular
+      dynamics simulations.</p>
+  <p>Limonada uses the lipid classification established by the <a class="text-success"
+      href="http://www.lipidmaps.org/data/classification/LM_classification_exp.php">LipidMaps consortium</a> and every
+      lipid is unequivocally identified by a four-digit ID (i.e. compliant with e.g. pdb files). From this basis,
+      registered users can add new membranes, lipids, topologies and/or forcefields to the database with the only
+      limitation that each addition must be sustained by a reference paper and that the primary source of the files
+      stored by Limonada are also provided.</p>
+  <p>Limonada is open source (code is hosted on github: <a class="text-success"
+      href="https://github.com/limonadaMD/limonadaMD">https://github.com/limonadaMD/limonadaMD</a>) and is built
+      using the widely used Django open framework
+      (<a class="text-success" href="https://www.djangoproject.com">https://www.djangoproject.com</a>).</p>
+
   <br>
   <h1>Context</h1>
-  <p>Typical eukaryotic plasma membranes are composed of several hundred different lipids distributed heterogeneously
-      between and within the lipid layers and lipidomic studies have established that there may be more than 100,000
-      different lipids, 40,000 being already referenced on the LipidMaps consortium database.</p>
-  <p>Moreover, several studies of quantitative lipidomics have given detailed compositions of membranes; like the
-      macrophage organelles specific lipidome obtained by Andreyev in 2010 which contain more than 220 lipids. These
-      studies have been used as basis to build model membranes. For example,
-      <a class="text-success" href="https://dx.doi.org/10.1021/ja507832e">Ingólfsson <i>et al</i>. in 2014</a> have
-      used more than 60 lipid types to define their model composition of plasma membrane with Martini.</p>
-  <p>Different forcefields exist for the simulation of lipid membranes. Although the number of available lipids is
-      still often limited and limits the representation of complex membranes, two force fields, Charmm and
-      Martini, have a much higher lipid number (more than 180 each) and allow to simulate the interaction between
-      membranes and different types of molecules. The number of articles containing simulations of compositions of more
-      than 6 lipids has also increased during the last years.</p>
+  <p>The size and complexity of lipid systems simulated by molecular dynamics is continuously growing and knowing that
+      there could be over 100,000 lipid species and that biological membranes can be composed by hundreds of different
+      lipids whose proportion are organism and organelle specific, the amount and complexity of data involved stress
+      the need for an organized open web database.</p> 
+  <p>Indeed, several forcefields can be used for lipid membrane simulations and some of them have hundreds of different
+      lipid topologies parametrized. Moreover, tens of model membranes with several lipid species designed to represent
+      specific biological membranes have already been simulated. Modeling studies start then to encompass the wide
+      diversity of biological membranes. Besides, determination of complex lipid compositions is not trivial and their
+      equilibration can be quite computationally demanding while only being a prerequisite for further simulations.</p> 
 
 {% endblock %}

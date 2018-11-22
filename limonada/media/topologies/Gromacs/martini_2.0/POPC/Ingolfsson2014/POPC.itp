@@ -3,7 +3,6 @@
 ; WARNING: Lipids topology was generated following the Martini 2.0 guidelines but specific lipids type has
 ;          most likely not been tested and should therefore be used with care. 
 ;
-; This is POPC but with posision restrains on the z-axes on the PO4 bead - controled with POS_Z_AXES
 
 [moleculetype]
 ; molname      nrexcl
@@ -49,14 +48,8 @@
   9 10 11 	2 	180.0 	25.0
   10 11 12 	2 	180.0 	25.0
 
-#ifdef POS_Z_AXES
-[ position_restraints ]
-; ai  funct  fcx    fcy    fcz
-   2    1    0      0      2   ; restrains to a plane (x-y-plane)
-#endif
-
-
 ; Include Position restraint file
 #ifdef POSRES
 #include "POPC_posre.itp"
 #endif
+

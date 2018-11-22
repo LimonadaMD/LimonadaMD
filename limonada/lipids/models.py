@@ -41,6 +41,9 @@ from django.utils.translation import ugettext_lazy as _
 # Django apps
 from limonada.functions import delete_file
 
+# local Django
+from .functions import residuetypes
+
 
 _UNSAVED_ITPFILE = 'unsaved_itpfile'
 _UNSAVED_GROFILE = 'unsaved_grofile'
@@ -48,6 +51,11 @@ _UNSAVED_GROFILE = 'unsaved_grofile'
 def validate_name(value):
     if len(value) != 4 or not re.match(r'[0-9A-Z]{4}', value):
         raise ValidationError(_('Invalid name'),
+                              code='invalid',
+                              params={'value': value})
+    residues = residuetypes()
+    if value in residues.keys():
+        raise ValidationError(_('%s is usually used for a protein residue name' % value),
                               code='invalid',
                               params={'value': value})
 
@@ -78,6 +86,14 @@ def validate_file_extension(value):
         raise ValidationError(u'File not supported!')
 
 
+def validate_img_size(value):
+    filesize= value.size
+    if filesize > 1048576:
+        raise ValidationError("The maximum file size that can be uploaded is 1MB")
+    else:
+        return value
+
+
 def img_path(instance, filename):
     ext = os.path.splitext(filename)[1]
     filepath = 'lipids/{0}{1}'.format(instance.lmid, ext)
@@ -87,6 +103,14 @@ def img_path(instance, filename):
         if os.path.isfile(os.path.join(settings.MEDIA_ROOT, imgpath)):
             os.remove(os.path.join(settings.MEDIA_ROOT, imgpath))
     return filepath
+
+
+def validate_file_size(value):
+    filesize= value.size
+    if filesize > 209715:
+        raise ValidationError("The maximum file size that can be uploaded is 200KB")
+    else:
+        return value
 
 
 def file_path(instance, filename):
@@ -129,7 +153,8 @@ class Lipid(models.Model):
     pubchem_cid = models.CharField(max_length=50,
                                    null=True)
     img = models.ImageField(upload_to=img_path,
-                            validators=[validate_file_extension],
+                            validators=[validate_file_extension,
+                                        validate_img_size],
                             null=True)
     curator = models.ForeignKey(User,
                                 on_delete=models.CASCADE)
@@ -150,8 +175,10 @@ class Topology(models.Model):
                                    on_delete=models.CASCADE)
     lipid = models.ForeignKey(Lipid,
                               on_delete=models.CASCADE)
-    itp_file = models.FileField(upload_to=file_path)
-    gro_file = models.FileField(upload_to=file_path)
+    itp_file = models.FileField(upload_to=file_path,
+                                validators=[validate_file_size])
+    gro_file = models.FileField(upload_to=file_path,
+                                validators=[validate_file_size])
     version = models.CharField(max_length=30,
                                help_text='YearAuthor')
     description = models.TextField(blank=True)

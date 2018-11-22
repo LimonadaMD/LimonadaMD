@@ -23,6 +23,7 @@
 import codecs
 import operator
 import os
+import re
 import random
 import shutil
 import unicodedata
@@ -58,7 +59,7 @@ from lipids.models import Lipid, Topology
 
 # local Django
 from .forms import MemCommentForm, MembraneForm, MembraneTopolForm, MemFormSet, SelectMembraneForm
-from .functions import membraneanalysis
+from .functions import compo_isvalid, membrane_residues, membraneanalysis
 from .models import MemComment, Composition, Membrane, MembraneTag, MembraneTopol, TopolComposition
 
 
@@ -205,17 +206,23 @@ def formsetdata(mem_file, ff, mempath):
 
     merrors = []
     minfos = []
-    compo, membrane = membraneanalysis(mem_file.name, rand)
-    if len(compo.keys()) == 1 and membrane.title != 'error':
-        merrors.append('There is a problem with fatslim.')
+    compo, membrane, ndxdiff = membraneanalysis(mem_file.name, rand)
     if membrane.prot:
         minfos.append('This membrane contains proteins.')
     if len(membrane.unkres.keys()) > 0:
         minfos.append('The following residues are not yet part of Limonada: %s.' % ', '.join(membrane.unkres.keys()))
-    if membrane.nblf > 2:
+    if membrane.title == 'error':
+        merrors.append('The membrane file is invalid.')
+    elif len(compo.keys()) == 1:
+        merrors.append('fatslim returned en error.')
+    elif len(compo['up'].keys()) == 0:
+        merrors.append('A unique lipid bilayer should be present in the membrane file.')
+    elif membrane.nblf > 2:
         merrors.append('Several membranes are present in the structure file.')
-    if len(compo['unk'].keys()) > 0 and len(membrane.unkres.keys()) == 0:
-        merrors.append('Several lipids are not part of the membrane.')
+    elif len(ndxdiff.keys()) > 0:
+        text = ''.join(('The following residues are either orphan lipids or for which fatslim has not been able to ',
+                        'defined the leaflet: %s' % ', '.join(ndxdiff.values())))
+        merrors.append(text)
 
     file_data = ''
     if len(merrors) > 0 or membrane.title == 'error':
@@ -270,10 +277,12 @@ def MemCreate(request, formset_class, template):
     if request.method == 'POST' and 'add' in request.POST:
         file_data = {}
         file_data, mempath = FileData(request, 'mem_file', 'mempath', file_data)
+        if os.path.isfile(os.path.join(settings.MEDIA_ROOT, mempath)):
+            merrors = compo_isvalid(mempath, request.POST)
         topform = MembraneTopolForm(request.POST, file_data)
         memform = MembraneForm(request.POST)
         formset = formset_class(request.POST)
-        if topform.is_valid() and memform.is_valid() and formset.is_valid():
+        if topform.is_valid() and memform.is_valid() and formset.is_valid() and not merrors:
             mt = topform.save(commit=False)
             mt.curator = request.user
             mt.save()
@@ -444,10 +453,11 @@ def MemUpdate(request, pk=None):
             mempath = ''
             if mt.mem_file:
                 file_data, mempath = FileData(request, 'mem_file', 'mempath', file_data)
+                merrors = compo_isvalid(mempath, request.POST)
             topform = MembraneTopolForm(request.POST, file_data, instance=mt)
             memform = MembraneForm(request.POST, instance=mt.membrane)
             formset = MemFormSet(request.POST)
-            if topform.is_valid() and memform.is_valid() and formset.is_valid():
+            if topform.is_valid() and memform.is_valid() and formset.is_valid() and not merrors:
                 mt = topform.save()
                 nb_lipids = 0
                 nb_lipup = 0
@@ -724,15 +734,26 @@ def GetFiles(request):
                 mdpzip.extractall(dirname)
 
                 topfile = open(os.path.join(dirname, 'topol.top'), 'w')
-                topfile.write('')
+                topfile.write('\n; Include forcefield parameters\n')
                 topfile.write('#include "%sforcefield.itp"\n\n' % ffdir)
 
+                memresidues = []
+                othermol = {}
                 if mem.mem_file:
                     shutil.copy(mem.mem_file.url[1:], dirname)
+                    memresidues, lipresidues, othermol = membrane_residues(mem.mem_file.name)
                 else:
                     grodir = os.path.join(dirname, 'lipids')
                     os.makedirs(grodir)
+                
+                for moltype in ['Protein', 'DNA', 'RNA']:
+                    if moltype in othermol.keys():
+                        topfile.write('; Include topology for %s\n' % moltype)
+                        topfile.write('#include "%s.itp"\n\n' % moltype)
+
+                topfile.write('; Include topology for lipids\n')
                 tops = {}
+                topolcompo = []
                 for lip in mem.topolcomposition_set.all():
                     if lip.topology.id not in tops.keys():
                         lipname = lip.lipid.name
@@ -743,6 +764,7 @@ def GetFiles(request):
                         tops[lip.topology.id] = lipname
                         topfile.write('#include "toppar/%s.itp"\n' % lipname)
                     lipname = tops[lip.topology.id]
+                    topolcompo.append([lipname, lip.number])
                     if lipname == lip.lipid.name:
                         shutil.copy(lip.topology.itp_file.url[1:], topdir)
                         if not mem.mem_file:
@@ -764,11 +786,33 @@ def GetFiles(request):
                             outfile = codecs.open('%s.gro' % os.path.join(grodir, lipname), 'w', encoding='utf-8')
                             outfile.write(newdata)
                             outfile.close()
+
+                if 'Water' in othermol.keys() and os.path.isfile(os.path.join(dirname, ffdir, 'watermodels.dat')):
+                    water = ''
+                    for line in open(os.path.join(dirname, ffdir, 'watermodels.dat')):
+                        if re.search(r'recommended', line):
+                            water = line.split()[0]
+                    if water:
+                        if os.path.isfile(os.path.join(dirname, ffdir, '%s.itp' % water)):
+                            topfile.write('\n; Include topology for water\n')
+                            topfile.write('#include "%s%s.itp"' % (ffdir, water))
+                if 'Ion' in othermol.keys() and os.path.isfile(os.path.join(dirname, ffdir, 'ions.itp')):
+                    topfile.write('\n; Include topology for ions\n')
+                    topfile.write('#include "%sions.itp"\n' % ffdir)
+
                 topfile.write('\n[ system ]\n')
                 topfile.write('%s\n\n' % mem.name)
                 topfile.write('[ molecules ]\n')
-                for lip in mem.topolcomposition_set.all():
-                    topfile.write('%-6s%10s\n' % (tops[lip.topology.id], lip.number))
+                if mem.mem_file:
+                    for mol in memresidues:
+                        if mol[2] != 'lipid':
+                            topfile.write('%-6s%10s\n' % (mol[0], mol[1]))
+                        else:
+                            mol = topolcompo.pop(0)
+                            topfile.write('%-6s%10s\n' % (mol[0], mol[1]))
+                else:
+                    for mol in topolcompo:
+                        topfile.write('%-6s%10s\n' % (mol[0], mol[1]))
                 topfile.close()
 
                 zipf = zipfile.ZipFile('%s.zip' % os.path.join(mediadir, 'tmp', rand, memname), 'w',
