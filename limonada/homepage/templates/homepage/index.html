@@ -3,8 +3,8 @@
 {% block title %}Home{% endblock %}
 
 {% block description %}
-  limonada intends to provide an open library of lipid forcefield parameters for molecular
-  dynamic simulation of membranes and a repository for equilibrated membranes
+  limonada intends to provide an open library of membranes, along with the description of lipids, topologies and
+  forcefields mandatory for their molecular dynamics simulations
 {% endblock %}
 
 {% block content %}
@@ -20,6 +20,10 @@
       registered users can add new membranes, lipids, topologies and/or forcefields to the database with the only
       limitation that each addition must be sustained by a reference paper and that the primary source of the files
       stored by Limonada are also provided.</p>
+  <p>At creation, membrane composition, lipid and reference forms can be filled by giving a membrane structure file,
+      a LipidMaps ID and a DOI, respectivelly. Topology files are validated according to the specified forcefield and
+      software and the membrane composition according to the membrane structure file. Simulation files for a given
+      membrane record can then automatically be gathered and downloaded from the database.</p>
   <p>Limonada is open source (code is hosted on github: <a class="text-success"
       href="https://github.com/limonadaMD/limonadaMD">https://github.com/limonadaMD/limonadaMD</a>) and is built
       using the widely used Django open framework
@@ -29,8 +33,8 @@
   <h1>Context</h1>
   <p>The size and complexity of lipid systems simulated by molecular dynamics is continuously growing and knowing that
       there could be over 100,000 lipid species and that biological membranes can be composed by hundreds of different
-      lipids whose proportion are organism and organelle specific, the amount and complexity of data involved stress
-      the need for an organized open web database.</p> 
+      lipids whose proportion are organism and organelle specific, the amount and complexity of the data involved
+      stress the need for an organized open web database.</p> 
   <p>Indeed, several forcefields can be used for lipid membrane simulations and some of them have hundreds of different
       lipid topologies parametrized. Moreover, tens of model membranes with several lipid species designed to represent
       specific biological membranes have already been simulated. Modeling studies start then to encompass the wide

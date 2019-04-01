@@ -166,13 +166,13 @@
               {% if sort == "lmid" %}
                 {% if dir == "asc" %}
                   <i class="fas fa-sort-up"></i>
-                  <a href="?{% url_replace sort="lmid" dir="des" %}">LM ID</a></th>
+                  <a href="?{% url_replace sort="lmid" dir="des" %}">LipidMaps ID</a></th>
                 {% else %}
                   <i class="fas fa-sort-down"></i>
-                  <a href="?{% url_replace sort="lmid" dir="asc" %}">LM ID</a></th>
+                  <a href="?{% url_replace sort="lmid" dir="asc" %}">LipidMaps ID</a></th>
                 {% endif %}
               {% else %}
-                <a href="?{% url_replace sort="lmid" dir="asc" %}">LM ID</a></th>
+                <a href="?{% url_replace sort="lmid" dir="asc" %}">LipidMaps ID</a></th>
               {% endif %}
             <th class="w-25">
               {% if sort == "com_name" %}

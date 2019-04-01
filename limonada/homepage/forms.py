@@ -84,5 +84,5 @@ class MailForm(Form):
     comment = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
                               required=False)
     curation = forms.BooleanField(required=False,
-                                  widget=CheckboxInput(attrs={'class':'your_class'}),
-                                  label='Request to become the new curator:')
+                                 widget=CheckboxInput(attrs={'class':'your_class'}),
+                                 label='Request to become the new curator:')

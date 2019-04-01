@@ -56,15 +56,15 @@
           {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
           {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
         </div>
-<!--
         {% if field.name == "mdp_file" %}
+<!--
           <div class="col-0">
             <br>
             <button id="id_mdp_file-remove" type="button" class="btn btn-danger btn-sm file-remove"
                 name="mdp_file-remove"><i class="fas fa-times"></i></button>
           </div>
-        {% endif %}
 -->
+        {% endif %}
       </div>
     {% endfor %}
     <div class="row ml-5">
@@ -85,6 +85,25 @@
     $(document).ready(function(){
       $('[data-toggle="popover"]').popover();
     });
+
+    //$('input[type="file"]').on('change', function() {
+    //    alert('test2');
+    //    alert($(this).name)
+        //alert($(this).next('.custom-file-label'));
+    //});
+
+    //$(document).on('click', '.file-remove', function(e){
+    //  alert('test');
+      // clearing value in javascript
+      //var elem = document.getElementById("input-id");
+      //elem.value = "";
+      // clearing value in jquery
+      //$('#input-id').val('');
+    //  $('#id_description').val('Test');
+    //  $('#id_mdp_file').val('Test');
+    //  $('#label_mdp_file').val('Test');
+    //});
+
     /*$(document).on('click', '.file-remove', function(e){*/
       /*document.getElementById('#id_mdp_file').value = "";*/
       /*$('#id_name').val('test');*/
