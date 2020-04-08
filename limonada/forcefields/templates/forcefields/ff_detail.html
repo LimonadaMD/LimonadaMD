@@ -1,0 +1,114 @@
+{% extends "homepage/layout.html" %}
+
+{% load homepage_extras %}
+
+{% block title %}Forcefields{% endblock %}
+
+{% block content %}
+
+  <h1>Forcefields</h1>
+  <br>
+
+  <p class="font-italic m-0 pl-1"><span class="font-weight-bold">N.B.:</span> If you use the following files in your
+      work, please cite the primary source. (see Description field)</p>
+  <div class="row align-items-center bg-white border rounded border-success px-3 pt-3 mx-1">
+    <div class="col-12 table-responsive">
+      <table class="table table-sm">
+	    <tbody>
+	  	  <tr><td class="font-weight-bold">Name:</td><td>{{ forcefield.name }}</td></tr>
+		  <tr><td class="font-weight-bold">Type:</td><td>{{ forcefield.get_forcefield_type_display }}</td></tr>
+          <tr>
+            <td class="font-weight-bold">Files:</td>
+            <td>
+                <a href="{{ forcefield.ff_file.url }}" class="text-success" target="blank">
+                    {{ forcefield.ff_file.url|basename }}</a>
+                {% if forcefield.mdp_file %}
+                  , <a href="{{ forcefield.mdp_file.url }}" class="text-success" target="blank">
+                      {{ forcefield.mdp_file.url|basename }}</a>
+                {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td class="font-weight-bold">Software:</td>
+            <td>
+              {% with forcefield.software.all|first as soft %}{{ soft.name }}{% endwith %}
+              {% for soft in forcefield.software.all|dictsort:"order" %}
+                {{ soft.version }}{% if not forloop.last %},{% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Description:</strong></td>
+            <td>{{ forcefield.description|linebreaks }}</td>
+          </tr>
+          <tr>
+            <td><strong>References:</strong></td>
+            <td>
+              {% for reference in forcefield.reference.all %}
+                <a class="text-success" href="http://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>
+                <i>{{ reference.journal }}</i>, {{ reference.volume }}.
+                {{ reference.title }}<br>
+              {% endfor %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <a class="text-success" href="{% url 'memlist' %}?forcefield={{ forcefield.pk }}">Available Membranes</a>
+      <br><br>
+      {% if user.is_authenticated %}
+        {% if user == forcefield.curator %}
+          <a href="{% url 'ffupdate' forcefield.pk %}"><i class="fas fa-edit text-success"></i></a>&nbsp
+          <a href="{% url 'ffdelete' forcefield.pk %}"><i class="fas fa-trash text-success"></i></a>
+        {% else %}
+          <a href="{% url 'mail' %}?lipid={{ forcefield.pk }}"><i class="fas fa-edit text-success"></i></a>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="col-auto ml-auto">
+      <small>
+        <b>Curator:</b>
+        <a class="text-success" href="{% url 'userdetail' forcefield.curator.pk %}">
+            {{ forcefield.curator.get_full_name }}</a> on {{ forcefield.date }}
+      </small>
+    </div>
+  </div>
+  <br>
+
+  <h2>Comments</h2>
+  <div class="row bg-white border rounded border-success p-3 mx-1">
+    <div class="col-12 comments">
+      {% for comment in comments %}
+        {{ comment.comment }}<br>
+        <p class="text-right p-0"><small class="text-secondary">{{ comment.user.get_full_name }} on {{ comment.date }}</small><p>
+        {% if not forloop.last %}<hr>{% endif %}
+      {% endfor %}
+      {% if comments|length == 0 %}
+        No comments yet<br>
+      {% endif %}
+    </div>
+    {% if user.is_authenticated %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="col-12 pt-2">
+          <textarea id="{{ form.comment.id_for_label }}" name="{{ form.comment.html_name }}" class="form-control bg-light" rows="2" cols="110"></textarea>
+          {% if form.comment.help_text %}<small class="text-secondary">{{ form.comment.help_text }}<br></small>{% endif %}
+          {% for error in form.comment.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
+          <button type="submit" class="btn btn-primary btn-sm mt-2">Add</button>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+  <br>
+
+{% endblock %}
+
+
+{% block script %}
+
+  <script>
+    $(document).ready(function(){
+      $(".comments").scrollTop($(".comments")[0].scrollHeight);
+    });
+  </script>
+
+{% endblock %}

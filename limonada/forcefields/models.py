@@ -20,14 +20,17 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+from __future__ import unicode_literals
+from unidecode import unidecode
 import os
-import unicodedata
 
 # Django
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.formats import localize
 from django.db import models
 from django.db.models.signals import m2m_changed, pre_delete, pre_save
 from django.dispatch.dispatcher import receiver
@@ -42,6 +45,7 @@ from .choices import FFTYPE_CHOICES
 _UNSAVED_FFFILE = 'unsaved_fffile'
 _UNSAVED_MDPFILE = 'unsaved_mdpfile'
 
+
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1]
     valid_extensions = ['.zip']
@@ -50,15 +54,15 @@ def validate_file_extension(value):
 
 
 def validate_ff_size(value):
-    filesize= value.size
-    if filesize > 2097152:
-        raise ValidationError("The maximum file size that can be uploaded is 2MB")
+    filesize = value.size
+    if filesize > 5242880:
+        raise ValidationError("The maximum file size that can be uploaded is 5MB")
     else:
         return value
 
 
 def ff_path(instance, filename):
-    name = unicodedata.normalize('NFKD', instance.name).encode('ascii', 'ignore').replace(' ', '_')
+    name = unidecode(instance.name).replace(' ', '_')
     filepath = 'forcefields/{0}/{1}.ff.zip'.format(instance.software.all()[0].name, name)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
@@ -66,7 +70,7 @@ def ff_path(instance, filename):
 
 
 def validate_mdp_size(value):
-    filesize= value.size
+    filesize = value.size
     if filesize > 209715:
         raise ValidationError("The maximum file size that can be uploaded is 200KB")
     else:
@@ -74,13 +78,14 @@ def validate_mdp_size(value):
 
 
 def mdp_path(instance, filename):
-    name = unicodedata.normalize('NFKD', instance.name).encode('ascii', 'ignore').replace(' ', '_')
+    name = unidecode(instance.name).replace(' ', '_')
     filepath = 'forcefields/{0}/{1}.mdp.zip'.format(instance.software.all()[0].name, name)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath
 
 
+@python_2_unicode_compatible
 class Forcefield(models.Model):
 
     name = models.CharField(max_length=50)
@@ -103,22 +108,38 @@ class Forcefield(models.Model):
                                 on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_absolute_url(self):
         return reverse('fflist')
 
 
+@python_2_unicode_compatible
 class Software(models.Model):
 
     name = models.CharField(max_length=50)
     version = models.CharField(max_length=50)
-    abbreviation = models.CharField(max_length=4)
-    order = models.CharField(max_length=1) 
+    abbreviation = models.CharField(max_length=5)
+    order = models.CharField(max_length=3)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.name, self.version)
+
+
+@python_2_unicode_compatible
+class FfComment(models.Model):
+
+    forcefield = models.ForeignKey('forcefields.Forcefield',
+                                   on_delete=models.CASCADE)
+    comment = models.TextField(blank=True)
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '%s %s %s %s' % (self.user.username, self.forcefield.software.name, self.forcefield.name,
+                                localize(self.date))
 
 
 @receiver(pre_delete, sender=Forcefield)

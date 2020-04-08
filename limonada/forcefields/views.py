@@ -20,6 +20,7 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+from functools import reduce
 import operator
 import os
 import shutil
@@ -28,22 +29,21 @@ import shutil
 from dal import autocomplete
 
 # Django
-from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
-from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
-from django.views.generic import CreateView, DeleteView, UpdateView
 
 # local Django
-from .forms import ForcefieldForm, SelectForcefieldForm
-from .models import Forcefield, Software
+from .forms import ForcefieldForm, SelectForcefieldForm, FfCommentForm
+from .models import Forcefield, Software, FfComment
 
 # Django apps
 from limonada.functions import FileData
@@ -59,21 +59,21 @@ def FfList(request):
     params = request.GET.copy()
 
     selectparams = {}
-    for param in ['software', 'forcefield_type']:
+    for param in ['software', 'softversion', 'forcefield_type']:
         if param in request.GET.keys():
             if request.GET[param] != '':
-                if param == 'software':
-                    softlist = request.GET[param].split(',')
-                    selectparams['software'] = softlist
-                else:
-                    selectparams[param] = request.GET[param]
+                selectparams[param] = request.GET[param]
     form_select = SelectForcefieldForm(selectparams)
     if form_select.is_valid():
         if 'software' in selectparams.keys():
+            softlist = Software.objects.filter(
+                abbreviation__istartswith=selectparams['software']).values_list('id', flat=True)
             querylist = []
             for i in softlist:
                 querylist.append(Q(software=Software.objects.filter(id=i)))
-            ff_list = ff_list.filter(reduce(operator.or_, querylist))
+            ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
+        if 'softversion' in selectparams.keys():
+            ff_list = ff_list.filter(software=Software.objects.filter(id=selectparams['softversion']))
         if 'forcefield_type' in selectparams.keys():
             ff_list = ff_list.filter(forcefield_type=selectparams['forcefield_type'])
     else:
@@ -136,6 +136,34 @@ def FfList(request):
     return render(request, 'forcefields/forcefields.html', data)
 
 
+@never_cache
+def FfDetail(request, pk=None):
+    if Forcefield.objects.filter(pk=pk).exists():
+        forcefield = Forcefield.objects.get(pk=pk)
+        if request.method == 'POST':
+            form = FfCommentForm(request.POST)
+            if form.is_valid():
+                comment = form.save(commit=False)
+                comment.forcefield = forcefield
+                comment.user = request.user
+                comment.save()
+                if request.user != forcefield.curator:
+                    email = request.user.email
+                    subject = 'New comment on your Limonada entry %s_%s' % (forcefield.software.name, forcefield.name)
+                    message = ''.join(
+                        ('Dear Mr/Ms %s %s,' % (forcefield.curator.first_name, forcefield.curator.last_name),
+                         '\n\n%s %s has published ' % (comment.user.first_name, comment.user.last_name),
+                         'the following comment on %s.\n\n' % (comment.date.strftime("%b. %d, %Y at %H:%M")),
+                         '%s\n\nSincerely,\nThe Limonada Team' % (comment.comment)))
+                    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email, ])
+                form = FfCommentForm()
+        else:
+            form = FfCommentForm()
+        comments = FfComment.objects.filter(forcefield=forcefield)
+        return render(request, 'forcefields/ff_detail.html',
+                      {'forcefield': forcefield, 'comments': comments, 'form': form, 'forcefields': True})
+
+
 @login_required
 @never_cache
 def FfCreate(request):
@@ -164,8 +192,8 @@ def FfCreate(request):
             return HttpResponseRedirect(reverse('fflist'))
     else:
         form = ForcefieldForm()
-    return render(request, 'forcefields/ff_form.html', {'form': form, 'forcefields': True, 'ffcreate': True,
-        'ffpath': ffpath, 'mdppath': mdppath})
+    return render(request, 'forcefields/ff_form.html',
+                  {'form': form, 'forcefields': True, 'ffcreate': True, 'ffpath': ffpath, 'mdppath': mdppath})
 
 
 @login_required
@@ -211,8 +239,8 @@ def FfUpdate(request, pk=None):
                 mdppath = 'tmp/%s' % os.path.basename(ff.mdp_file.name)
                 shutil.copy(ff.mdp_file.url[1:], 'media/tmp/')
             form = ForcefieldForm(instance=ff)
-        return render(request, 'forcefields/ff_form.html', {'form': form, 'forcefields': True,
-            'ffpath': ffpath, 'mdppath': mdppath})
+        return render(request, 'forcefields/ff_form.html',
+                      {'form': form, 'forcefields': True, 'ffpath': ffpath, 'mdppath': mdppath})
 
 
 @login_required
@@ -223,14 +251,15 @@ def FfDelete(request, pk=None):
             return redirect('homepage')
         mt = MembraneTopol.objects.filter(forcefield=ff).distinct()
         top = Topology.objects.filter(forcefield=ff).distinct()
+        comments = FfComment.objects.filter(forcefield=ff)
         curator = True
         for obj in mt:
-           if obj.curator != request.user:
-               curator = False
+            if obj.curator != request.user:
+                curator = False
         for obj in top:
-           if obj.curator != request.user:
-               curator = False
-        if curator == True:
+            if obj.curator != request.user:
+                curator = False
+        if curator:
             if request.method == 'POST':
                 ff.delete()
                 for obj in mt:
@@ -240,11 +269,13 @@ def FfDelete(request, pk=None):
                         m.delete()
                 for obj in top:
                     obj.delete()
+                for obj in comments:
+                    obj.delete()
                 return HttpResponseRedirect(reverse('fflist'))
             return render(request, 'forcefields/ff_delete.html',
-                {'forcefields': True, 'ff': ff, 'nbtop': len(top), 'nbmem': len(mt)})
+                          {'forcefields': True, 'ff': ff, 'nbtop': len(top), 'nbmem': len(mt)})
         return render(request, 'forcefields/ff_notdelete.html',
-            {'forcefields': True, 'ff': ff, 'nbtop': len(top), 'nbmem': len(mt)})
+                      {'forcefields': True, 'ff': ff, 'nbtop': len(top), 'nbmem': len(mt)})
 
 
 class SoftwareAutocomplete(autocomplete.Select2QuerySetView):

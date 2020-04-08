@@ -37,17 +37,17 @@ def FileData(request, key, hiddenkey, filedata):
     if key in request.FILES.keys():
         keyfile = request.FILES[key]
         keypath = os.path.join('tmp/', keyfile.name)
-        mediapath = os.path.join('media/', keypath) 
+        mediapath = os.path.join('media/', keypath)
         if os.path.isfile(mediapath):
             os.remove(mediapath)
         with default_storage.open(keypath, 'wb+') as destination:
             for chunk in keyfile.chunks():
                 destination.write(chunk)
-        f = file(mediapath)
+        f = open(mediapath, 'rb')
         filedata[key] = SimpleUploadedFile(f.name, f.read())
     elif keypath:
-        mediapath = os.path.join('media/', keypath) 
-        f = file(mediapath)
+        mediapath = os.path.join('media/', keypath)
+        f = open(mediapath, 'rb')
         filedata[key] = SimpleUploadedFile(f.name, f.read())
     return filedata, keypath
 

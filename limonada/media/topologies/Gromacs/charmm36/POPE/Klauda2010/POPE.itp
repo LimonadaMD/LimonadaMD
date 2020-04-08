@@ -1,6 +1,6 @@
 [ moleculetype ]
 ; Name            nrexcl
-POPE                3
+POPE               3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -1172,3 +1172,4 @@ POPE                3
 #ifdef POSRES
 #include "POPE_posre.itp"
 #endif
+

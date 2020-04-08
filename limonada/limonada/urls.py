@@ -42,12 +42,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 
 # local Django
-from .views import bad_request_view, error_view, page_not_found_view, permission_denied_view
+from .views import bad_request_view, get_error, error_view, page_not_found_view, permission_denied_view
 
+handler400 = bad_request_view.as_view()
+handler403 = permission_denied_view.as_view()
 handler404 = page_not_found_view.as_view()
 handler500 = error_view.as_view()
-handler403 = permission_denied_view.as_view()
-handler400 = bad_request_view.as_view()
+handler502 = get_error.as_view()
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

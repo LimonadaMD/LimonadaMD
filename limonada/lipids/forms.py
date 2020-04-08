@@ -21,6 +21,7 @@
 
 # third-party
 from dal import autocomplete
+import os
 
 # Django
 from django import forms
@@ -28,10 +29,11 @@ from django.forms.widgets import Select, Textarea, TextInput
 from django.utils.safestring import mark_safe
 
 # Django apps
+from forcefields.choices import SFTYPE_CHOICES
 from forcefields.models import Forcefield, Software
 
 # local Django
-from .functions import gmxrun
+from .functions import gmxrun, charmmrun, amberrun, atnames, findresname
 from .models import TopComment, Lipid, Topology, validate_file_extension, validate_lmid, validate_name
 
 
@@ -130,12 +132,15 @@ class TopologyForm(forms.ModelForm):
     gro_file = forms.FileField(label='Structure file')
     version = forms.CharField(widget=TextInput(attrs={'class': 'form-control',
                                                       'placeholder': 'e.g., Klauda2010b'}))
+    head = forms.CharField(label='Head atom',
+                           widget=TextInput(attrs={'class': 'form-control'}))
     description = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
                                   required=False)
 
     class Meta:
         model = Topology
-        fields = ['software', 'forcefield', 'lipid', 'itp_file', 'gro_file', 'version', 'description', 'reference']
+        fields = ['software', 'forcefield', 'lipid', 'itp_file', 'gro_file',
+                  'version', 'head', 'description', 'reference']
         widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete'),
                    'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
                    'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete')}
@@ -147,6 +152,7 @@ class TopologyForm(forms.ModelForm):
         ff = cleaned_data.get('forcefield')
         lipid = cleaned_data.get('lipid')
         version = cleaned_data.get('version')
+        head = cleaned_data.get('head')
 
         if lipid and ff and version:
             if Topology.objects.filter(
@@ -157,21 +163,64 @@ class TopologyForm(forms.ModelForm):
         if lipid and ff and software and 'itp_file' in cleaned_data.keys() and 'gro_file' in cleaned_data.keys():
             itp_file = cleaned_data['itp_file']
             gro_file = cleaned_data['gro_file']
+            extension = os.path.splitext(itp_file.name)[1]
             for soft in software:
-                error, rand = gmxrun(lipid.name, ff.ff_file.url, itp_file, gro_file, soft.abbreviation)
-                if error:
-                    logpath = '/media/tmp/%s/gromacs.log' % rand
+                if soft.name == "Gromacs" and extension == ".itp":
+                    error, rand = gmxrun(lipid.name, ff.ff_file.url, itp_file, gro_file, soft.abbreviation)
+                    if error:
+                        logpath = '/media/tmp/%s/gromacs.log' % rand
+                        self.add_error('itp_file', mark_safe(
+                            'Topology file is not valid. See <a class="text-success" href="%s">gromacs.log</a>'
+                            % logpath))
+                elif soft.name == "Charmm" and extension == ".rtf":
+                    if findresname(itp_file, soft.name) != lipid.name:
+                        self.add_error('itp_file', mark_safe(
+                            'The lipid name should be the same as the one specified in the .rtf file.'))
+                    if os.path.splitext(gro_file.name)[1] == ".pdb":
+                        error, rand = charmmrun(lipid.name, ff.ff_file.url, itp_file, gro_file, soft.abbreviation)
+                        if error:
+                            logpath = '/media/tmp/%s/charmm.log' % rand
+                            self.add_error('itp_file', mark_safe(
+                                'Topology file is not valid. See <a class="text-success" href="%s">charmm.log</a>'
+                                % logpath))
+                    else:
+                        self.add_error('gro_file', mark_safe(
+                            'PDB files have to be used with %s' % (extension, soft.name)))
+                elif soft.name == "Amber" and extension == ".lib":
+                    if os.path.splitext(gro_file.name)[1] == ".pdb":
+                        error, rand = amberrun(lipid.name, ff.ff_file.url, itp_file, gro_file, soft.abbreviation)
+                        if error:
+                            logpath = '/media/tmp/%s/amber.log' % rand
+                            self.add_error('itp_file', mark_safe(
+                                'Topology file is not valid. See <a class="text-success" href="%s">amber.log</a>'
+                                % logpath))
+                    else:
+                        self.add_error('gro_file', mark_safe(
+                            'PDB files have to be used with %s' % (extension, soft.name)))
+                elif soft.name == "Namd":
                     self.add_error('itp_file', mark_safe(
-                        'Topology file is not valid. See <a class="text-success" href="%s">gromacs.log</a>' % logpath))
+                        '%s cannot be used to add topology files' % (soft.name)))
+                else:
+                    self.add_error('itp_file',
+                                   mark_safe('%s files are not %s topology files' % (extension, soft.name)))
+
+        if 'itp_file' not in self._errors.keys() and 'gro_file' not in self._errors.keys():
+            if head and 'gro_file' in cleaned_data.keys():
+                if head not in atnames(gro_file):
+                    self.add_error('head', mark_safe(
+                        'This atom name is not present in the structure file.'))
 
         return cleaned_data
 
 
 class SelectTopologyForm(forms.Form):
 
-    software = forms.ModelMultipleChoiceField(queryset=Software.objects.all(),
-                                              widget=autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
-                                              required=False)
+    software = forms.ChoiceField(choices=(('', '---------'),) + SFTYPE_CHOICES,
+                                 widget=Select(attrs={'class': 'form-control'}),
+                                 required=False)
+    softversion = forms.ModelChoiceField(queryset=Software.objects.all(),
+                                         label='Version',
+                                         required=False)
     forcefield = forms.ModelChoiceField(queryset=Forcefield.objects.all(),
                                         required=False)
     lipid = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(),

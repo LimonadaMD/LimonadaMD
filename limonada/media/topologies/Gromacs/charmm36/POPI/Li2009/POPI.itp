@@ -1,6 +1,6 @@
 [ moleculetype ]
 ; Name            nrexcl
-POPI                3
+POPI               3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -1319,3 +1319,4 @@ POPI                3
 #ifdef POSRES
 #include "POPI_posre.itp"
 #endif
+

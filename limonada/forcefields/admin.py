@@ -23,13 +23,18 @@
 from django.contrib import admin
 
 # local Django
-from .models import Forcefield, Software
-from .forms import ForcefieldAdminForm
+from .models import Forcefield, Software, FfComment
+from .forms import ForcefieldAdminForm, FfCommentAdminForm
 
 
 class ForcefieldAdmin(admin.ModelAdmin):
     form = ForcefieldAdminForm
 
 
+class FfCommentAdmin(admin.ModelAdmin):
+    form = FfCommentAdminForm
+
+
 admin.site.register(Forcefield, ForcefieldAdmin)
 admin.site.register(Software)
+admin.site.register(FfComment, FfCommentAdmin)

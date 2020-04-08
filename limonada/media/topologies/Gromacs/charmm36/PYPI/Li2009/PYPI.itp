@@ -1,6 +1,6 @@
 [ moleculetype ]
 ; Name            nrexcl
-PYPI                3
+PYPI               3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -1259,3 +1259,4 @@ PYPI                3
 #ifdef POSRES
 #include "PYPI_posre.itp"
 #endif
+

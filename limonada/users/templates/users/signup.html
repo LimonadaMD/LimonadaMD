@@ -17,7 +17,7 @@
         </div>
         <div class="col-9 col-lg-4">
           {% if field.name == "address" or field.name == "miscellaneous" %}
-            <small class="float-right text-secondary">optional</small> 
+            <small class="float-right text-secondary">optional</small>
           {% endif %}
           {% if field.name == "utype" %}
             <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">

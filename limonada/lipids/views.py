@@ -20,12 +20,12 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+from functools import reduce
 import operator
 import os
 import shlex
 import shutil
 import subprocess
-import time
 
 # third-party
 import requests
@@ -37,23 +37,22 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail import send_mail
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Q
 from django.db.models.functions import Substr
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
-from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
+from django.views.generic import DetailView
 
 # Django apps
 from forcefields.models import Forcefield, Software
 from limonada.functions import FileData
-from membranes.models import Membrane, MembraneTopol, TopolComposition
+from membranes.models import Membrane, MembraneTopol
 
 # local Django
 from .forms import TopCommentForm, LipidForm, LmidForm, SelectLipidForm, SelectTopologyForm, TopologyForm
@@ -142,22 +141,48 @@ def li_index():
 def GetLiIndex(request):
     data = {}
     liindex = li_index()
-    for i in [ 'mainclass', 'subclass', 'l4class' ]:
-        classname =  request.GET[i]
+    for i in ['mainclass', 'subclass', 'l4class']:
+        classname = request.GET[i]
         if classname in liindex.keys():
-           data[i] = liindex[classname]
+            data[i] = liindex[classname]
         else:
-           data[i] = ""
+            data[i] = ""
+    return HttpResponse(simplejson.dumps(data), content_type='application/json')
+
+
+def GetSoftVersionList(request):
+    software = simplejson.loads(request.POST.get('software', None))
+    version_list = []
+    if software != "":
+        version_list = Software.objects.filter(abbreviation__istartswith=software).order_by('order')
+    data = []
+    for version in version_list:
+        data.append({'value': version.id, 'version': version.version})
     return HttpResponse(simplejson.dumps(data), content_type='application/json')
 
 
 def GetFfList(request):
-    softlist = simplejson.loads(request.POST.get('software', None))
+    software = simplejson.loads(request.POST.get('software', None))
+    softlist = simplejson.loads(request.POST.get('version', None))
+    op = request.POST.get('operator', None)
+    softabb = ""
     if type(softlist) is int:
         softlist = [softlist]
-    op = request.POST.get('operator', None)
+    elif type(softlist) is str:
+        if op == 'AND':
+            softabb = Software.objects.filter(id=softlist).values_list('abbreviation', flat=True)[0]
+            if softabb[:2] == "NA":
+                softlist = Software.objects.all().values_list('id', flat=True)
+    if software != "" and softlist == "":
+        softlist = Software.objects.filter(abbreviation__istartswith=software).values_list('id', flat=True)
     ff_list = Forcefield.objects.all()
-    if op == 'AND':
+    if softabb[:2] == "NA" and op == 'AND':
+        querylist = []
+        for i in softlist:
+            querylist.append(Q(software=Software.objects.filter(id=i)))
+        if querylist:
+            ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
+    elif op == 'AND':
         for i in softlist:
             ff_list = ff_list.filter(software=Software.objects.filter(id=i))
     else:
@@ -169,7 +194,7 @@ def GetFfList(request):
     data = []
     if ff_list and softlist:
         for ff in ff_list:
-           data.append({'value': ff.id, 'name': ff.name})
+            data.append({'value': ff.id, 'name': ff.name})
     return HttpResponse(simplejson.dumps(data), content_type='application/json')
 
 
@@ -264,7 +289,6 @@ def LipList(request):
 @login_required
 @never_cache
 def LipCreate(request):
-    liindex = li_index()
     imgpath = ''
     if request.method == 'POST' and 'search' in request.POST:
         form_search = LmidForm(request.POST)
@@ -299,8 +323,8 @@ def LipCreate(request):
             except OSError:
                 pass
             if os.path.isfile('media/tmp/%s.png' % lm_data['lmid']):
-                f = file('media/tmp/%s.png' % lm_data['lmid'])
-                file_data = {'img': SimpleUploadedFile(f.name, f.read())}
+                f = open('media/tmp/%s.png' % lm_data['lmid'], "rb")
+                file_data = {'img': SimpleUploadedFile(name=f.name, content=f.read(), content_type="image/png")}
                 imgpath = 'tmp/%s.png' % lm_data['lmid']
             else:
                 file_data = {}
@@ -403,8 +427,8 @@ def LipUpdate(request, slug=None):
                 imgpath = 'tmp/%s' % os.path.basename(lipid.img.name)
                 shutil.copy(lipid.img.url[1:], 'media/tmp/')
             form_add = LipidForm(instance=lipid)
-        return render(request, 'lipids/lip_form.html', {'form_add': form_add, 'lipids': True, 'search': False,
-            'imgpath': imgpath})
+        return render(request, 'lipids/lip_form.html',
+                      {'form_add': form_add, 'lipids': True, 'search': False, 'imgpath': imgpath})
     else:
         return HttpResponseRedirect(reverse('liplist'))
 
@@ -431,12 +455,12 @@ def LipDelete(request, slug=None):
         top = Topology.objects.filter(lipid=lip).distinct()
         curator = True
         for obj in mt:
-           if obj.curator != request.user:
-               curator = False
+            if obj.curator != request.user:
+                curator = False
         for obj in top:
-           if obj.curator != request.user:
-               curator = False
-        if curator == True:
+            if obj.curator != request.user:
+                curator = False
+        if curator:
             if request.method == 'POST':
                 lip.delete()
                 for obj in mt:
@@ -448,9 +472,9 @@ def LipDelete(request, slug=None):
                     obj.delete()
                 return HttpResponseRedirect(reverse('liplist'))
             return render(request, 'lipids/lip_delete.html',
-                {'lipids': True, 'lip': lip, 'nbtop': len(top), 'nbmem': len(mt)})
+                          {'lipids': True, 'lip': lip, 'nbtop': len(top), 'nbmem': len(mt)})
         return render(request, 'lipids/lip_notdelete.html',
-            {'lipids': True, 'lip': lip, 'nbtop': len(top), 'nbmem': len(mt)})
+                      {'lipids': True, 'lip': lip, 'nbtop': len(top), 'nbmem': len(mt)})
 
 
 class LipAutocomplete(autocomplete.Select2QuerySetView):
@@ -473,38 +497,45 @@ def TopList(request):
 
     selectparams = {}
     selectclass = {}
-    for param in ['software', 'forcefield', 'lipid', 'category', 'main_class', 'sub_class', 'l4_class']:
+    for param in ['software', 'softversion', 'forcefield', 'lipid', 'category', 'main_class', 'sub_class', 'l4_class']:
         if param in request.GET.keys():
             if request.GET[param] != '':
                 if param == 'lipid':
                     liplist = request.GET[param].split(',')
                     selectparams['lipid'] = liplist
                 elif param == 'software':
-                    softlist = request.GET[param].split(',')
-                    selectparams['software'] = softlist
+                    selectparams[param] = request.GET[param]
+                elif param == 'softversion':
+                    selectparams[param] = request.GET[param]
                 elif param == 'forcefield':
                     selectparams[param] = request.GET[param]
                 else:
                     selectclass[param] = request.GET[param]
     form_select = SelectTopologyForm(selectparams)
-    if 'software' in selectparams.keys():
-        if form_select.is_valid():
-            querylist = []
-            for i in softlist:
-                querylist.append(Q(software=Software.objects.filter(id=i)))
-            top_list = top_list.filter(reduce(operator.or_, querylist))
-    if 'forcefield' in selectparams.keys():
-        top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
-    if 'category' in selectclass.keys():
-        top_list = top_list.filter(lipid__core=lmdict[selectclass['category']])
-    if 'main_class' in selectclass.keys():
-        top_list = top_list.filter(lipid__main_class=lmdict[selectclass['main_class']])
-    if 'sub_class' in selectclass.keys():
-        top_list = top_list.filter(lipid__sub_class=lmdict[selectclass['sub_class']])
-    if 'l4_class' in selectclass.keys():
-        top_list = top_list.filter(lipid__l4_class=lmdict[selectclass['l4_class']])
-    if 'lipid' in selectparams.keys():
-        if form_select.is_valid():
+    if form_select.is_valid():
+        if 'software' in selectparams.keys():
+            softlist = Software.objects.filter(
+                abbreviation__istartswith=selectparams['software']).values_list('id', flat=True)
+            if softlist:
+                querylist = []
+                for i in softlist:
+                    querylist.append(Q(software=Software.objects.filter(id=i)))
+                top_list = top_list.filter(reduce(operator.or_, querylist)).distinct()
+            else:
+                top_list = Topology.objects.none()
+        if 'softversion' in selectparams.keys():
+            top_list = top_list.filter(software=Software.objects.filter(id=selectparams['softversion']))
+        if 'forcefield' in selectparams.keys():
+            top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
+        if 'category' in selectclass.keys():
+            top_list = top_list.filter(lipid__core=lmdict[selectclass['category']])
+        if 'main_class' in selectclass.keys():
+            top_list = top_list.filter(lipid__main_class=lmdict[selectclass['main_class']])
+        if 'sub_class' in selectclass.keys():
+            top_list = top_list.filter(lipid__sub_class=lmdict[selectclass['sub_class']])
+        if 'l4_class' in selectclass.keys():
+            top_list = top_list.filter(lipid__l4_class=lmdict[selectclass['l4_class']])
+        if 'lipid' in selectparams.keys():
             querylist = []
             for i in liplist:
                 querylist.append(Q(lipid=Lipid.objects.filter(id=i)))
@@ -591,23 +622,24 @@ def TopDetail(request, pk=None):
                 if request.user != topology.curator:
                     email = request.user.email
                     subject = 'New comment on your Limonada entry %s_%s' % (topology.lipid.name, topology.version)
-                    message = ''.join(('Dear Mr/Ms %s %s,' % (topology.curator.first_name, topology.curator.last_name),
-                                   '\n\n%s %s has published ' % (comment.user.first_name, comment.user.last_name), 
-                                   'the following comment on %s.\n\n' % (comment.date.strftime("%b. %d, %Y at %H:%M")),
-                                   '%s\n\nSincerely,\nThe Limonada Team' % (comment.comment)))
+                    message = ''.join(
+                        ('Dear Mr/Ms %s %s,' % (topology.curator.first_name, topology.curator.last_name),
+                         '\n\n%s %s has published ' % (comment.user.first_name, comment.user.last_name),
+                         'the following comment on %s.\n\n' % (comment.date.strftime("%b. %d, %Y at %H:%M")),
+                         '%s\n\nSincerely,\nThe Limonada Team' % (comment.comment)))
                     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email, ])
                 form = TopCommentForm()
         else:
             form = TopCommentForm()
         comments = TopComment.objects.filter(topology=topology)
-        return render(request, 'lipids/top_detail.html', {'topology': topology, 'comments': comments, 'form': form,
-            'cgbonds': bonds, 'topologies': True})
+        return render(request, 'lipids/top_detail.html',
+                      {'topology': topology, 'comments': comments, 'form': form, 'cgbonds': bonds, 'topologies': True})
 
 
 @login_required
 @never_cache
 def TopCreate(request):
-    itppath = '' 
+    itppath = ''
     gropath = ''
     if request.method == 'POST':
         file_data = {}
@@ -632,8 +664,8 @@ def TopCreate(request):
             return HttpResponseRedirect(reverse('toplist'))
     else:
         form = TopologyForm()
-    return render(request, 'lipids/top_form.html', {'form': form, 'topologies': True,
-        'topcreate': True, 'itppath': itppath, 'gropath': gropath})
+    return render(request, 'lipids/top_form.html',
+                  {'form': form, 'topologies': True, 'topcreate': True, 'itppath': itppath, 'gropath': gropath})
 
 
 @login_required
@@ -644,7 +676,8 @@ def TopUpdate(request, pk=None):
         version_init = top.version
         software_init = top.software.all()[0].name
         forcefield_init = top.forcefield
-        dir_init = 'media/topologies/%s/%s/%s/%s' % (top.software.all()[0].name, top.forcefield, top.lipid.name, top.version)
+        dir_init = 'media/topologies/%s/%s/%s/%s' % (top.software.all()[0].name, top.forcefield, top.lipid.name,
+                                                     top.version)
         if top.curator != request.user:
             return redirect('homepage')
         if request.method == 'POST':
@@ -677,8 +710,8 @@ def TopUpdate(request, pk=None):
             gropath = 'tmp/%s' % os.path.basename(top.gro_file.name)
             shutil.copy(top.gro_file.url[1:], 'media/tmp/')
             form = TopologyForm(instance=top)
-        return render(request, 'lipids/top_form.html', {'form': form, 'topologies': True,
-            'itppath': itppath, 'gropath': gropath})
+        return render(request, 'lipids/top_form.html',
+                      {'form': form, 'topologies': True, 'itppath': itppath, 'gropath': gropath})
     else:
         return HttpResponseRedirect(reverse('toplist'))
 
@@ -693,9 +726,9 @@ def TopDelete(request, pk=None):
         comments = TopComment.objects.filter(topology=top)
         curator = True
         for obj in mt:
-           if obj.curator != request.user:
-               curator = False
-        if curator == True:
+            if obj.curator != request.user:
+                curator = False
+        if curator:
             if request.method == 'POST':
                 top.delete()
                 for obj in mt:

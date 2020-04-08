@@ -16,7 +16,17 @@
       <div class="row py-1 ml-5">
         <div class="col-3 col-lg-2 col-md-3 pt-1">
           {% if field.name == "description" %}<br>{% endif %}
+          {% if field.name == "head" %}
+            <label for="{{ field.id_for_label }}">Head atom:
+              <span data-toggle="popover" data-trigger="hover" title="Head atom"
+                    data-content="An head atom, being at the level of phosphate atoms in lipid bilayers has to be
+		        identified for each lipid. These atoms are notably used to discriminate lipid leaflets with
+			fatslim.">
+                  <i class="fas fa-info-circle text-success"></i></span>
+            </label>
+        {% else %}
           {{ field.label_tag }}
+        {% endif %}
         </div>
         <div class="col-9 col-lg-4 col-md-7">
           {% if field.name == "description" %}
@@ -27,10 +37,10 @@
               <div class="custom-file">
                 {% if field.name == "itp_file" %}
                   <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="custom-file-input"
-                         accept=".itp">
+                         accept=".itp,.rtf,.lib">
                 {% else %}
                   <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="custom-file-input"
-                         accept=".gro">
+                         accept=".gro,.pdb">
                 {% endif %}
                 <label class="custom-file-label" for="{{ field.id_for_label }}">{{ field.value|basename }}</label>
               </div>
@@ -38,7 +48,7 @@
           {% elif field.name == 'forcefield' %}
             <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
             {% if form.software.value %}
-              {% ff_select form.software.value as ffobjects %}
+              {% ff_select "" form.software.value as ffobjects %}
             {% endif %}
             {% if ffobjects %}
               {% for value,name in ffobjects %}
@@ -74,6 +84,11 @@
 {% block script %}
 
   <script>
+    $(document).ready(function(){
+      $('[data-toggle="popover"]').popover();
+    });
+  </script>
+  <script>
     var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
     function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection
@@ -102,7 +117,7 @@
       }
       $.ajax({
         url: '{% url "load_fflist" %}',
-        data: ({'software': JSON.stringify(val), 'operator': 'AND'}),
+        data: ({'software': JSON.stringify(''), 'version': JSON.stringify(val), 'operator': 'AND'}),
         type: 'POST',
         dataType: 'json',
         success: function (data) {

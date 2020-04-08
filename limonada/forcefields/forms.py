@@ -20,6 +20,8 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+from functools import reduce
+import operator
 import os
 import zipfile
 
@@ -28,8 +30,8 @@ from dal import autocomplete
 
 # Django
 from django import forms
-from django.conf import settings
 from django.core.files.storage import default_storage
+from django.db.models import Q
 from django.forms.widgets import Select, Textarea, TextInput
 from django.utils.safestring import mark_safe
 
@@ -37,7 +39,8 @@ from django.utils.safestring import mark_safe
 from forcefields.choices import FFTYPE_CHOICES
 
 # local Django
-from .models import Forcefield, Software
+from .choices import SFTYPE_CHOICES
+from .models import Forcefield, Software, FfComment
 
 
 class ForcefieldAdminForm(forms.ModelForm):
@@ -76,12 +79,20 @@ class ForcefieldForm(forms.ModelForm):
         ff_file = cleaned_data.get('ff_file')
         mdp_file = cleaned_data.get('mdp_file')
 
+        if soft.name == "Namd":
+            self.add_error('software', mark_safe(
+                'Forcefields cannot be added for %s.' % (soft.name)))
+
         if name and soft:
-            software = Software.objects.filter(name=soft)
-            if Forcefield.objects.filter(
-                    name=name, software=software).exclude(pk=self.instance.id).exists():
+            softlist = Software.objects.filter(name=soft.name)
+            ff_list = Forcefield.objects.all()
+            querylist = []
+            for i in softlist:
+                querylist.append(Q(software=i))
+            ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
+            if ff_list.filter(name=name).exclude(pk=self.instance.id).exists():
                 self.add_error('name', mark_safe(
-                    'This name is already taken by another forcefield entry for the %s software.' % (software.name)))
+                    'This name is already taken by another forcefield entry for the %s software.' % (soft.name)))
 
         if ff_file:
             path = os.path.join('tmp/', 'clean_%s' % ff_file.name)
@@ -95,7 +106,7 @@ class ForcefieldForm(forms.ModelForm):
                 ffzip = zipfile.ZipFile(mediapath)
                 if not ffzip.namelist():
                     self.add_error('ff_file', mark_safe('Empty ZIP file'))
-            except:
+            except zipfile.BadZipFile:
                 self.add_error('ff_file', mark_safe('Invalid ZIP file'))
 
         if mdp_file:
@@ -107,16 +118,35 @@ class ForcefieldForm(forms.ModelForm):
                 for chunk in mdp_file.chunks():
                     destination.write(chunk)
             try:
-                mdpzip = zipfile.ZipFile(mediapath)
-            except:
+                zipfile.ZipFile(mediapath)
+            except zipfile.BadZipFile:
                 self.add_error('mdp_file', mark_safe('Invalid ZIP file'))
 
 
 class SelectForcefieldForm(forms.Form):
 
-    software = forms.ModelMultipleChoiceField(queryset=Software.objects.all(),
-                                              widget=autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
-                                              required=False)
-    forcefield_type = forms.ChoiceField(choices=FFTYPE_CHOICES,
+    software = forms.ChoiceField(choices=(('', '---------'),) + SFTYPE_CHOICES,
+                                 widget=Select(attrs={'class': 'form-control'}),
+                                 required=False)
+    softversion = forms.ModelChoiceField(queryset=Software.objects.all(),
+                                         label='Version',
+                                         required=False)
+    forcefield_type = forms.ChoiceField(choices=(('', '---------'),) + FFTYPE_CHOICES,
                                         widget=Select(attrs={'class': 'form-control'}),
                                         required=False)
+
+
+class FfCommentAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = FfComment
+        fields = ('__all__')
+        widgets = {'user': autocomplete.ModelSelect2(url='user-autocomplete')}
+
+
+class FfCommentForm(forms.ModelForm):
+
+    class Meta:
+        model = FfComment
+        fields = ['comment']
+        widgets = {'comment': Select(attrs={'class': 'form-control'})}

@@ -28,11 +28,13 @@ from django.forms import ModelForm, formset_factory
 from django.forms.widgets import NumberInput, Select, Textarea, TextInput
 
 # Django apps
+from forcefields.choices import SFTYPE_CHOICES
 from forcefields.models import Forcefield, Software
 from lipids.models import Lipid
 
 # local Django
-from .models import MemComment, Composition, Membrane, MembraneTag, MembraneTopol, TopolComposition
+from .models import (MemComment, Composition, Membrane, MembraneProt, MembraneTag, MembraneTopol,
+                     TopolComposition)
 
 
 class MembraneTopolAdminForm(ModelForm):
@@ -42,6 +44,7 @@ class MembraneTopolAdminForm(ModelForm):
         fields = ('__all__')
         widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
                    'membrane': autocomplete.ModelSelect2(url='membrane-autocomplete'),
+                   'prot': autocomplete.ModelSelect2Multiple(url='prot-autocomplete'),
                    'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
 
 
@@ -56,17 +59,21 @@ class MembraneTopolForm(ModelForm):
                                        widget=NumberInput(attrs={'class': 'form-control'}))
     mem_file = forms.FileField(label='Membrane file',
                                required=False)
+    other_file = forms.FileField(label='Other files',
+                                 required=False)
     description = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
                                   required=False)
 
     class Meta:
         model = MembraneTopol
-        fields = ['name', 'software', 'forcefield', 'temperature', 'equilibration', 'mem_file', 'description',
-                  'reference']
+        fields = ['name', 'software', 'forcefield', 'temperature', 'equilibration', 'mem_file', 'other_file',
+                  'description', 'prot', 'reference']
         widgets = {'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
                    'software': autocomplete.ModelSelect2(url='software-autocomplete'),
+                   'prot': autocomplete.ModelSelect2Multiple(url='membraneprotautocomplete',
+                                                             attrs={'data-placeholder': 'e.g., GPRC'}),
                    'forcefield': Select(attrs={'class': 'form-control'})}
-        labels = {'reference': 'References'}
+        labels = {'reference': 'References', 'prot': 'Proteins'}
 
 
 class MembraneAdminForm(ModelForm):
@@ -112,7 +119,7 @@ class CompositionForm(ModelForm):
         fields = ['lipid', 'topology', 'number', 'side']
         widgets = {'lipid': autocomplete.ModelSelect2(url='lipid-autocomplete',
                                                       attrs={'class': 'dal-lipid'}),
-                   'side': Select(attrs={'class': 'form-control-sm'})}
+                   'side': Select(attrs={'class': 'sideselect form-control-sm'})}
 
 
 MemFormSet = formset_factory(CompositionForm)
@@ -120,9 +127,12 @@ MemFormSet = formset_factory(CompositionForm)
 
 class SelectMembraneForm(forms.Form):
 
-    software = forms.ModelMultipleChoiceField(queryset=Software.objects.all(),
-                                              widget=autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
-                                              required=False)
+    software = forms.ChoiceField(choices=(('', '---------'),) + SFTYPE_CHOICES,
+                                 widget=Select(attrs={'class': 'form-control'}),
+                                 required=False)
+    softversion = forms.ModelChoiceField(queryset=Software.objects.all(),
+                                         label='Version',
+                                         required=False)
     forcefield = forms.ModelChoiceField(queryset=Forcefield.objects.all(),
                                         required=False)
     lipids = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(),
@@ -131,6 +141,10 @@ class SelectMembraneForm(forms.Form):
     tags = forms.ModelMultipleChoiceField(queryset=MembraneTag.objects.all(),
                                           widget=autocomplete.ModelSelect2Multiple(url='tag-autocomplete'),
                                           required=False)
+    prots = forms.ModelMultipleChoiceField(queryset=MembraneProt.objects.all(),
+                                           widget=autocomplete.ModelSelect2Multiple(url='prot-autocomplete'),
+                                           label='Proteins',
+                                           required=False)
 
 
 class MemCommentAdminForm(forms.ModelForm):

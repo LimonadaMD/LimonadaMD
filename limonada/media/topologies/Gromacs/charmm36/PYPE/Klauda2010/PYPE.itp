@@ -1,6 +1,6 @@
 [ moleculetype ]
 ; Name            nrexcl
-PYPE                3
+PYPE               3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -1112,3 +1112,4 @@ PYPE                3
 #ifdef POSRES
 #include "PYPE_posre.itp"
 #endif
+

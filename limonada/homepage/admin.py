@@ -23,12 +23,24 @@
 from django.contrib import admin
 
 # local Django
-from .models import Reference
-from .forms import ReferenceAdminForm
+from .models import Author, Reference, AuthorsList
+from .forms import AuthorAdminForm, ReferenceAdminForm, AuthorsListAdminForm
+
+
+class AuthorAdmin(admin.ModelAdmin):
+    form = AuthorAdminForm
+
+
+class AuthorsListInline(admin.TabularInline):
+    model = AuthorsList
+    form = AuthorsListAdminForm
+    extra = 1
 
 
 class ReferenceAdmin(admin.ModelAdmin):
     form = ReferenceAdminForm
+    inlines = (AuthorsListInline,)
 
 
+admin.site.register(Author, AuthorAdmin)
 admin.site.register(Reference, ReferenceAdmin)

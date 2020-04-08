@@ -39,15 +39,33 @@
           {% csrf_token %}
           <div class="row pt-1">
             {% for field in form_select %}
-              {% if field.name == 'software' or field.name == 'forcefield' %}
+              {% if field.name == 'software' or field.name == 'softversion' or field.name == 'forcefield' %}
                 <div class="col-auto d-flex">
                   <div class="pr-2 py-1">{{ field.label_tag }}</div>
                   <div>
-                    {% if field.name == 'forcefield' %}
+                    {% if field.name == 'softversion' %}
                       <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
                       {% if params.software %}
-                        {% ff_select params.software as ffobjects %}
+                        {% sv_select params.software as svobjects %}
                       {% endif %}
+                      <option value="">---------</option>
+                      {% if svobjects %}
+                        {% for value,name in svobjects %}
+                          <option value="{{ value }}"
+                                  {% if value|slugify == params.softversion %}selected="selected"{% endif %}>
+                            {{ name }}
+                          </option>
+                        {% endfor %}
+                      {% endif %}
+                      </select>
+                    {% elif field.name == 'forcefield' %}
+                      <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
+                      {% if params.softversion %}
+                        {% ff_select params.software params.softversion as ffobjects %}
+                      {% elif params.software %}
+                        {% ff_select params.software "" as ffobjects %}
+                      {% endif %}
+                      <option value="">---------</option>
                       {% if ffobjects %}
                         {% for value,name in ffobjects %}
                           <option value="{{ value }}"
@@ -55,8 +73,6 @@
                             {{ name }}
                           </option>
                         {% endfor %}
-                      {% else %}
-                        <option value="">---------</option>
                       {% endif %}
                       </select>
                     {% else %}
@@ -71,7 +87,7 @@
           </div>
           <div class="row pt-1 pl-3">
             {% for field in form_select %}
-              {% if field.name == 'lipids' or field.name == 'tags' %}
+              {% if field.name == 'lipids' or field.name == 'tags' or field.name == 'prots' %}
                 <div class="col-2 col-md-1 p-1">{{ field.label_tag }}</div>
                 <div class="col-10 col-xl-8 col-lg-9 col-md-8 pb-1">
                   {{ field }}
@@ -82,7 +98,7 @@
               {% endif %}
             {% endfor %}
           </div>
-          <a onclick="url_replace('software','forcefield','lipids','tags')"
+          <a onclick="url_replace('software','softversion','forcefield','lipids','tags','prots')"
              class="btn btn-primary btn-sm text-white">Select</a>
         </form>
       </div>
@@ -167,7 +183,7 @@
                     {{ membrane.forcefield }}</a>
               </td>
               <td>
-                {% if membrane.mem_file %} 
+                {% if membrane.mem_file %}
                   <a href="{{ membrane.mem_file.url }}" class="text-success" target="blank">
                       Membrane</a>
                   <a href="{{ membrane.compo_file.url }}" class="text-success" target="blank">
@@ -219,9 +235,43 @@
             }
         }
     });
-    function populate(){
+    function populate_version(){
       var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
       var val = $("#id_software").val();
+      var ff = $("#id_softversion").val();
+      var s1  = document.getElementById("id_softversion");
+      while (s1.options.length > 0) {
+        s1.remove(0);
+      }
+      $.ajax({
+        url: '{% url "load_svlist" %}',
+        data: ({'software': JSON.stringify(val)}),
+        type: 'POST',
+        dataType: 'json',
+        success: function (data) {
+          if (data.length > 0) {
+            $(s1).append('<option value="">---------</option>');
+            for (var i = 0; i < data.length; i++) {
+              if (ff == data[i].value) {
+                $(s1).append('<option value='+ data[i].value +' selected="selected">'+ data[i].version +'</option>');
+              } else {
+                $(s1).append('<option value='+ data[i].value +'>'+ data[i].version +'</option>');
+              }
+            };
+          } else {
+            $(s1).append('<option value="">---------</option>');
+          }
+          populate();
+        }
+      });
+    }
+    $("#id_software").change(function() {
+      populate_version();
+    });
+    function populate(){
+      var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+      var software = $("#id_software").val();
+      var version = $("#id_softversion").val();
       var ff = $("#id_forcefield").val();
       var s1  = document.getElementById("id_forcefield");
       while (s1.options.length > 0) {
@@ -229,10 +279,11 @@
       }
       $.ajax({
         url: '{% url "load_fflist" %}',
-        data: ({'software': JSON.stringify(val), 'operator': 'OR'}),
+        data: ({'software': JSON.stringify(software), 'version': JSON.stringify(version), 'operator': 'OR'}),
         type: 'POST',
         dataType: 'json',
         success: function (data) {
+          $(s1).append('<option value="">---------</option>');
           if (data.length > 0) {
             for (var i = 0; i < data.length; i++) {
               if (ff == data[i].value) {
@@ -241,13 +292,11 @@
                 $(s1).append('<option value='+ data[i].value +'>'+ data[i].name +'</option>');
               }
             };
-          } else {
-            $(s1).append('<option value="">---------</option>');
           }
         }
       });
     }
-    $("#id_software").change(function() {
+    $("#id_softversion").change(function() {
       populate();
     });
   </script>

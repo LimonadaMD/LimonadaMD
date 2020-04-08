@@ -33,6 +33,11 @@ class error_view(TemplateView):
     status_code = 500
 
 
+class get_error(TemplateView):
+    template_name = '502.html'
+    status_code = 502
+
+
 class permission_denied_view(TemplateView):
     template_name = '403.html'
     status_code = 403

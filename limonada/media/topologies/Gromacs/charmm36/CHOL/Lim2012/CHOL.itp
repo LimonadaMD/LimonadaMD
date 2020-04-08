@@ -1,6 +1,6 @@
 [ moleculetype ]
 ; Name            nrexcl
-CHOL                3
+CHOL               3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -834,3 +834,4 @@ CHOL                3
 #ifdef POSRES
 #include "CHOL_posre.itp"
 #endif
+

@@ -182,12 +182,14 @@ HOH	Water
 OHH	Water
 TIP	Water
 T3P	Water
+TIP3	Water
 T4P	Water
 T5P	Water
 T3H	Water
 W   Water
 PW  Water
 K	Ion
+K+	Ion
 NA	Ion
 CA	Ion
 MG	Ion
@@ -206,3 +208,7 @@ I	Ion
 OH	Ion
 Cal	Ion
 IB+	Ion
+POT	Ion
+CLA	Ion
+Cl	Ion
+Cl-	Ion

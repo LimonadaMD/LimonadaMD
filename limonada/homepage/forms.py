@@ -28,7 +28,7 @@ from django.forms import Form, ModelForm
 from django.forms.widgets import Textarea, TextInput, CheckboxInput
 
 # local Django
-from .models import Reference, validate_doi, validate_year
+from .models import Author, Reference, AuthorsList, validate_doi, validate_year
 
 
 class ReferenceAdminForm(ModelForm):
@@ -37,6 +37,21 @@ class ReferenceAdminForm(ModelForm):
         model = Reference
         fields = ('__all__')
         widgets = {'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
+
+
+class AuthorAdminForm(ModelForm):
+
+    class Meta:
+        model = Author
+        fields = ('__all__')
+        widgets = {'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
+
+
+class AuthorsListAdminForm(ModelForm):
+
+    class Meta:
+        model = AuthorsList
+        fields = ('__all__')
 
 
 class DoiForm(Form):
@@ -52,7 +67,6 @@ class ReferenceForm(ModelForm):
     refid = forms.CharField(widget=TextInput(attrs={'placeholder': 'e.g., Klauda2010b',
                                                     'class': 'form-control'}),
                             label='Name')
-    authors = forms.CharField(widget=TextInput(attrs={'class': 'form-control'}))
     title = forms.CharField(widget=TextInput(attrs={'class': 'form-control'}))
     journal = forms.CharField(widget=TextInput(attrs={'class': 'form-control'}))
     volume = forms.CharField(widget=TextInput(attrs={'class': 'form-control'}),
@@ -65,15 +79,25 @@ class ReferenceForm(ModelForm):
 
     class Meta:
         model = Reference
-        fields = ['refid', 'authors', 'title', 'journal', 'volume', 'year', 'doi']
+        fields = ['refid', 'title', 'journal', 'volume', 'year', 'doi']
+
+
+class AuthorsForm(Form):
+
+    authors = forms.CharField(widget=TextInput(attrs={'placeholder': 'e.g., Ermilova Inna, Lyubartsev Alexander P.',
+                                                      'class': 'form-control'}))
 
 
 class SelectForm(Form):
 
+    author = forms.ModelMultipleChoiceField(queryset=Author.objects.all(),
+                                            widget=autocomplete.ModelSelect2Multiple(url='author-autocomplete'),
+                                            required=False)
     year = forms.IntegerField(validators=[validate_year],
                               widget=TextInput(attrs={'size': '10',
                                                       'class': 'form-control'}),
-                              label='Year')
+                              label='Year',
+                              required=False)
 
 
 class MailForm(Form):
@@ -84,5 +108,5 @@ class MailForm(Form):
     comment = forms.CharField(widget=Textarea(attrs={'class': 'form-control'}),
                               required=False)
     curation = forms.BooleanField(required=False,
-                                 widget=CheckboxInput(attrs={'class':'your_class'}),
-                                 label='Request to become the new curator:')
+                                  widget=CheckboxInput(attrs={'class': 'your_class'}),
+                                  label='Request to become the new curator:')

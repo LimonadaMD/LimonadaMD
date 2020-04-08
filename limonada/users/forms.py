@@ -21,7 +21,7 @@
 
 # Django
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.forms.widgets import PasswordInput, Textarea, TextInput
 
@@ -82,7 +82,7 @@ class UpdateForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'utype', 'institution','address', 'position',
+        fields = ('first_name', 'last_name', 'email', 'utype', 'institution', 'address', 'position',
                   'miscellaneous')
         widgets = {'first_name': TextInput(attrs={'class': 'form-control'}),
                    'last_name': TextInput(attrs={'class': 'form-control'}),

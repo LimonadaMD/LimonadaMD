@@ -20,7 +20,7 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # Django
-from django.conf.urls import include, url
+from django.conf.urls import url
 from django.contrib.auth import views as auth_views
 
 # local Django

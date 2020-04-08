@@ -20,9 +20,9 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+from future.moves.urllib.parse import urlencode
 import os
 import re
-import urllib
 
 # Django
 from django import template
@@ -45,7 +45,7 @@ def url_replace(context, **kwargs):
     """
     query = context['request'].GET.dict()
     query.update(kwargs)
-    return urllib.urlencode(query)
+    return urlencode(query)
 
 
 @register.simple_tag
@@ -53,7 +53,7 @@ def inrange(value, end, dx):
     """ This function is used for pagination to slide the
         pages window when there is to many pages.
     """
-    if value + dx >= 1 and  value + dx <= end:
+    if value + dx >= 1 and value + dx <= end:
         return value + dx
     elif dx < 0:
         return 1
@@ -63,7 +63,6 @@ def inrange(value, end, dx):
 
 @register.filter(name='basename')
 def basename(value):
-#    return os.path.basename(value)
     return str(value).split("/")[-1]
 
 
@@ -77,4 +76,4 @@ def slashbreak(value):
     """ This function is used to add an invisible space in a string
         after a "/" and enable a carriage return when necessary.
     """
-    return re.sub(r'/', '/&#8203;', value) 
+    return re.sub(r'/', '/&#8203;', value)

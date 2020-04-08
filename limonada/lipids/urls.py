@@ -21,12 +21,12 @@
 
 # Django
 from django.conf.urls import url
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 
 # local Django
-from .views import (GetFfList, GetLiIndex, GetLmClass, LipAutocomplete, LipCreate, LipDelete, LipDetail,
-                    LipList, LipUpdate, TopAutocomplete, TopCreate, TopDelete, TopDetail, TopList, TopUpdate)
+from .views import (GetSoftVersionList, GetFfList, GetLiIndex, GetLmClass, LipAutocomplete, LipCreate,
+                    LipDelete, LipDetail, LipList, LipUpdate, TopAutocomplete, TopCreate, TopDelete,
+                    TopDetail, TopList, TopUpdate)
 
 urlpatterns = [
     url(r'^lipids/$', LipList, name='liplist'),
@@ -36,6 +36,7 @@ urlpatterns = [
     url(r'^lipids/(?P<slug>\w+)/delete/$', LipDelete, name='lipdelete'),
     url(r'^load_lmclass/$', GetLmClass, name='load_lmclass'),
     url(r'^load_liindex/$', GetLiIndex, name='load_liindex'),
+    url(r'^load_svlist/$', GetSoftVersionList, name='load_svlist'),
     url(r'^load_fflist/$', GetFfList, name='load_fflist'),
     url(r'^lipid-autocomplete/$', LipAutocomplete.as_view(), name='lipid-autocomplete'),
     url(r'^topologies/$', TopList, name='toplist'),

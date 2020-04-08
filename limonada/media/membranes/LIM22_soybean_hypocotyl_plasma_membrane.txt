@@ -1,0 +1,21 @@
+[ leaflet_1 ]
+      DIPC        22
+      SITO        21
+      PIPE        13
+      PIPC        12
+      PIPI         9
+      STIG         7
+      DIPE         7
+      IWPE         5
+      DIPI         4
+
+[ leaflet_2 ]
+      DIPC        22
+      SITO        21
+      PIPE        13
+      PIPC        12
+      PIPI         9
+      STIG         7
+      DIPE         7
+      IWPE         5
+      DIPI         4

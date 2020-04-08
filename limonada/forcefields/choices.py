@@ -19,6 +19,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
+AMBER = "AM"
+CHARMM = "CH"
+GROMACS = "GR"
+NAMD = "NA"
+SFTYPE_CHOICES = ((AMBER, 'Amber'),
+                  (CHARMM, 'Charmm'),
+                  (GROMACS, 'Gromacs'),
+                  (NAMD, 'Namd'))
+
 ALLATOM = 'AA'
 UNITEDATOM = 'UA'
 COARSEGRAINED = 'CG'

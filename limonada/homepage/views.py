@@ -19,6 +19,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
+# standard library
+from functools import reduce
+import operator
+
 # third-party
 import requests
 from dal import autocomplete
@@ -30,7 +34,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.db.models import Q
+from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.views.generic import DeleteView
@@ -41,8 +47,8 @@ from lipids.models import Lipid, Topology
 from membranes.models import MembraneTopol
 
 # local Django
-from .forms import DoiForm, MailForm, ReferenceForm, SelectForm
-from .models import Reference
+from .forms import DoiForm, MailForm, ReferenceForm, AuthorsForm, SelectForm
+from .models import Author, Reference, AuthorsList
 
 
 def homepage(request):
@@ -63,13 +69,26 @@ def RefList(request):
 
     params = request.GET.copy()
 
-    form_select = SelectForm()
-    if 'year' in request.GET.keys():
-        year = request.GET['year']
-        if year != '':
-            form_select = SelectForm({'year': year})
-            if form_select.is_valid():
-                ref_list = Reference.objects.filter(year=year)
+    selectparams = {}
+    for param in ['author', 'year']:
+        if param in request.GET.keys():
+            if request.GET[param] != '':
+                if param == 'author':
+                    aulist = request.GET[param].split(',')
+                    selectparams['author'] = aulist
+                else:
+                    selectparams[param] = request.GET[param]
+    form_select = SelectForm(selectparams)
+    if form_select.is_valid():
+        if 'author' in selectparams.keys():
+            querylist = []
+            for i in aulist:
+                querylist.append(Q(author=Author.objects.filter(id=i)))
+            ref_list = ref_list.filter(reduce(operator.and_, querylist))
+        if 'year' in selectparams.keys():
+            ref_list = ref_list.filter(year=selectparams['year'])
+    else:
+        form_select = SelectForm()
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')
@@ -113,9 +132,11 @@ def RefList(request):
 
 
 @login_required
+@transaction.atomic
 def RefCreate(request):
     if request.method == 'POST' and 'search' in request.POST:
         form_search = DoiForm(request.POST)
+        form_authors = AuthorsForm()
         form_add = ReferenceForm()
         if form_search.is_valid():
             doi = form_search.cleaned_data['doisearch']
@@ -144,42 +165,88 @@ def RefCreate(request):
             if 'authors' in doidata.keys() and 'year' in doidata.keys():
                 doidata['refid'] = '%s%s' % (doidata['authors'].split()[0], doidata['year'])
             form_add = ReferenceForm(initial=doidata)
+            form_authors = AuthorsForm(initial=doidata)
             return render(request, 'homepage/ref_form.html',
-                          {'form_search': form_search, 'form_add': form_add, 'references': True, 'search': True})
+                          {'form_search': form_search, 'form_authors': form_authors, 'form_add': form_add,
+                           'references': True, 'search': True})
     elif request.method == 'POST' and 'add' in request.POST:
         form_search = DoiForm()
+        form_authors = AuthorsForm(request.POST)
         form_add = ReferenceForm(request.POST)
-        if form_add.is_valid():
+        if form_add.is_valid() and form_authors.is_valid():
             ref = form_add.save(commit=False)
             ref.curator = request.user
+            ref.save()
+            aupos = 0
+            aulist = []
+            authors = form_authors.cleaned_data['authors']
+            for author in authors.split(','):
+                aupos += 1
+                fullname = author.strip()
+                familly = author.strip().split()[0]
+                given = " ".join(author.strip().split()[1:])
+                if not Author.objects.filter(fullname=fullname).count():
+                    au = Author.objects.create(fullname=fullname, familly=familly, given=given, curator=request.user)
+                else:
+                    au = Author.objects.filter(fullname=fullname)[0]
+                aulist.append(AuthorsList(reference=ref, author=au, position=aupos))
+            with transaction.atomic():
+                AuthorsList.objects.filter(reference=ref).delete()
+                AuthorsList.objects.bulk_create(aulist)
             ref.save()
             return HttpResponseRedirect(reverse('reflist'))
     else:
         form_search = DoiForm()
+        form_authors = AuthorsForm()
         form_add = ReferenceForm()
     return render(request, 'homepage/ref_form.html',
-                  {'form_search': form_search, 'form_add': form_add, 'references': True, 'search': True})
+                  {'form_search': form_search, 'form_authors': form_authors,
+                   'form_add': form_add, 'references': True, 'search': True})
 
 
 @login_required
+@transaction.atomic
 def RefUpdate(request, pk=None):
     if Reference.objects.filter(pk=pk).exists():
         ref = Reference.objects.get(pk=pk)
+        text = ''
+        for author in ref.authorslist_set.all():
+            text += '%s %s, ' % (author.author.familly, author.author.given)
+        text = text[0:-2]
         if request.method == 'POST':
             form_add = ReferenceForm(request.POST, instance=ref)
-            if form_add.is_valid():
+            form_authors = AuthorsForm(request.POST)
+            if form_add.is_valid() and form_authors.is_valid():
                 ref.refid = form_add.cleaned_data['refid']
-                ref.authors = form_add.cleaned_data['authors']
                 ref.title = form_add.cleaned_data['title']
                 ref.journal = form_add.cleaned_data['journal']
                 ref.volume = form_add.cleaned_data['volume']
                 ref.year = form_add.cleaned_data['year']
                 ref.doi = form_add.cleaned_data['doi']
                 ref.save()
+                aupos = 0
+                aulist = []
+                authors = form_authors.cleaned_data['authors']
+                for author in authors.split(','):
+                    fullname = author.strip()
+                    familly = author.strip().split()[0]
+                    given = " ".join(author.strip().split()[1:])
+                    if not Author.objects.filter(fullname=fullname).count():
+                        au = Author.objects.create(fullname=fullname, familly=familly, given=given,
+                                                   curator=request.user)
+                    else:
+                        au = Author.objects.filter(fullname=fullname)[0]
+                    aulist.append(AuthorsList(reference=ref, author=au, position=aupos))
+                with transaction.atomic():
+                    AuthorsList.objects.filter(reference=ref).delete()
+                    AuthorsList.objects.bulk_create(aulist)
+                ref.save()
                 return HttpResponseRedirect(reverse('reflist'))
         else:
+            form_authors = AuthorsForm(initial={'authors': text})
             form_add = ReferenceForm(instance=ref)
-        return render(request, 'homepage/ref_form.html', {'form_add': form_add, 'references': True, 'search': False})
+        return render(request, 'homepage/ref_form.html',
+                      {'form_authors': form_authors, 'form_add': form_add, 'references': True, 'search': False})
     else:
         return HttpResponseRedirect(reverse('reflist'))
 
@@ -298,3 +365,12 @@ def mail(request):
             if 'refid' in request.GET.keys():
                 return redirect('reflist')
     return render(request, 'homepage/mail.html', data)
+
+
+class AuthorAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        qs = Author.objects.all().order_by('familly')
+        if self.q:
+            qs = qs.filter(familly__icontains=self.q)
+        return qs

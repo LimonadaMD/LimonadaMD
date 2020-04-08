@@ -32,17 +32,17 @@
         <form id="select_form" method="get">
           <div class="row pt-1">
             {% for field in form_select %}
-              <div class="col-auto d-flex">
-                <div class="pr-2 py-1">{{ field.label_tag }}</div>
-                <div>
-                  {{ field }}
-                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
-                  {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
-                </div>
+              <div class="col-0 p-1">{{ field.label_tag }}</div>
+              {% if field.name == 'author' %}<div class="col-5">{% else %}<div class="col-3">{% endif %}
+                {{ field }}
+                {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
               </div>
             {% endfor %}
+            <div class="col-0 pt-1">
+              <a onclick="url_replace('author','year')" class="btn btn-primary btn-sm text-white">Select</a>
+            </div>
           </div>
-          <a onclick="url_replace('year')" class="btn btn-primary btn-sm text-white">Select</a>
         </form>
       </div>
     </div>
@@ -108,7 +108,9 @@
                   <a class="text-info" data-toggle="collapse" href="#collapse{{ ref.refid }}" aria-expanded="false"
                       aria-controls="collapse{{ ref.refid }}">{{ ref.title }}</a>
                   <div id="collapse{{ ref.refid }}" class="collapse" data-parent="#{{ ref.refid }}">
-                    {{ ref.authors }}<br>
+                    {% for author in ref.authorslist_set.all|dictsort:"position" %}
+                      {{ author.author.fullname }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}<br>
                     <i>{{ ref.journal }}</i>, {{ ref.year }}, <i>{{ ref.volume }}</i>.
                     <b>DOI:</b> <a class="text-success" href="http://dx.doi.org/{{ ref.doi }}">{{ ref.doi }}</a>
                   </div>
@@ -144,7 +146,8 @@
 {% block script %}
 
   <script>
-    $("#select_form").submit(function(){url_replace('year')});
+    $("#select_form").submit(function(){url_replace('author','year')});
   </script>
+  {{ form_select.media }}
 
 {% endblock %}

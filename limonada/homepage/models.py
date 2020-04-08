@@ -20,6 +20,7 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+from __future__ import unicode_literals
 import datetime
 
 # third-party
@@ -28,7 +29,8 @@ import requests
 # Django
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
+from django.utils.encoding import python_2_unicode_compatible
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -51,12 +53,14 @@ def validate_doi(value):
                               params={'value': value})
 
 
+@python_2_unicode_compatible
 class Reference(models.Model):
 
     refid = models.CharField(max_length=200,
                              help_text='Format: AuthorYear[Index]',
                              unique=True)
-    authors = models.CharField(max_length=500)
+    author = models.ManyToManyField('homepage.Author',
+                                    through='AuthorsList')
     title = models.CharField(max_length=500)
     journal = models.CharField(max_length=200)
     volume = models.CharField(max_length=30,
@@ -70,8 +74,35 @@ class Reference(models.Model):
                                 on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.refid
 
     def get_absolute_url(self):
         return reverse('reflist')
+
+
+class AuthorsList(models.Model):
+
+    reference = models.ForeignKey(Reference,
+                                  on_delete=models.CASCADE)
+    author = models.ForeignKey('homepage.Author',
+                               on_delete=models.CASCADE)
+    position = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.author.fullname
+
+
+@python_2_unicode_compatible
+class Author(models.Model):
+
+    fullname = models.CharField(max_length=100,
+                                unique=True)
+    given = models.CharField(max_length=50)
+    familly = models.CharField(max_length=50)
+    curator = models.ForeignKey(User,
+                                on_delete=models.CASCADE)
+    date = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return self.fullname

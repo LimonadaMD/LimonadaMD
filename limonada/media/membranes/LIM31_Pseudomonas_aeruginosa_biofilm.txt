@@ -1,0 +1,19 @@
+[ leaflet_1 ]
+      POPE        30
+      POPG        14
+      PSPG        12
+      YOPE        12
+      PSPE         8
+      DPPE         8
+      DPPG         8
+      YOPG         8
+
+[ leaflet_2 ]
+      POPE        30
+      POPG        14
+      PSPG        12
+      YOPE        12
+      PSPE         8
+      DPPE         8
+      DPPG         8
+      YOPG         8

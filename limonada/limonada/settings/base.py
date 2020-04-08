@@ -164,7 +164,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
@@ -214,3 +214,5 @@ GROMACS_46_PATH = '/home/jmcrowet/Software/gmx467/build/bin/'
 GROMACS_50_PATH = '/home/jmcrowet/Software/gmx507/build/bin/'
 GROMACS_51_PATH = '/home/jmcrowet/Software/gmx515/build/bin/'
 GROMACS_16_PATH = '/home/jmcrowet/Software/gmx165/build/bin/'
+CHARMM_42_PATH = '/home/jmcrowet/Software/charmm/exec/gnu/'
+AMBER_18_PATH = '/home/jmcrowet/amber18/bin/'

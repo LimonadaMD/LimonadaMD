@@ -20,9 +20,10 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+from __future__ import unicode_literals
+from unidecode import unidecode
 import os
 import re
-import unicodedata
 
 # third-party
 import requests
@@ -31,10 +32,11 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import models
 from django.db.models.signals import m2m_changed, pre_delete, pre_save
 from django.dispatch.dispatcher import receiver
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.formats import localize
 from django.utils.translation import ugettext_lazy as _
 
@@ -47,6 +49,7 @@ from .functions import residuetypes
 
 _UNSAVED_ITPFILE = 'unsaved_itpfile'
 _UNSAVED_GROFILE = 'unsaved_grofile'
+
 
 def validate_name(value):
     if len(value) != 4 or not re.match(r'[0-9A-Z]{4}', value):
@@ -87,7 +90,7 @@ def validate_file_extension(value):
 
 
 def validate_img_size(value):
-    filesize= value.size
+    filesize = value.size
     if filesize > 1048576:
         raise ValidationError("The maximum file size that can be uploaded is 1MB")
     else:
@@ -106,7 +109,7 @@ def img_path(instance, filename):
 
 
 def validate_file_size(value):
-    filesize= value.size
+    filesize = value.size
     if filesize > 209715:
         raise ValidationError("The maximum file size that can be uploaded is 200KB")
     else:
@@ -115,8 +118,8 @@ def validate_file_size(value):
 
 def file_path(instance, filename):
     ext = os.path.splitext(filename)[1]
-    version = unicodedata.normalize('NFKD', instance.version).encode('ascii', 'ignore').replace(' ', '_')
-    forcefield = unicodedata.normalize('NFKD', instance.forcefield.name).encode('ascii', 'ignore').replace(' ', '_')
+    version = unidecode(instance.version).replace(' ', '_')
+    forcefield = unidecode(instance.forcefield.name).replace(' ', '_')
 #   ex.: topologies/Gromacs/Martini/POPC/version/POPC.{itp,gro} (we assume gromacs for now)
     filepath = 'topologies/{0}/{1}/{2}/{3}/{2}{4}'.format(instance.software.all()[0].name, forcefield,
                                                           instance.lipid.name, version, ext)
@@ -125,6 +128,7 @@ def file_path(instance, filename):
     return filepath
 
 
+@python_2_unicode_compatible
 class Lipid(models.Model):
 
     name = models.CharField(max_length=4,
@@ -161,13 +165,14 @@ class Lipid(models.Model):
     date = models.DateField(auto_now=True)
     slug = models.SlugField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.search_name
 
     def get_absolute_url(self):
         return reverse('liplist')
 
 
+@python_2_unicode_compatible
 class Topology(models.Model):
 
     software = models.ManyToManyField('forcefields.Software')
@@ -181,19 +186,21 @@ class Topology(models.Model):
                                 validators=[validate_file_size])
     version = models.CharField(max_length=30,
                                help_text='YearAuthor')
+    head = models.CharField(max_length=10)
     description = models.TextField(blank=True)
     reference = models.ManyToManyField('homepage.Reference')
     date = models.DateField(auto_now=True)
     curator = models.ForeignKey(User,
                                 on_delete=models.CASCADE)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s_%s' % (self.lipid.name, self.version)
 
     def get_absolute_url(self):
         return reverse('toplist')
 
 
+@python_2_unicode_compatible
 class TopComment(models.Model):
 
     topology = models.ForeignKey('lipids.Topology',
@@ -203,23 +210,23 @@ class TopComment(models.Model):
                              on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s %s %s %s' % (self.user.username, self.topology.lipid.name, self.topology.version,
-            localize(self.date))
+                                localize(self.date))
 
 
 @receiver(pre_delete, sender=Lipid)
 def delete_file_pre_delete_lip(sender, instance, *args, **kwargs):
     if instance.img:
-         delete_file(instance.img.path)
+        delete_file(instance.img.path)
 
 
 @receiver(pre_delete, sender=Topology)
 def delete_file_pre_delete_top(sender, instance, *args, **kwargs):
     if instance.itp_file:
-         delete_file(instance.itp_file.path)
+        delete_file(instance.itp_file.path)
     if instance.gro_file:
-         delete_file(instance.gro_file.path)
+        delete_file(instance.gro_file.path)
 
 
 @receiver(pre_save, sender=Topology)
@@ -240,6 +247,6 @@ def save_file_on_m2m(sender, instance, action, **kwargs):
     if action == 'post_add' and hasattr(instance, _UNSAVED_ITPFILE) and hasattr(instance, _UNSAVED_GROFILE):
         instance.itp_file = getattr(instance, _UNSAVED_ITPFILE)
         instance.gro_file = getattr(instance, _UNSAVED_GROFILE)
-        instance.save()        
+        instance.save()
         instance.__dict__.pop(_UNSAVED_ITPFILE)
         instance.__dict__.pop(_UNSAVED_GROFILE)

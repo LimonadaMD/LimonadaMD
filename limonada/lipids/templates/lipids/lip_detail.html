@@ -16,7 +16,7 @@
         <tbody>
           <tr><td class="font-weight-bold w-30">Name:</td><td>{{ lipid.name }}</td></tr>
           <tr>
-            <td class="font-weight-bold">LMID:</td>
+            <td class="font-weight-bold">LipidMaps ID:</td>
             {% if lipid.lmid|substring:"0,2" == "LM" %}
               <td>
                 <a class="text-success" href="http://lipidmaps.org/data/LMSDRecord.php?LMID={{ lipid.lmid }}">
@@ -30,7 +30,7 @@
             <td class="font-weight-bold">PubChem CID:</td>
             <td>
               {% if lipid.pubchem_cid %}
-                <a class="text-success" 
+                <a class="text-success"
                     href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid={{ lipid.pubchem_cid }}">
                     {{ lipid.pubchem_cid }}</a>
               {% endif %}

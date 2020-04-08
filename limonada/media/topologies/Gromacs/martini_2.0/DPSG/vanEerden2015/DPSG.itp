@@ -1,0 +1,83 @@
+;;;;;; Martini lipid topology for di-C16:0-C18:0 SQDG (DPSG)
+;
+; Description:
+;  Sulfoquinovosyldiacylglycerol (SQDG)  with a palmitoyl at sn1 and a palmitoyl chain at sn2, a general model sulfoquinovosyl 
+;  diacylglycero (SQDG) lipid corresponding to atomistic C16:0 dipalmitoyl (DP-SQDG) - C18:0 distearoyl (DS-SQDG) tails.
+;  And as present in the cyanobacterial thylakoid membrane of Thermosynechococcus vulcanus. 
+; Keywords: thylakoid, cyanobacterial
+; Parameterization:
+;  This topology follows the standard Martini 2.0 lipid definitions and building block rules. 
+;  NOTE, there are modficiations from the parameters as described by Lopez et al. 2013, see Van Eerden et al. 2015 for the
+;  modifications.
+; Reference(s): 
+;  S.J. Marrink, A.H. de Vries, A.E. Mark. Coarse grained model for semi-quantitative lipid simulations. JPC-B, 108:750-760, 
+;  2004. doi:10.1021/jp036508g                                                                      
+;  S.J. Marrink, H.J. Risselada, S. Yefimov, D.P. Tieleman, A.H. de Vries. The MARTINI force field: coarse grained model for 
+;  biomolecular simulations. JPC-B, 111:7812-7824, 2007. doi:10.1021/jp071097f 
+;  C.A. Lopez, Z. Sovova, F.J. van Eerden, A.H. de Vries, S.J. Marrink. Martini force field parameters for glycolipids.
+;  JCTC, 9:1694-1708, 2013. doi:10.1021/ct3009655
+;  F.J. van Eerden, D.H. de Jong, A.H. de Vries, T.A. Wassenaar, S.J. Marrink. Characterization of thylakoid lipid membranes from
+;  cyanobacteria and higher plants by molecular dynamics simulations. BBA - Biomembranes, 1848, 1319-1330, 2015. 
+;  doi:10.1016/j.bbamem.2015.02.025
+; Created: 2015.05.27
+;
+
+[ moleculetype ]
+DPSG 1
+
+[ atoms ]
+ 1  Qa 1 DPSG S1   1 -1.0  72.0000
+ 2  P4 1 DPSG C1   2 0     72.0000
+ 3  N0 1 DPSG C2   3 0     72.0000
+ 4  P1 1 DPSG C3   4 0     72.0000
+ 5  Na 1 DPSG GL1  5 0     72.0000
+ 6  Na 1 DPSG GL2  6 0     72.0000
+ 7  C1 1 DPSG C1A  7 0     72.0000
+ 8  C1 1 DPSG C2A  8 0     72.0000
+ 9  C1 1 DPSG C3A  9 0     72.0000
+10  C1 1 DPSG C4A 10 0     72.0000
+11  C1 1 DPSG C1B 11 0     72.0000
+12  C1 1 DPSG C2B 12 0     72.0000
+13  C1 1 DPSG C3B 13 0     72.0000
+14  C1 1 DPSG C4B 14 0     72.0000
+ 
+[ bonds ]
+; i j funct length force.c.
+    1 3  1 0.262  30000 
+    2 3  1 0.3    30000  
+    2 4  1 0.3    30000  
+    3 4  1 0.3    30000  
+    4 5  1 0.426  30000  
+    5 6  1 0.37    1250  
+    5 7  1 0.47    1250
+    7 8  1 0.47    1250
+    8 9  1 0.47    1250
+    9 10 1 0.47    1250
+    6 11 1 0.47    1250
+   11 12 1 0.47    1250
+   12 13 1 0.47    1250
+   13 14 1 0.47    1250
+
+
+[ angles ]
+; i j k funct angle force.c.
+   1  3  2 2 150.0    20.0
+   1  3  4 2 145.0    20.0
+   2  4  5 2 140.0    35.0
+   3  4  5 2 100.0    35.0
+   4  5  6 2  85.0    20.0 
+   4  5  7 2 131.0    25.0  
+   5  7  8 2 180.0    25.0
+   7  8  9 2 180.0    25.0
+   8  9 10 2 180.0    25.0
+   6 11 12 2 180.0    25.0
+  11 12 13 2 180.0    25.0
+  12 13 14 2 180.0    25.0
+
+[ dihedrals ]
+  2  4  5  6   1   30.0    8.0    1
+
+#ifdef POSRES
+#include "DPSG_posre.itp"
+#endif
+

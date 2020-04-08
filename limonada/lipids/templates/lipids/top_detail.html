@@ -35,7 +35,7 @@
               {% with topology.software.all|first as soft %}{{ soft.name }}{% endwith %}
               {% for soft in topology.software.all|dictsort:"order" %}
                 {{ soft.version }}{% if not forloop.last %},{% endif %}
-              {% endfor %}            
+              {% endfor %}
             </td>
           </tr>
           <tr><td class="font-weight-bold">Version:</td><td>{{ topology.version }}</td></tr>
@@ -140,24 +140,13 @@
         var q = new NGL.Quaternion().setFromEuler( e );
         o.setRotation( q );
         o.addRepresentation("licorice") //ball+stick
-        //var atomPair = [
-        //  [ "1.NC3", "1.PO4" ],
-        //  [ 0, 1 ], [ 1, 2 ]
-        //]
         o.addRepresentation("distance", {
           atomPair: atomPair,
           useCylinder: true,
           labelVisible: false,
-          //color: "skyblue",
-          //labelUnit: "nm"
         })
         o.autoView()
       })
-      // for coarse grained, see ngl/examples/scripts/interactive/crosslinking.js
-      // https://github.com/arose/ngl/blob/2d84a993/src/store/bond-store.ts#L26
-      // http://nglviewer.org/ngl/api/classes/bondstore.html#addbond
-      // https://codepen.io/pen?&editors=001
-      // http://nglviewer.org/ngl/api/file/src/representation/distance-representation.js.html
     })
   </script>
 

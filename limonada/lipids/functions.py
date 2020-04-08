@@ -20,6 +20,7 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # standard library
+import glob
 import os
 import random
 import re
@@ -36,6 +37,14 @@ from django.core.files.storage import FileSystemStorage
 
 @contextmanager
 def cd(newdir):
+    """When combines with a "with" statement, it allows to change the working directory for the time of the "with"
+       before going back to the previous working directory.
+
+    Parameters
+    ----------
+    newdir : string
+        defines the temporary working directory.
+    """
     prevdir = os.getcwd()
     os.chdir(os.path.expanduser(newdir))
     try:
@@ -45,18 +54,49 @@ def cd(newdir):
 
 
 def residuetypes():
+    """Limonada is mainly about lipids but membranes are also composed of other molecules like proteins or solvent.
+       Identification of molecule types is based on the 'residuetypes.dat' file, a file primarily defined in the
+       gromacs suite.
+
+    Returns
+    -------
+    residues: dict of strings
+        keywords are [Protein, DNA, RNA, Water, Ion] and values are the residues name.
+    """
     residuefile = open(os.path.join(settings.MEDIA_ROOT, 'residuetypes.dat')).readlines()
     residues = {}
     for line in residuefile:
-       residues[line.split()[0]] = line.split()[1]
+        residues[line.split()[0]] = line.split()[1]
     return residues
- 
+
 
 def gmxrun(lipname, ff_file, itp_file, gro_file, software):
+    """When lipid topologies are added to the database through the "Topologies" form, the files consistency is
+       first checked by running a small minimisation simulation. If error occurs, a log file named "gromacs.log" is
+       created and the user has access to this file. The simulation is processed in a temporary directory. If an
+       an error occurs, this directory is kept to let the user having access to the "gromacs.log" file.
 
+    Parameters
+    ----------
+    lipname: string
+        Lipid names (4 digits) have to be the same in the database and in the topology (itp) and structure files (gro).
+    ff_file: string
+        Pathway to the zip file containing the forcefield directory
+    itp_file: file
+        File object uploaded by the user for the topology file
+    gro_file: file
+        File object uploaded by the user for the structure file
+    software: string
+        4 digit acronym representing the software version to use for the simulation
+
+    Returns
+    -------
+    error: bool
+        True if errors occured
+    rand: int
+        Allow to reconstruct th path to the directory where the "gromacs.log" file has been created.
+    """
     mediadir = settings.MEDIA_ROOT
-    error = False
-
     softpath = {'GR33': settings.GROMACS_33_PATH, 'GR40': settings.GROMACS_40_PATH, 'GR45': settings.GROMACS_45_PATH,
                 'GR46': settings.GROMACS_46_PATH, 'GR50': settings.GROMACS_50_PATH, 'GR51': settings.GROMACS_51_PATH,
                 'GR16': settings.GROMACS_16_PATH}
@@ -68,12 +108,13 @@ def gmxrun(lipname, ff_file, itp_file, gro_file, software):
     else:
         if not os.path.isfile(os.path.join(softdir, 'grompp')):
             installed = False
-    
+
     rand = str(random.randrange(1000))
     while os.path.isdir(os.path.join(mediadir, 'tmp', rand)):
-        rand = random.randrange(1000)
+        rand = str(random.randrange(1000))
 
-    if installed == True:
+    error = False
+    if installed:
         dirname = os.path.join(mediadir, 'tmp', rand)
         os.makedirs(dirname)
 
@@ -90,7 +131,8 @@ def gmxrun(lipname, ff_file, itp_file, gro_file, software):
 
         fs = FileSystemStorage(location=copydir)
         fs.save('%s.itp' % lipname, itp_file)
-        fs.save('%s.gro' % lipname, gro_file)
+        strext = os.path.splitext(gro_file.name)[1]
+        fs.save('%s%s' % (lipname, strext), gro_file)
 
         topfile = open(os.path.join(copydir, 'topol.top'), 'w')
         topfile.write('')
@@ -105,16 +147,28 @@ def gmxrun(lipname, ff_file, itp_file, gro_file, software):
         with cd(copydir):
             try:
                 if software in ['GR51', 'GR16', 'GR18']:
-                    args = shlex.split('%sgmx grompp -f em.mdp -p topol.top -c %s.gro -o em.tpr' % (softdir, lipname))
+                    args = shlex.split('%sgmx editconf -f %s%s -o box.gro -d 5' % (softdir, lipname, strext))
                 else:
-                    args = shlex.split('%sgrompp -f em.mdp -p topol.top -c %s.gro -o em.tpr' % (softdir, lipname))
+                    args = shlex.split('%seditconf -f %s%s -o box.gro -d 5' % (softdir, lipname, strext))
                 process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out, err = process.communicate()
             except OSError:
-                err = 'grompp has failed or has not been found.'
+                err = 'editconf has failed or has not been found.'
+            if os.path.isfile('box.gro'):
+                try:
+                    if software in ['GR51', 'GR16', 'GR18']:
+                        args = shlex.split('%sgmx grompp -f em.mdp -p topol.top -c %s%s -o em.tpr' % (softdir, lipname,
+                                                                                                      strext))
+                    else:
+                        args = shlex.split('%sgrompp -f em.mdp -p topol.top -c %s%s -o em.tpr' % (softdir, lipname,
+                                                                                                  strext))
+                    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    out, err = process.communicate()
+                except OSError:
+                    err = 'grompp has failed or has not been found.'
             if not os.path.isfile('em.tpr'):
                 error = True
-                errorfile = open('gromacs.log', 'w')
+                errorfile = open('gromacs.log', 'wb')
                 errorfile.write(err)
                 errorfile.close()
             if not error:
@@ -126,8 +180,215 @@ def gmxrun(lipname, ff_file, itp_file, gro_file, software):
                 out, err = process.communicate()
                 if not os.path.isfile('em.gro'):
                     error = True
-                    errorfile = open('gromacs.log', 'w')
+                    errorfile = open('gromacs.log', 'wb')
                     errorfile.write(err)
+                    errorfile.close()
+        if not error:
+            shutil.rmtree(dirname, ignore_errors=True)
+
+    return error, rand
+
+
+def charmmrun(lipname, ff_file, rtf_file, pdb_file, software):
+    """When lipid topologies are added to the database through the "Topologies" form, the files consistency is
+       first checked by running a small minimisation simulation. If error occurs, a log file named "charmm.log" is
+       created and the user has access to this file. The simulation is processed in a temporary directory. If an
+       an error occurs, this directory is kept to let the user having access to the "charmm.log" file.
+
+    Parameters
+    ----------
+    lipname: string
+        Lipid names (4 digits) have to be the same in the database and in the topology (rtf) and structure files (pdb).
+    ff_file: string
+        Pathway to the zip file containing the forcefield directory
+    rtf_file: file
+        File object uploaded by the user for the topology file
+    pdb_file: file
+        File object uploaded by the user for the structure file
+    software: string
+        4 digit acronym representing the software version to use for the simulation
+
+    Returns
+    -------
+    error: bool
+        True if errors occured
+    rand: int
+        Allow to reconstruct th path to the directory where the "charmm.log" file has been created.
+    """
+    mediadir = settings.MEDIA_ROOT
+    softpath = {'CH42': settings.CHARMM_42_PATH}
+    softdir = softpath[software]
+    installed = True
+    if not os.path.isfile(os.path.join(softdir, 'charmm')):
+        installed = False
+
+    rand = str(random.randrange(1000))
+    while os.path.isdir(os.path.join(mediadir, 'tmp', rand)):
+        rand = str(random.randrange(1000))
+
+    error = False
+    if installed:
+        dirname = os.path.join(mediadir, 'tmp', rand)
+        os.makedirs(dirname)
+
+        ffzip = zipfile.ZipFile('%s%s' % (settings.BASE_DIR, ff_file))
+        ffzip.extractall(dirname)
+
+        fs = FileSystemStorage(location=dirname)
+        fs.save('%s.rtf' % lipname, rtf_file)
+        strext = os.path.splitext(pdb_file.name)[1]
+        fs.save('%s%s' % (lipname, strext), pdb_file)
+
+        with cd(dirname):
+            setupfile = open('setup.inp', 'w')
+            setupfile.write('read rtf card name "%s.rtf"\n' % lipname)
+            for name in glob.glob('*.prm'):
+                setupfile.write('read param card name %s\n' % name)
+            setupfile.write('open unit 1 card read name "%s.pdb"\n' % lipname)
+            setupfile.write('read sequ pdb unit 1\n')
+            setupfile.write('generate "%s"\n' % lipname)
+            setupfile.write('rewind unit 1\n')
+            setupfile.write('read coor pdb unit 1\n')
+            setupfile.write('close unit 1\n')
+            setupfile.write('write psf card name "%s.psf"\n' % lipname)
+            setupfile.write('write coor card name "%s.crd"\n' % lipname)
+            setupfile.write('stop\n')
+            setupfile.close()
+
+            minfile = open('min.inp', 'w')
+            minfile.write('read rtf card name "%s.rtf"\n' % lipname)
+            for name in glob.glob('*.prm'):
+                minfile.write('read param card name %s\n' % name)
+            minfile.write('read psf card name "%s.psf"\n' % lipname)
+            minfile.write('read coor card name "%s.crd"\n' % lipname)
+            minfile.write('shake bonh param sele all end\n')
+            minfile.write('nbond inbfrq -1 elec fswitch vdw vswitch cutnb 16. ctofnb 12. ctonnb 10.\n')
+            minfile.write('energy\n')
+            minfile.write('coor copy comp\n')
+            minfile.write('mini sd nstep 100\n')
+            minfile.write('ioform extended\n')
+            minfile.write('write coor card name min.crd\n')
+            minfile.write('stop\n')
+            minfile.close()
+
+            try:
+                args = shlex.split('%scharmm -i setup.inp' % (softdir))
+                process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = process.communicate()
+            except OSError:
+                out = 'charmm has failed or has not been found.'
+            if not os.path.isfile('%s.psf' % lipname):
+                error = True
+                errorfile = open('charmm.log', 'wb')
+                errorfile.write(out)
+                errorfile.close()
+            if not error:
+                try:
+                    args = shlex.split('%scharmm -i min.inp' % (softdir))
+                    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    out, err = process.communicate()
+                except OSError:
+                    out = 'charmm has failed or has not been found.'
+                if not os.path.isfile('min.crd'):
+                    error = True
+                    errorfile = open('charmm.log', 'wb')
+                    errorfile.write(out)
+                    errorfile.close()
+        if not error:
+            shutil.rmtree(dirname, ignore_errors=True)
+
+    return error, rand
+
+
+def amberrun(lipname, ff_file, lib_file, pdb_file, software):
+    """When lipid topologies are added to the database through the "Topologies" form, the files consistency is
+       first checked by running a small minimisation simulation. If error occurs, a log file named "amber.log" is
+       created and the user has access to this file. The simulation is processed in a temporary directory. If an
+       an error occurs, this directory is kept to let the user having access to the "amber.log" file.
+
+    Parameters
+    ----------
+    lipname: string
+        Lipid names (4 digits) have to be the same in the database and in the topology (lib) and structure files (pdb).
+    ff_file: string
+        Pathway to the zip file containing the forcefield directory
+    lib_file: file
+        File object uploaded by the user for the topology file
+    pdb_file: file
+        File object uploaded by the user for the structure file
+    software: string
+        4 digit acronym representing the software version to use for the simulation
+
+    Returns
+    -------
+    error: bool
+        True if errors occured
+    rand: int
+        Allow to reconstruct th path to the directory where the "amber.log" file has been created.
+    """
+    mediadir = settings.MEDIA_ROOT
+    softpath = {'AM18': settings.AMBER_18_PATH}
+    softdir = softpath[software]
+    installed = True
+    if not os.path.isfile(os.path.join(softdir, 'tleap')):
+        installed = False
+    if not os.path.isfile(os.path.join(softdir, 'sander')):
+        installed = False
+
+    rand = str(random.randrange(1000))
+    while os.path.isdir(os.path.join(mediadir, 'tmp', rand)):
+        rand = str(random.randrange(1000))
+
+    error = False
+    if installed:
+        dirname = os.path.join(mediadir, 'tmp', rand)
+        os.makedirs(dirname)
+
+        ffzip = zipfile.ZipFile('%s%s' % (settings.BASE_DIR, ff_file))
+        ffzip.extractall(dirname)
+
+        shutil.copy('media/min.in', dirname)
+
+        fs = FileSystemStorage(location=dirname)
+        fs.save('%s.lib' % lipname, lib_file)
+        strext = os.path.splitext(pdb_file.name)[1]
+        fs.save('%s%s' % (lipname, strext), pdb_file)
+
+        with cd(dirname):
+            setupfile = open('tleap.in', 'w')
+            for name in glob.glob('leaprc.*'):
+                setupfile.write('source %s\n' % name)
+            setupfile.write('loadoff %s.lib\n' % lipname)
+            setupfile.write('LIPID = loadpdb %s.pdb\n' % lipname)
+            setupfile.write('set LIPID box { 100.0 100.0 100.0 }\n')
+            setupfile.write('saveAmberParm LIPID %s.prmtop %s.inpcrd\n' % (lipname, lipname))
+            setupfile.write('quit\n')
+            setupfile.close()
+
+            try:
+                args = shlex.split('%stleap -s -f tleap.in' % (softdir))
+                process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = process.communicate()
+            except OSError:
+                out = 'tleap has failed or has not been found.'
+            if not os.path.isfile('%s.inpcrd' % lipname):
+                error = True
+                errorfile = open('amber.log', 'wb')
+                errorfile.write(out)
+                errorfile.close()
+            if not error:
+                try:
+                    args = shlex.split(
+                        '%ssander -O -i min.in -o min.out -p %s.prmtop -c %s.inpcrd -r min.rst' % (softdir, lipname,
+                                                                                                   lipname))
+                    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    out, err = process.communicate()
+                except OSError:
+                    out = 'sander has failed or has not been found.'
+                if not os.path.isfile('min.rst'):
+                    error = True
+                    errorfile = open('amber.log', 'wb')
+                    errorfile.write(out)
                     errorfile.close()
         if not error:
             shutil.rmtree(dirname, ignore_errors=True)
@@ -153,3 +414,65 @@ def findcgbonds(itp_file):
                     bonds.append([int(linearr[0])-1, int(linearr[1])-1])
 
     return bonds
+
+
+def atnames(gro_file):
+
+    mediadir = settings.MEDIA_ROOT
+    rand = str(random.randrange(1000))
+    while os.path.isdir(os.path.join(mediadir, 'tmp', rand)):
+        rand = str(random.randrange(1000))
+
+    dirname = os.path.join(mediadir, 'tmp', rand)
+    os.makedirs(dirname)
+
+    fs = FileSystemStorage(location=dirname)
+    strext = os.path.splitext(gro_file.name)[1]
+    fs.save('lipid%s' % strext, gro_file)
+
+    names = []
+    lines = open(os.path.join(dirname, 'lipid%s' % strext)).readlines()
+    if strext == ".gro":
+        if len(lines) > 3:
+            for line in lines[2:-1]:
+                try:
+                    names.append(line[10:15].strip())
+                except ValueError:
+                    names.append('error')
+    elif strext == ".pdb":
+        for line in lines:
+            if line[:6] == "ATOM  ":
+                try:
+                    names.append(line[12:16].strip())
+                except ValueError:
+                    names.append('error')
+
+    shutil.rmtree(dirname, ignore_errors=True)
+
+    return names
+
+
+def findresname(rtf_file, soft):
+
+    mediadir = settings.MEDIA_ROOT
+    rand = str(random.randrange(1000))
+    while os.path.isdir(os.path.join(mediadir, 'tmp', rand)):
+        rand = str(random.randrange(1000))
+
+    dirname = os.path.join(mediadir, 'tmp', rand)
+    os.makedirs(dirname)
+
+    fs = FileSystemStorage(location=dirname)
+    strext = os.path.splitext(rtf_file.name)[1]
+    fs.save('lipid%s' % strext, rtf_file)
+
+    resname = ""
+    infile = open(os.path.join(dirname, 'lipid%s' % strext)).readlines()
+    if soft == "Charmm":
+        for line in infile:
+            if re.search('^RESI ', line):
+                resname = line.split()[1]
+
+    shutil.rmtree(dirname, ignore_errors=True)
+
+    return resname

@@ -1,6 +1,6 @@
 [ moleculetype ]
 ; Name            nrexcl
-YOPC                3
+YOPC               3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -1230,3 +1230,4 @@ YOPC                3
 #ifdef POSRES
 #include "YOPC_posre.itp"
 #endif
+

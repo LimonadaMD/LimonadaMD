@@ -1,6 +1,6 @@
 [ moleculetype ]
 ; Name            nrexcl
-POPC                3
+POPC               3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -1262,3 +1262,4 @@ POPC                3
 #ifdef POSRES
 #include "POPC_posre.itp"
 #endif
+

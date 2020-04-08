@@ -1,5 +1,6 @@
 {% extends "homepage/layout.html" %}
 
+{% load forcefield_extras %}
 {% load homepage_extras %}
 
 {% block title %}Forcefields{% endblock %}
@@ -14,7 +15,7 @@
   <div class="row align-items-center justify-content-between">
     <div class="col-auto"><h1>Forcefields</h1></div>
     <div class="col-auto">
-      {% if user.is_authenticated and user.is_staff %}
+      {% if user.is_authenticated %}
         <a href="{% url 'ffcreate' %}" class="btn btn-primary" role="button">Add</a>
       {% endif %}
     </div>
@@ -32,19 +33,37 @@
          {% if not params.software %}style="display: none"{% endif %}>
       <div class="container">
         <form id="select_form" method="get">
+          {% csrf_token %}
           <div class="row pt-1">
             {% for field in form_select %}
               <div class="col-12 col-lg-auto col-md-12 col-sm-12 d-flex">
                 <div class="pr-2 py-1">{{ field.label_tag }}</div>
                 <div>
-                  {{ field }}
+                  {% if field.name == 'softversion' %}
+                    <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="form-control">
+                    {% if params.software %}
+                      {% sv_select params.software as svobjects %}
+                    {% endif %}
+                    <option value="">---------</option>
+                    {% if svobjects %}
+                      {% for value,name in svobjects %}
+                        <option value="{{ value }}"
+                                {% if value|slugify == params.softversion %}selected="selected"{% endif %}>
+                          {{ name }}
+                        </option>
+                      {% endfor %}
+                    {% endif %}
+                    </select>
+                  {% else %}
+                    {{ field }}
+                  {% endif %}
                   {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
                   {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                 </div>
               </div>
             {% endfor %}
           </div>
-          <a onclick="url_replace('software','forcefield_type')" class="btn btn-primary btn-sm text-white">
+          <a onclick="url_replace('software', 'softversion','forcefield_type')" class="btn btn-primary btn-sm text-white">
               Select</a>
         </form>
       </div>
@@ -88,7 +107,7 @@
               {% endif %}
             </th>
             <th class="w-25">Files</th>
-            {% if user.is_authenticated and user.is_staff %}
+            {% if user.is_authenticated %}
               <th class="w-10"></th>
             {% endif %}
           </tr>
@@ -97,8 +116,8 @@
           {% for forcefield in page_objects %}
             <tr>
               <td id="{{ forcefield.pk }}">
-                <a class="text-info" data-toggle="collapse" href="#collapse{{ forcefield.pk }}" aria-expanded="false"
-                    aria-controls="collapse{{ forcefield.pk }}">{{ forcefield.name }}</a>
+                <a class="text-success" href="{% url 'ffdetail' forcefield.pk %}">
+                    {{ forcefield.name }}</a>
               </td>
               <td>{% with forcefield.software.all|first as soft %}{{ soft.name }}{% endwith %}</td>
               <td>{{ forcefield.get_forcefield_type_display }}</td>
@@ -108,7 +127,7 @@
                   <a href="{{ forcefield.mdp_file.url }}" class="text-success" target="blank">Parameters</a>
                 {% endif %}
               </td>
-              {% if user.is_authenticated and user.is_staff %}
+              {% if user.is_authenticated %}
                 {% if user == forcefield.curator %}
                   <td class="text-right">
                     <a href="{% url 'ffupdate' forcefield.pk %}"><i class="fas fa-edit text-success"></i></a>
@@ -120,34 +139,6 @@
                   </td>
                 {% endif %}
               {% endif %}
-            </tr>
-            <tr>
-              <td colspan="5" class="p-0" style="border-top: none">
-                <div id="collapse{{ forcefield.pk }}" class="container collapse p-0">
-                  <div class="row mx-3">
-                    <div class="col-3 col-lg-2"><strong>Software:</strong></div>
-                    <div class="col-9 col-lg-10">
-                      {% with forcefield.software.all|first as soft %}{{ soft.name }}{% endwith %}
-                      {% for soft in forcefield.software.all|dictsort:"order" %}
-                        {{ soft.version }}{% if not forloop.last %},{% endif %}
-                      {% endfor %}
-                    </div>
-                  </div>
-                  <div class="row mx-3">
-                    <div class="col-3 col-lg-2"><strong>Description:</strong></div>
-                    <div class="col-9 col-lg-10">{{ forcefield.description|linebreaks }}</div>
-                  </div>
-                  <div class="row mx-3">
-                    <div class="col-3 col-lg-2"><strong>References:</strong></div>
-                    <div class="col-9 col-lg-10">
-                      {% for reference in forcefield.reference.all %}
-                        <a class="text-success" href="https://dx.doi.org/{{ reference.doi }}">{{ reference.refid }}</a>
-                        <i>{{ reference.journal }}</i>, {{ reference.volume }}. {{ reference.title }}<br>
-                      {% endfor %}
-                    </div>
-                  </div>
-                </div>
-              </td>
             </tr>
           {% endfor %}
         </tbody>
@@ -163,5 +154,55 @@
 
 
 {% block script %}
+
+  <script>
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            // if not safe, set csrftoken
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    function populate_version(){
+      var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+      var val = $("#id_software").val();
+      var ff = $("#id_softversion").val();
+      var s1  = document.getElementById("id_softversion");
+      while (s1.options.length > 0) {
+        s1.remove(0);
+      }
+      $.ajax({
+        url: '{% url "load_svlist" %}',
+        data: ({'software': JSON.stringify(val)}),
+        type: 'POST',
+        dataType: 'json',
+        success: function (data) {
+          if (data.length > 0) {
+            $(s1).append('<option value="">---------</option>');
+            for (var i = 0; i < data.length; i++) {
+              if (ff == data[i].value) {
+                $(s1).append('<option value='+ data[i].value +' selected="selected">'+ data[i].version +'</option>');
+              } else {
+                $(s1).append('<option value='+ data[i].value +'>'+ data[i].version +'</option>');
+              }
+            };
+          } else {
+            $(s1).append('<option value="">---------</option>');
+          }
+          populate();
+        }
+      });
+    }
+    $("#id_software").change(function() {
+      populate_version();
+    });
+  </script>
   {{ form_select.media }}
+
 {% endblock %}

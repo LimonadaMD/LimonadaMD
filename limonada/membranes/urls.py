@@ -21,13 +21,11 @@
 
 # Django
 from django.conf.urls import url
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import never_cache
 
 # local Django
 from .forms import MemFormSet
-from .views import (GetFiles, GetLipTops, MembraneAutocomplete, MembraneTagAutocomplete, MemCreate,
-                    MemDelete, MemDetail, MemList, MemUpdate)
+from .views import (GetFiles, GetLipTops, MembraneAutocomplete, MembraneProtAutocomplete, MembraneTagAutocomplete,
+                    MemCreate, MemDelete, MemDetail, MemList, MemUpdate)
 
 urlpatterns = [
     url(r'^membranes/$', MemList, name='memlist'),
@@ -38,6 +36,9 @@ urlpatterns = [
     url(r'^membranes/(?P<pk>\d+)/delete/$', MemDelete, name='memdelete'),
     url(r'^membrane-autocomplete/$', MembraneAutocomplete.as_view(), name='membrane-autocomplete'),
     url(r'^tag-autocomplete/$', MembraneTagAutocomplete.as_view(), name='tag-autocomplete'),
+    url(r'^prot-autocomplete/$', MembraneProtAutocomplete.as_view(), name='prot-autocomplete'),
+    url(r'^membraneprot-autocomplete/$', MembraneProtAutocomplete.as_view(create_field='prot'),
+        name='membraneprotautocomplete'),
     url(r'^membranetag-autocomplete/$', MembraneTagAutocomplete.as_view(create_field='tag'),
         name='membranetagautocomplete'),
     url(r'^getliptops/$', GetLipTops, name='getliptops'),

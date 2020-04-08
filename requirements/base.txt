@@ -1,10 +1,13 @@
-Django==1.9.7
+django==1.11.26
 netifaces
 django-autocomplete-light==3.2.10
-django-debug-toolbar
+django-debug-toolbar==1.11
 django-cors-headers
 requests
 simplejson
 Pillow
-numpy>=1.5
+numpy
 fatslim
+future
+Unidecode
+six

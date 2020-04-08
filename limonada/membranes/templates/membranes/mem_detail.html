@@ -38,7 +38,7 @@
           <tr>
             <td class="font-weight-bold">Files:</td>
             <td>
-              {% if membrane.mem_file %} 
+              {% if membrane.mem_file %}
                 <a href="{{ membranetopol.mem_file.url }}" class="text-success" target="blank">
                     {{ membranetopol.mem_file.url|basename }}</a>,
               {% endif %}
@@ -51,6 +51,7 @@
           <tr><td class="font-weight-bold">Temperature:</td><td>{{ membranetopol.temperature }} °K</td></tr>
           <tr><td class="font-weight-bold">Equilibration:</td><td>{{ membranetopol.equilibration }} ns</td></tr>
           <tr><td class="font-weight-bold">Tags:</td><td>{{ membranetopol.membrane.tag.all|join:", " }}</td></tr>
+          <tr><td class="font-weight-bold">Proteins:</td><td>{{ membranetopol.prot.all|join:", " }}</td></tr>
           <tr>
             <td><strong>Description:</strong></td>
             <td>{{ membranetopol.description|linebreaks }}</td>
@@ -71,9 +72,9 @@
     <div class="col-12 col-lg-5 align-self-center">
       <div id="viewport" class="viewport-mem"></div>
     </div>
-    <div class="col-12 col-md-auto font-weight-bold">Composition:</div>
-    <div class="col-auto ml-3">
-      <span class="font-weight-bold">Upper leaflet</span><br>
+    <div class="col-12 col-md-2 font-weight-bold">Composition:</div>
+    <div class="col-6 col-md-4 ml-3">
+      <span class="font-weight-bold">Upper leaflet 1</span><br>
       {% for lipid in membranetopol.topolcomposition_set.all|dictsortreversed:"number" %}
         {% if lipid.side == "UP" %}
           {{lipid.number}}
@@ -84,8 +85,8 @@
         {% endif %}
       {% endfor %}
     </div>
-    <div class="col-auto ml-3">
-      <span class="font-weight-bold">Lower leaflet</span><br>
+    <div class="col-6 col-md-5 ml-3">
+      <span class="font-weight-bold">Lower leaflet 1</span><br>
       {% for lipid in membranetopol.topolcomposition_set.all|dictsortreversed:"number" %}
         {% if lipid.side == "LO" %}
           {{lipid.number}}
@@ -95,6 +96,68 @@
           <br>
         {% endif %}
       {% endfor %}
+    </div>
+    {% for i in 15|times %}
+      <div class="col-12 col-md-2"></div>
+      <div class="col-6 col-md-4 ml-3">
+        {% with y=forloop.counter|stringformat:"s" %}
+        {% with bool=1 %}
+        {% for lipid in membranetopol.topolcomposition_set.all|dictsortreversed:"number" %}
+          {% if lipid.side == "UP"|add:y %}
+            {% if bool %}
+              {% boolean bool as bool %}
+              <br>
+              <span class="font-weight-bold">Upper leaflet {{y}}</span><br>
+            {% endif %}
+            {{lipid.number}}
+            <a class="text-success" href="{% url 'lipdetail' lipid.topology.lipid.slug %}">
+                {{lipid.topology.lipid.name}}</a>
+            (<a class="text-success" href="{% url 'toplist' %}?topid={{lipid.topology.pk}}">{{lipid.topology.version}}</a>)
+            <br>
+          {% endif %}
+        {% endfor %}
+        {% endwith %}
+        {% endwith %}
+      </div>
+      <div class="col-6 col-md-5 ml-3">
+        {% with y=forloop.counter|stringformat:"s" %}
+        {% with bool=1 %}
+        {% for lipid in membranetopol.topolcomposition_set.all|dictsortreversed:"number" %}
+          {% if lipid.side == "LO"|add:y %}
+            {% if bool %}
+              {% boolean bool as bool %}
+              <br>
+              <span class="font-weight-bold">Lower leaflet {{y}}</span><br>
+            {% endif %}
+            {{lipid.number}}
+            <a class="text-success" href="{% url 'lipdetail' lipid.topology.lipid.slug %}">
+                {{lipid.topology.lipid.name}}</a>
+            (<a class="text-success" href="{% url 'toplist' %}?topid={{lipid.topology.pk}}">{{lipid.topology.version}}</a>)
+            <br>
+          {% endif %}
+        {% endfor %}
+        {% endwith %}
+        {% endwith %}
+      </div>
+    {% endfor %}
+    <div class="col-12 col-md-2"></div>
+    <div class="col-6 col-md-4 ml-3">
+      {% with bool=1 %}
+      {% for lipid in membranetopol.topolcomposition_set.all|dictsortreversed:"number" %}
+        {% if lipid.side == "UNK" %}
+          {% if bool %}
+            {% boolean bool as bool %}
+            <br>
+            <span class="font-weight-bold">Not in leaflet</span><br>
+          {% endif %}
+          {{lipid.number}}
+          <a class="text-success" href="{% url 'lipdetail' lipid.topology.lipid.slug %}">
+              {{lipid.topology.lipid.name}}</a>
+          (<a class="text-success" href="{% url 'toplist' %}?topid={{lipid.topology.pk}}">{{lipid.topology.version}}</a>)
+          <br>
+        {% endif %}
+      {% endfor %}
+      {% endwith %}
     </div>
     <div class="col-6 p-3">
       {% if user.is_authenticated %}

@@ -36,3 +36,37 @@ def lipidnames(qs):
             lipids.append(lip)
 
     return lipids
+
+
+@register.simple_tag()
+def side_select(nbmemb):
+    """
+    """
+    UPPER = 'UP'
+    LOWER = 'LO'
+    LEAFLET_CHOICES = ((UPPER, 'Upper leaflet'),
+                       (LOWER, 'Lower leaflet'))
+    if nbmemb > 0:
+        for i in range(nbmemb):
+            LEAFLET_CHOICES += (('UP%d' % (i+2), 'Upper leaflet %d' % (i+2)),
+                                ('LO%d' % (i+2), 'Lower leaflet %d' % (i+2)))
+    LEAFLET_CHOICES += ((('UNK', 'Not in leaflet')),)
+
+    return LEAFLET_CHOICES
+
+
+@register.filter(name='times')
+def times(number):
+
+    return range(number)
+
+
+@register.simple_tag
+def boolean(val=None):
+
+    if val == 0:
+        val = 1
+    else:
+        val = 0
+
+    return val

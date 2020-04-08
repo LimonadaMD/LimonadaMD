@@ -40,6 +40,18 @@
           {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
         </div>
       </div>
+      {% if field.name == "refid" %}
+        {% for aufield in form_authors %}
+          <div class="row py-1 ml-5">
+            <div class="col-3 col-lg-1 col-md-2 pt-1">{{ aufield.label_tag }}</div>
+            <div class="col-9 col-lg-5">
+              {{ aufield }}
+              {% if aufield.help_text %}<small class="text-secondary">{{ aufield.help_text }}<br></small>{% endif %}
+              {% for error in aufield.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
     {% endfor %}
     <div class="row ml-5">
       <div class="col-auto pt-1">

@@ -21,15 +21,14 @@
 
 # Django
 from django.conf.urls import url
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import never_cache
 
 # local Django
-from .views import FfCreate, FfDelete, FfList, FfUpdate, SoftwareAutocomplete
+from .views import FfCreate, FfDelete, FfDetail, FfList, FfUpdate, SoftwareAutocomplete
 
 urlpatterns = [
     url(r'^forcefields/$', FfList, name='fflist'),
     url(r'^forcefields/create/$', FfCreate, name='ffcreate'),
+    url(r'^forcefields/(?P<pk>\d+)/$', FfDetail, name='ffdetail'),
     url(r'^forcefields/(?P<pk>\d+)/update/$', FfUpdate, name='ffupdate'),
     url(r'^forcefields/(?P<pk>\d+)/delete/$', FfDelete, name='ffdelete'),
     url(r'^software-autocomplete/$', SoftwareAutocomplete.as_view(), name='software-autocomplete'),
