@@ -1,7 +1,7 @@
-django==1.11.26
+django==2.2.12
 netifaces
-django-autocomplete-light==3.2.10
-django-debug-toolbar==1.11
+django-autocomplete-light
+django-debug-toolbar
 django-cors-headers
 requests
 simplejson

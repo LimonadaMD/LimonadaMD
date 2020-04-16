@@ -47,7 +47,7 @@ from .views import bad_request_view, get_error, error_view, page_not_found_view,
 handler400 = bad_request_view.as_view()
 handler403 = permission_denied_view.as_view()
 handler404 = page_not_found_view.as_view()
-handler500 = error_view.as_view()
+handler500 = error_view
 handler502 = get_error.as_view()
 
 urlpatterns = [

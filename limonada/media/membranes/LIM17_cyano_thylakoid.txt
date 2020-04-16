@@ -1,0 +1,12 @@
+[ membrane_1_leaflet_1 ]
+      OPMG   40.0196
+      OPGG   25.0489
+      DPSG   14.9706
+      OPSG    9.9804
+      OPPG    9.9804
+[ membrane_1_leaflet_2 ]
+      OPMG   40.0196
+      OPGG   25.0489
+      DPSG   14.9706
+      OPSG    9.9804
+      OPPG    9.9804

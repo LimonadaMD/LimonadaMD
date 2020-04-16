@@ -1,0 +1,16 @@
+[ membrane_1_leaflet_1 ]
+      DWMG   35.0294
+      DWGG   25.0489
+      WPSG   14.9706
+      3WPG    9.9804
+      3PPG    4.9902
+      WPGG    4.9902
+      WPMG    4.9902
+[ membrane_1_leaflet_2 ]
+      DWMG   35.0294
+      DWGG   25.0489
+      WPSG   14.9706
+      3WPG    9.9804
+      3PPG    4.9902
+      WPGG    4.9902
+      WPMG    4.9902

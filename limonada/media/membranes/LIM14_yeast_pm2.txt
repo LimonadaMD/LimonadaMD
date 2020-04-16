@@ -1,0 +1,14 @@
+[ membrane_1_leaflet_1 ]
+      ERGO        40
+      POPS        18
+      POPE   13.3333
+      POPI        12
+      DYPC        12
+      YOPA    4.6667
+[ membrane_1_leaflet_2 ]
+      ERGO        40
+      POPS        18
+      POPE   13.3333
+      POPI        12
+      DYPC        12
+      YOPA    4.6667

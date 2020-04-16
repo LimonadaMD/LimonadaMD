@@ -103,7 +103,8 @@ class MembraneTopol(models.Model):
                                   help_text='Use a zip file containing these files',
                                   blank=True,
                                   null=True)
-    software = models.ForeignKey('forcefields.Software')
+    software = models.ForeignKey('forcefields.Software',
+                                 on_delete=models.CASCADE)
     forcefield = models.ForeignKey('forcefields.Forcefield',
                                    on_delete=models.CASCADE)
     nb_lipids = models.PositiveIntegerField(null=True)

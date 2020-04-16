@@ -20,6 +20,8 @@
 #    along with Limonada.  If not, see <http://www.gnu.org/licenses/>.
 
 # Django
+from django.http import HttpResponseServerError
+from django.template import RequestContext
 from django.views.generic.base import TemplateView
 
 
@@ -28,9 +30,11 @@ class page_not_found_view(TemplateView):
     status_code = 404
 
 
-class error_view(TemplateView):
-    template_name = '504.html'
-    status_code = 500
+def error_view(request):
+    response =  HttpResponseServerError('500.html', {},
+                                        context_instance=RequestContext(request))
+    response.status_code = 500
+    return response
 
 
 class get_error(TemplateView):

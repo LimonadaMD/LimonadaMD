@@ -28,9 +28,9 @@ from .forms import LoginForm
 from .views import activation, UserAutocomplete, UserDetail, signup, update, userinfo
 
 urlpatterns = [
-    url(r'^login/$', auth_views.login, {'template_name': 'homepage/index.html', 'authentication_form': LoginForm,
+    url(r'^login/$', auth_views.LoginView.as_view(), {'template_name': 'homepage/index.html', 'authentication_form': LoginForm,
         'extra_context': {'homepage': True}}, name='login'),
-    url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
+    url(r'^logout/$', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     url(r'^signup/$', signup, name='signup'),
     url(r'^activation/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         activation, name='activation'),
@@ -38,11 +38,11 @@ urlpatterns = [
     url(r'^userinfo/$', userinfo, name='userinfo'),
     url(r'^users/(?P<pk>\d+)/$', UserDetail.as_view(), name='userdetail'),
     url(r'^user-autocomplete/$', UserAutocomplete.as_view(), name='user-autocomplete'),
-    url(r'^password_reset/$', auth_views.password_reset, {'extra_context': {'homepage': True}}, name='password_reset'),
-    url(r'^password_reset/done/$', auth_views.password_reset_done, {'extra_context': {'homepage': True}},
+    url(r'^password_reset/$', auth_views.PasswordResetView.as_view(), {'extra_context': {'homepage': True}}, name='password_reset'),
+    url(r'^password_reset/done/$', auth_views.PasswordResetDoneView.as_view(), {'extra_context': {'homepage': True}},
         name='password_reset_done'),
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        auth_views.password_reset_confirm, {'extra_context': {'homepage': True}}, name='password_reset_confirm'),
-    url(r'^reset/done/$', auth_views.password_reset_complete, {'extra_context': {'homepage': True}},
+        auth_views.PasswordResetConfirmView.as_view(), {'extra_context': {'homepage': True}}, name='password_reset_confirm'),
+    url(r'^reset/done/$', auth_views.PasswordResetCompleteView.as_view(), {'extra_context': {'homepage': True}},
         name='password_reset_complete'),
 ]

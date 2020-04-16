@@ -83,7 +83,7 @@ def RefList(request):
         if 'author' in selectparams.keys():
             querylist = []
             for i in aulist:
-                querylist.append(Q(author=Author.objects.filter(id=i)))
+                querylist.append(Q(author=Author.objects.filter(id=i)[0]))
             ref_list = ref_list.filter(reduce(operator.and_, querylist))
         if 'year' in selectparams.keys():
             ref_list = ref_list.filter(year=selectparams['year'])
@@ -183,8 +183,8 @@ def RefCreate(request):
             for author in authors.split(','):
                 aupos += 1
                 fullname = author.strip()
-                familly = author.strip().split()[0]
-                given = " ".join(author.strip().split()[1:])
+                familly = author.strip().split()[0].strip()
+                given = " ".join(author.strip().split()[1:]).strip()
                 if not Author.objects.filter(fullname=fullname).count():
                     au = Author.objects.create(fullname=fullname, familly=familly, given=given, curator=request.user)
                 else:
@@ -229,8 +229,8 @@ def RefUpdate(request, pk=None):
                 authors = form_authors.cleaned_data['authors']
                 for author in authors.split(','):
                     fullname = author.strip()
-                    familly = author.strip().split()[0]
-                    given = " ".join(author.strip().split()[1:])
+                    familly = author.strip().split()[0].strip()
+                    given = " ".join(author.strip().split()[1:]).strip()
                     if not Author.objects.filter(fullname=fullname).count():
                         au = Author.objects.create(fullname=fullname, familly=familly, given=given,
                                                    curator=request.user)

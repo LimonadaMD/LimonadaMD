@@ -1,0 +1,8 @@
+[ membrane_1_leaflet_1 ]
+      DIPC   45.3125
+      SITO   45.3125
+      SPGC     9.375
+[ membrane_1_leaflet_2 ]
+      DIPC   45.3125
+      SITO   45.3125
+      SPGC     9.375

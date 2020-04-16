@@ -116,28 +116,28 @@ def MemList(request):
             if softlist:
                 querylist = []
                 for i in softlist:
-                    querylist.append(Q(software=Software.objects.filter(id=i)))
+                    querylist.append(Q(software=Software.objects.filter(id=i)[0]))
                 mem_list = mem_list.filter(reduce(operator.or_, querylist)).distinct()
             else:
                 mem_list = MembraneTopol.objects.none()
         if 'softversion' in selectparams.keys():
-            mem_list = mem_list.filter(software=Software.objects.filter(id=selectparams['softversion']))
+            mem_list = mem_list.filter(software=Software.objects.filter(id=selectparams['softversion'])[0])
         if 'forcefield' in selectparams.keys():
-            mem_list = mem_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
+            mem_list = mem_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield'])[0])
         if 'lipids' in selectparams.keys():
             querylist = []
             for i in liplist:
-                querylist.append(Q(lipids=Lipid.objects.filter(id=i)))
+                querylist.append(Q(lipids=Lipid.objects.filter(id=i)[0]))
             mem_list = mem_list.filter(reduce(operator.or_, querylist)).distinct()
         if 'prots' in selectparams.keys():
             querylist = []
             for i in protlist:
-                querylist.append(Q(prot=MembraneProt.objects.filter(id=i)))
+                querylist.append(Q(prot=MembraneProt.objects.filter(id=i)[0]))
             mem_list = mem_list.filter(reduce(operator.or_, querylist)).distinct()
         if 'tags' in selectparams.keys():
             querylist = []
             for i in taglist:
-                querylist.append(Q(membrane=Membrane.objects.filter(tag=i)))
+                querylist.append(Q(membrane=Membrane.objects.filter(tag=i)[0]))
             mem_list = mem_list.filter(reduce(operator.or_, querylist)).distinct()
 
     if 'memid' in request.GET.keys():
@@ -162,7 +162,7 @@ def MemList(request):
         except ValidationError:
             curator = 0
         if curator > 0:
-            mem_list = mem_list.filter(curator=User.objects.filter(id=curator))
+            mem_list = mem_list.filter(curator=User.objects.filter(id=curator)[0])
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')

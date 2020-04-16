@@ -1,0 +1,10 @@
+[ membrane_1_leaflet_1 ]
+      CHOL        64
+      DHSM        12
+      DOPE        12
+      DPPC        12
+[ membrane_1_leaflet_2 ]
+      CHOL        64
+      DHSM        12
+      DOPE        12
+      DPPC        12

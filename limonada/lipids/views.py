@@ -179,16 +179,16 @@ def GetFfList(request):
     if softabb[:2] == "NA" and op == 'AND':
         querylist = []
         for i in softlist:
-            querylist.append(Q(software=Software.objects.filter(id=i)))
+            querylist.append(Q(software=Software.objects.filter(id=i)[0]))
         if querylist:
             ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
     elif op == 'AND':
         for i in softlist:
-            ff_list = ff_list.filter(software=Software.objects.filter(id=i))
+            ff_list = ff_list.filter(software=Software.objects.filter(id=i)[0])
     else:
         querylist = []
         for i in softlist:
-            querylist.append(Q(software=Software.objects.filter(id=i)))
+            querylist.append(Q(software=Software.objects.filter(id=i)[0]))
         if querylist:
             ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
     data = []
@@ -240,7 +240,7 @@ def LipList(request):
         except ValidationError:
             curator = 0
         if curator > 0:
-            lipid_list = lipid_list.filter(curator=User.objects.filter(id=curator))
+            lipid_list = lipid_list.filter(curator=User.objects.filter(id=curator)[0])
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')
@@ -519,14 +519,14 @@ def TopList(request):
             if softlist:
                 querylist = []
                 for i in softlist:
-                    querylist.append(Q(software=Software.objects.filter(id=i)))
+                    querylist.append(Q(software=Software.objects.filter(id=i)[0]))
                 top_list = top_list.filter(reduce(operator.or_, querylist)).distinct()
             else:
                 top_list = Topology.objects.none()
         if 'softversion' in selectparams.keys():
-            top_list = top_list.filter(software=Software.objects.filter(id=selectparams['softversion']))
+            top_list = top_list.filter(software=Software.objects.filter(id=selectparams['softversion'])[0])
         if 'forcefield' in selectparams.keys():
-            top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield']))
+            top_list = top_list.filter(forcefield=Forcefield.objects.filter(id=selectparams['forcefield'])[0])
         if 'category' in selectclass.keys():
             top_list = top_list.filter(lipid__core=lmdict[selectclass['category']])
         if 'main_class' in selectclass.keys():
@@ -538,7 +538,7 @@ def TopList(request):
         if 'lipid' in selectparams.keys():
             querylist = []
             for i in liplist:
-                querylist.append(Q(lipid=Lipid.objects.filter(id=i)))
+                querylist.append(Q(lipid=Lipid.objects.filter(id=i)[0]))
             top_list = top_list.filter(reduce(operator.or_, querylist))
 
     if 'topid' in request.GET.keys():
@@ -555,7 +555,7 @@ def TopList(request):
         except ValidationError:
             curator = 0
         if curator > 0:
-            top_list = top_list.filter(curator=User.objects.filter(id=curator))
+            top_list = top_list.filter(curator=User.objects.filter(id=curator)[0])
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')

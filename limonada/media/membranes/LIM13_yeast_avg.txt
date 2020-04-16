@@ -1,0 +1,14 @@
+[ membrane_1_leaflet_1 ]
+      DOPC    37.037
+      POPE   22.2222
+      CHOL   22.2222
+      POPA    7.4074
+      DPPC    7.4074
+      POPS    3.7037
+[ membrane_1_leaflet_2 ]
+      DOPC    37.037
+      POPE   22.2222
+      CHOL   22.2222
+      POPA    7.4074
+      DPPC    7.4074
+      POPS    3.7037

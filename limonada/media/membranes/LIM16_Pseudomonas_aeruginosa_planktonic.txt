@@ -1,0 +1,12 @@
+[ membrane_1_leaflet_1 ]
+      POPE   35.5556
+      PSPG   24.4444
+      POPG   17.7778
+      PSPE   13.3333
+      DPPE    8.8889
+[ membrane_1_leaflet_2 ]
+      POPE   35.5556
+      PSPG   24.4444
+      POPG   17.7778
+      PSPE   13.3333
+      DPPE    8.8889

@@ -63,7 +63,7 @@ def ff_select(software, softversion):
     if softlist:
         querylist = []
         for i in softlist:
-            querylist.append(Q(software=Software.objects.filter(id=i)))
+            querylist.append(Q(software=Software.objects.filter(id=i)[0]))
         ff_list = Forcefield.objects.all()
         ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
         options = list((obj.id, obj.name) for obj in ff_list)

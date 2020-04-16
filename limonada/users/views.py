@@ -99,7 +99,7 @@ def update(request):
             user.profile.miscellaneous = form.cleaned_data.get('miscellaneous')
             user.save()
             return redirect('homepage')
-    elif request.user.is_authenticated():
+    elif request.user.is_authenticated:
         instance = request.user
         utype = request.user.profile.utype
         institution = request.user.profile.institution

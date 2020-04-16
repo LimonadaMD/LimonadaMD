@@ -1,9 +1,0 @@
-[ leaflet_1 ]
-      SXCE        34
-      LIGN        33
-      CHOL        33
-
-[ leaflet_2 ]
-      SXCE        34
-      LIGN        33
-      CHOL        33

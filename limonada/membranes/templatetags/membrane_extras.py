@@ -25,7 +25,7 @@ from django import template
 register = template.Library()
 
 
-@register.assignment_tag
+@register.simple_tag
 def lipidnames(qs):
     """ This function makes a list of lipid species in the composition.
     """

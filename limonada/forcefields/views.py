@@ -70,10 +70,10 @@ def FfList(request):
                 abbreviation__istartswith=selectparams['software']).values_list('id', flat=True)
             querylist = []
             for i in softlist:
-                querylist.append(Q(software=Software.objects.filter(id=i)))
+                querylist.append(Q(software=Software.objects.filter(id=i)[0]))
             ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
         if 'softversion' in selectparams.keys():
-            ff_list = ff_list.filter(software=Software.objects.filter(id=selectparams['softversion']))
+            ff_list = ff_list.filter(software=Software.objects.filter(id=selectparams['softversion'])[0])
         if 'forcefield_type' in selectparams.keys():
             ff_list = ff_list.filter(forcefield_type=selectparams['forcefield_type'])
     else:
@@ -93,7 +93,7 @@ def FfList(request):
         except ValidationError:
             curator = 0
         if curator > 0:
-            ff_list = ff_list.filter(curator=User.objects.filter(id=curator))
+            ff_list = ff_list.filter(curator=User.objects.filter(id=curator)[0])
 
     sort = request.GET.get('sort')
     sortdir = request.GET.get('dir')
