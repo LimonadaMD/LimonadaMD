@@ -21,6 +21,7 @@
 
 # Django
 from django.http import HttpResponseServerError
+from django.shortcuts import render
 from django.template import RequestContext
 from django.views.generic.base import TemplateView
 
@@ -31,10 +32,8 @@ class page_not_found_view(TemplateView):
 
 
 def error_view(request):
-    response =  HttpResponseServerError('500.html', {},
-                                        context_instance=RequestContext(request))
-    response.status_code = 500
-    return response
+    values_for_template = {}
+    return render(request,'500.html',values_for_template,status=500)
 
 
 class get_error(TemplateView):

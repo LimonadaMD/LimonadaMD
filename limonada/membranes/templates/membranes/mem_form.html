@@ -17,7 +17,9 @@
     {% for field in topform %}
       <div class="row py-1 ml-5">
         <div class="col-3 col-lg-2 col-md-3 pt-1">
-          {% if field.name == "mem_file" or field.name == "other_file" or field.name == "description" %}<br>{% endif %}
+          {% if field.name == "mem_file" or field.name == "other_file" or field.name == "description" or field.name == "prot" %}
+              <br>
+          {% endif %}
           {{ field.label_tag }}
           {% if field.name == "other_file" %}
             <span data-toggle="popover" data-trigger="hover" title="Other files"
@@ -84,7 +86,7 @@
           </div>
         {% else %}
           <div class="col-9 col-lg-4 col-md-7">
-            {% if field.name == "description" %}
+            {% if field.name == "description" or field.name == "prot" %}
               <small class="float-right text-secondary">optional</small>
             {% endif %}
             {{ field }}

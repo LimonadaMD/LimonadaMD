@@ -1,0 +1,206 @@
+
+set nat ?NATC
+set app
+!We're exploiting what is arguably a bug in the parser. On the left hand side,
+!the quotes have proirity, so NAT is correctly substituted. On the right hand
+!side, the ? has priority and NATC" (sic) is not a valid substitution...
+if "@NAT" ne "?NATC" if @nat ne 0 set app append
+
+read rtf card @app
+*
+36  1
+
+RESI TRIC        -1.00 ! Tricosanoic acid (23:0), unprotonated (F23 in PDB)
+GROUP	              !
+ATOM O1   OCL   -0.76 !       O2  O1 (-)
+ATOM O2   OCL   -0.76 !        \\ /
+ATOM C1   CL     0.62 !         C1
+ATOM C2   CTL2  -0.28 !          |
+ATOM H2R  HAL2   0.09 !   H2R---C2---H2S
+ATOM H2S  HAL2   0.09 !          |		
+GROUP                 !              
+ATOM C3   CTL2  -0.18 !          |   
+ATOM H3R  HAL2   0.09 !   H3R---C3---H3S
+ATOM H3S  HAL2   0.09 !          |   
+GROUP                 !
+ATOM C4   CTL2  -0.18 !          |
+ATOM H4R  HAL2   0.09 !   H4R---C4---H4S      
+ATOM H4S  HAL2   0.09 !          |
+GROUP                 !
+ATOM C5   CTL2  -0.18 !          |              
+ATOM H5R  HAL2   0.09 !   H5R---C5---H5S
+ATOM H5S  HAL2   0.09 !          |              
+GROUP                 !
+ATOM C6   CTL2  -0.18 !          |
+ATOM H6R  HAL2   0.09 !   H6R---C6---H6S      
+ATOM H6S  HAL2   0.09 !          |
+GROUP                 ! 
+ATOM C7   CTL2  -0.18 !          |              
+ATOM H7R  HAL2   0.09 !   H7R---C7---H7S
+ATOM H7S  HAL2   0.09 !          |              
+GROUP                 !
+ATOM C8   CTL2  -0.18 !          |
+ATOM H8R  HAL2   0.09 !   H8R---C8---H8S     
+ATOM H8S  HAL2   0.09 !          |
+GROUP                 !
+ATOM C9   CTL2  -0.18 !          |              
+ATOM H9R  HAL2   0.09 !   H9R---C9---H9S
+ATOM H9S  HAL2   0.09 !          |              
+GROUP                 !
+ATOM C10  CTL2  -0.18 !          |
+ATOM H10R HAL2   0.09 !  H10R---C10--H10S     
+ATOM H10S HAL2   0.09 !          |
+GROUP                 !
+ATOM C11  CTL2  -0.18 !          |              
+ATOM H11R HAL2   0.09 !  H11R---C11--H11S
+ATOM H11S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C12  CTL2  -0.18 !          |
+ATOM H12R HAL2   0.09 !  H12R---C12--H12S     
+ATOM H12S HAL2   0.09 !          |
+GROUP                 !
+ATOM C13  CTL2  -0.18 !          |              
+ATOM H13R HAL2   0.09 !  H13R---C13--H13S
+ATOM H13S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C14  CTL2  -0.18 !          |             
+ATOM H14R HAL2   0.09 !  H14R---C14--H14S
+ATOM H14S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C15  CTL2  -0.18 !          |              
+ATOM H15R HAL2   0.09 !  H15R---C15--H15S
+ATOM H15S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C16  CTL2  -0.18 !          |              
+ATOM H16R HAL2   0.09 !  H16R---C16--H16S
+ATOM H16S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C17  CTL2  -0.18 !          |              
+ATOM H17R HAL2   0.09 !  H17R---C17--H17S
+ATOM H17S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C18  CTL2  -0.18 !          |
+ATOM H18R HAL2   0.09 !  H18R---C18--H18S     
+ATOM H18S HAL2   0.09 !          |
+GROUP
+ATOM C19  CTL2  -0.18 !          |         
+ATOM H19R HAL2   0.09 !  H19R---C19--H19S
+ATOM H19S HAL2   0.09 !          |         
+GROUP                 !          |         
+ATOM C20  CTL2  -0.18 !          |         
+ATOM H20R HAL2   0.09 !  H20R---C20--H20S
+ATOM H20S HAL2   0.09 !          |         
+GROUP                 !          |         
+ATOM C21  CTL2  -0.18 !          |         
+ATOM H21R HAL2   0.09 !  H21R---C21--H21S
+ATOM H21S HAL2   0.09 !          |         
+GROUP                 !          |         
+ATOM C22  CTL2  -0.18 !          |         
+ATOM H22R HAL2   0.09 !  H22R---C22--H22S
+ATOM H22S HAL2   0.09 !          |         
+GROUP                 !          |         
+ATOM C23  CTL3  -0.27 !          |         
+ATOM H23R HAL3   0.09 !  H23R---C23--H23S
+ATOM H23S HAL3   0.09 !          |         
+ATOM H23T HAL3   0.09 !         H23T       
+
+
+BOND  O1  C1
+BOND  C1  C2
+DOUBLE C1  O2
+BOND  C2  H2R       C2  H2S       C2  C3
+BOND  C3  H3R       C3  H3S       C3  C4
+BOND  C4  H4R       C4  H4S       C4  C5
+BOND  C5  H5R       C5  H5S       C5  C6
+BOND  C6  H6R       C6  H6S       C6  C7
+BOND  C7  H7R       C7  H7S       C7  C8
+BOND  C8  H8R       C8  H8S       C8  C9
+BOND  C9  H9R       C9  H9S       C9  C10
+BOND  C10 H10R      C10 H10S      C10 C11
+BOND  C11 H11R      C11 H11S      C11 C12
+BOND  C12 H12R      C12 H12S      C12 C13
+BOND  C13 H13R      C13 H13S      C13 C14
+BOND  C14 H14R      C14 H14S      C14 C15
+BOND  C15 H15R      C15 H15S      C15 C16
+BOND  C16 H16R      C16 H16S      C16 C17
+BOND  C17 H17R      C17 H17S      C17 C18
+BOND  C18 H18R      C18 H18S      C18 C19
+BOND  C19 H19R      C19 H19S      C19 C20
+BOND  C20 H20R      C20 H20S      C20 C21
+BOND  C21 H21R      C21 H21S      C21 C22
+BOND  C22 H22R      C22 H22S      C22 C23
+BOND  C23 H23R      C23 H23S      C23 H23T
+
+
+IMPR C1 O1 C2 O2
+
+!IC table from IC generate, minimized geometry
+IC  C2    O1    *C1   O2       1.5295  116.62 -179.99  124.23   1.2576
+IC  O1    C1    C2    C3       1.2588  116.62 -179.94  113.34   1.5454
+IC  C3    C1    *C2   H2R      1.5454  113.34 -121.74  107.20   1.1085
+IC  H2R   C1    *C2   H2S      1.1085  107.20 -116.58  107.16   1.1086
+IC  C1    C2    C3    C4       1.5295  113.34  179.59  112.49   1.5337
+IC  C4    C2    *C3   H3R      1.5337  112.49 -121.61  108.84   1.1135
+IC  H3R   C2    *C3   H3S      1.1135  108.84 -116.63  108.88   1.1134
+IC  C2    C3    C4    C5       1.5454  112.49 -179.72  112.62   1.5346
+IC  C5    C3    *C4   H4R      1.5346  112.62 -121.53  108.79   1.1126
+IC  H4R   C3    *C4   H4S      1.1126  108.79 -117.13  108.66   1.1128
+IC  C3    C4    C5    C6       1.5337  112.62  179.24  112.78   1.5346
+IC  C6    C4    *C5   H5R      1.5346  112.78 -121.41  108.74   1.1132
+IC  H5R   C4    *C5   H5S      1.1132  108.74 -116.95  108.87   1.1130
+IC  C4    C5    C6    C7       1.5346  112.78 -179.43  112.57   1.5345
+IC  C7    C5    *C6   H6R      1.5345  112.57 -121.47  109.04   1.1130
+IC  H6R   C5    *C6   H6S      1.1130  109.04 -117.32  108.89   1.1131
+IC  C5    C6    C7    C8       1.5346  112.57  179.10  112.78   1.5345
+IC  C8    C6    *C7   H7R      1.5345  112.78 -121.23  108.90   1.1133
+IC  H7R   C6    *C7   H7S      1.1133  108.90 -117.23  109.05   1.1131
+IC  C6    C7    C8    C9       1.5345  112.78 -179.20  112.52   1.5346
+IC  C9    C7    *C8   H8R      1.5346  112.52 -121.47  109.17   1.1130
+IC  H8R   C7    *C8   H8S      1.1130  109.17 -117.40  108.98   1.1132
+IC  C7    C8    C9    C10      1.5345  112.52  178.99  112.75   1.5346
+IC  C10   C8    *C9   H9R      1.5346  112.75 -121.15  108.95   1.1134
+IC  H9R   C8    *C9   H9S      1.1134  108.95 -117.33  109.14   1.1131
+IC  C8    C9    C10   C11      1.5346  112.75 -178.95  112.55   1.5346
+IC  C11   C9    *C10  H10R     1.5346  112.55 -121.47  109.21   1.1130
+IC  H10R  C9    *C10  H10S     1.1130  109.21 -117.44  109.02   1.1133
+IC  C9    C10   C11   C12      1.5346  112.55  178.86  112.73   1.5347
+IC  C12   C10   *C11  H11R     1.5347  112.73 -121.12  108.96   1.1133
+IC  H11R  C10   *C11  H11S     1.1133  108.96 -117.35  109.18   1.1131
+IC  C10   C11   C12   C13      1.5346  112.73 -178.85  112.54   1.5347
+IC  C13   C11   *C12  H12R     1.5347  112.54 -121.48  109.21   1.1130
+IC  H12R  C11   *C12  H12S     1.1130  109.21 -117.44  109.00   1.1133
+IC  C11   C12   C13   C14      1.5347  112.54  178.83  112.79   1.5348
+IC  C14   C12   *C13  H13R     1.5348  112.79 -121.13  108.97   1.1133
+IC  H13R  C12   *C13  H13S     1.1133  108.97 -117.34  109.16   1.1131
+IC  C12   C13   C14   C15      1.5347  112.79 -179.01  112.51   1.5348
+IC  C15   C13   *C14  H14R     1.5348  112.51 -121.45  109.21   1.1130
+IC  H14R  C13   *C14  H14S     1.1130  109.21 -117.46  109.04   1.1132
+IC  C13   C14   C15   C16      1.5348  112.51  179.00  112.77   1.5347
+IC  C16   C14   *C15  H15R     1.5347  112.77 -121.18  109.00   1.1133
+IC  H15R  C14   *C15  H15S     1.1133  109.00 -117.34  109.13   1.1131
+IC  C14   C15   C16   C17      1.5348  112.77 -179.40  112.56   1.5348
+IC  C17   C15   *C16  H16R     1.5348  112.56 -121.38  109.17   1.1131
+IC  C17   C15   *C16  H16S     1.5348  112.56  121.17  109.06   1.1132
+IC  C15   C16   C17   C18      1.5347  112.56  179.38  112.75   1.5347
+IC  C18   C16   *C17  H17R     1.5347  112.75 -121.23  109.06   1.1133
+IC  C18   C16   *C17  H17S     1.5347  112.75  121.39  109.11   1.1132
+IC  C16   C17   C18   C19      1.5348  112.75 -179.81  112.56   1.5347
+IC  C19   C17   *C18  H18R     1.5347  112.56 -121.32  109.15   1.1131
+IC  C19   C17   *C18  H18S     1.5347  112.56  121.23  109.10   1.1132
+IC  C17   C18   C19   C20      1.5347  112.56  179.75  112.71   1.5346
+IC  C20   C18   *C19  H19R     1.5346  112.71 -121.29  109.08   1.1132
+IC  C20   C18   *C19  H19S     1.5346  112.71  121.34  109.09   1.1132
+IC  C18   C19   C20   C21      1.5347  112.71  179.97  112.59   1.5347
+IC  C21   C19   *C20  H20R     1.5347  112.59 -121.29  109.12   1.1131
+IC  C21   C19   *C20  H20S     1.5347  112.59  121.27  109.11   1.1132
+IC  C19   C20   C21   C22      1.5346  112.59  179.93  112.74   1.5339
+IC  C22   C20   *C21  H21R     1.5339  112.74 -121.30  109.13   1.1132
+IC  C22   C20   *C21  H21S     1.5339  112.74  121.31  109.12   1.1132
+IC  C20   C21   C22   C23      1.5347  112.74  179.96  113.27   1.5308
+IC  C23   C21   *C22  H22R     1.5308  113.27 -121.65  108.77   1.1140
+IC  C23   C21   *C22  H22S     1.5308  113.27  121.65  108.77   1.1140
+IC  C21   C22   C23   H23T     1.5339  113.27  180.00  110.62   1.1112
+IC  H23T  C22   *C23  H23R     1.1112  110.62 -120.08  110.44   1.1113
+IC  H23T  C22   *C23  H23S     1.1112  110.62  120.07  110.44   1.1113
+
+END

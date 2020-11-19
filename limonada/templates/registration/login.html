@@ -1,0 +1,44 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block description %}
+  limonada intends to provide an open library of membranes, along with the description of lipids, topologies and
+  forcefields mandatory for their molecular dynamics simulations
+{% endblock %}
+
+{% block content %}
+
+  <h1>About Limonada</h1>
+  <p>The main goal of Limonada ("<b>Li</b>pid <b>M</b>embrane <b>O</b>pen <b>N</b>etwork <b>A</b>nd <b>Da</b>tabase")
+      is to provide an online library of membranes, notably of more complex compositions representative of biological
+      membranes, along with the description of lipids, topologies and forcefields mandatory for their molecular
+      dynamics simulations.</p>
+  <p>Limonada uses the lipid classification established by the <a class="text-success"
+      href="http://www.lipidmaps.org/data/classification/LM_classification_exp.php">LipidMaps consortium</a> and every
+      lipid is unequivocally identified by a four-digit ID (i.e. compliant with e.g. pdb files). From this basis,
+      registered users can add new membranes, lipids, topologies and/or forcefields to the database with the only
+      limitation that each addition must be sustained by a reference paper and that the primary source of the files
+      stored by Limonada are also provided.</p>
+  <p>At creation, membrane composition, lipid and reference forms can be filled by giving a membrane structure file,
+      a LipidMaps ID and a DOI, respectivelly. Topology files are validated according to the specified forcefield and
+      software and the membrane composition according to the membrane structure file. Simulation files for a given
+      membrane record can then automatically be gathered and downloaded from the database.</p>
+  <p>Limonada is open source (code is hosted on github: <a class="text-success"
+      href="https://github.com/limonadaMD">https://github.com/limonadaMD</a>) and is built
+      using the widely used Django open framework
+      (<a class="text-success" href="https://www.djangoproject.com">https://www.djangoproject.com</a>).</p>
+
+  <br>
+  <h1>Context</h1>
+  <p>The size and complexity of lipid systems simulated by molecular dynamics is continuously growing and knowing that
+      there could be over 100,000 lipid species and that biological membranes can be composed by hundreds of different
+      lipids whose proportion are organism and organelle specific, the amount and complexity of the data involved
+      stress the need for an organized open web database.</p>
+  <p>Indeed, several forcefields can be used for lipid membrane simulations and some of them have hundreds of different
+      lipid topologies parametrized. Moreover, tens of model membranes with several lipid species designed to represent
+      specific biological membranes have already been simulated. Modeling studies start then to encompass the wide
+      diversity of biological membranes. Besides, determination of complex lipid compositions is not trivial and their
+      equilibration can be quite computationally demanding while only being a prerequisite for further simulations.</p>
+
+{% endblock %}

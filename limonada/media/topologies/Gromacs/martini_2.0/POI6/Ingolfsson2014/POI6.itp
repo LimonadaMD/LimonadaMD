@@ -1,0 +1,95 @@
+; PHOSPHATIDILINOSITOL 3-4 BI-PHOSPHATE - PIP2 with the phosphates at position 3 and 4
+; with a PO tail (First a Palmitic acid or Stearoyl tail then a Palmitoleic acid or Oleic acid tail) therfore called POI6 (tail string would be -altail "CCDC CCCC")
+; 
+; Head based on Cesar Lopez DIPALMITOYLPHOSPHATIDILINOSITOL 3-4 BI-PHOSPHATE ( PIP2(3,4) ) named "PI34" from martini_v2.0_glycolipids.itp
+; Note: bonds with force constant > 25000 are treated as constraints, but use harmonic bonds for minimization. 
+;       Add define=-DFLEXIBLE to select harmonic bonds for minimization purposes.
+;
+
+
+[ moleculetype ]
+; molname      nrexcl
+POI6               1
+
+[ atoms ]
+; id    type    resnr   residu  atom    cgnr    charge
+   1        P1     1   POI6      C1      1          0       72.000
+   2        Na     1   POI6      C2      2          0       72.000
+   3        P4     1   POI6      C3      3          0       72.000
+   4        Qa     1   POI6      CP      4         -1       72.000
+   5        Qa     1   POI6      P1      5         -2       72.000
+   6        Qa     1   POI6      P2      6         -2       72.000
+; Tail part (uses standar Martini v2.0 tail rules)
+   7        Na     1   POI6      GL1     7          0       72.000
+   8        Na     1   POI6      GL2     8          0       72.000
+   9        C1     1   POI6      C1A     9          0       72.000
+  10        C1     1   POI6      C2A    10          0       72.000
+  11        C3     1   POI6      D3A    11          0       72.000
+  12        C1     1   POI6      C4A    12          0       72.000
+  13        C1     1   POI6      C1B    13          0       72.000
+  14        C1     1   POI6      C2B    14          0       72.000
+  15        C1     1   POI6      C3B    15          0       72.000
+  16        C1     1   POI6      C4B    16          0       72.000
+
+[ bonds ]
+; i j   funct   length  force.c.i
+#ifdef FLEXIBLE
+; Using bonds not constraints
+  1     2         1 0.4 30000
+  1     3         1 0.4 30000
+  2     3         1 0.4 30000
+  2     5         1 0.3  30000
+  2     6         1 0.35 30000
+  1     5         1 0.40 25000
+  3     6         1 0.31 30000
+;  5     6         1 0.60 25000 ; Always keep as bond for stability
+#endif
+  5     6         1 0.60 25000 ; Always keep as bond for stability
+  1     4         1 0.35 1250
+  4     7         1 0.47 1250
+; Tail part (uses standar Martini v2.0 tail rules)
+  7     8         1 0.37 1250
+  7     9         1 0.47 1250
+  9    10         1 0.47 1250
+ 10    11         1 0.47 1250
+ 11    12         1 0.47 1250
+  8    13         1 0.47 1250
+ 13    14         1 0.47 1250
+ 14    15         1 0.47 1250
+ 15    16         1 0.47 1250
+
+[ angles ]
+; i j k         funct   angle   force.c.
+; Here we have less angles than in PI, replaced by bonds/constraints
+; Orient Head
+  1    4    7         2 140.00 25 ; link to lipid - PI has 30
+; 4    7    8         2 120.00 25.0 ; These are part of the default lipids rules but not used here
+; 4    7    9         2 180.00 25.0 ; These are part of the default lipids rules but not used here
+  7     9    10         2 180.00 25.0
+  9    10    11         2 180.00 25.0
+ 10    11    12         2 120.00 45.0
+  8    13    14         2 180.00 25.0 
+ 13    14    15         2 180.00 25.0 
+ 14    15    16         2 180.00 25.0 
+
+[ dihedrals ]
+;3 1 4 5 1 -30.00 5.00 1   ; Removed as it was unstable - WARNING has not been tested
+
+[ constraints ]
+#ifndef FLEXIBLE 
+; Using constraints not bonds
+  1     2         1 0.4 
+  1     3         1 0.4 
+  2     3         1 0.4 
+  2     5         1 0.3  
+  2     6         1 0.35 
+  1     5         1 0.40 
+  3     6         1 0.31 
+;  5     6         1 0.60 ; Always keep as bond for stability
+#endif
+
+; Include Position restraint file
+#ifdef POSRES
+#include "POI6_posre.itp"
+#endif
+ 

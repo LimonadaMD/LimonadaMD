@@ -81,7 +81,7 @@ class Membrane:
                     atoms.append(Atom(line, extension))
         else:
             atoms.append('error')
-        self.natoms = " %d" % len(atoms)
+        self.natoms = " %d\n" % len(atoms)
         if 'error' not in atoms:
             resid = ''
             resname = ''
@@ -133,7 +133,7 @@ class Membrane:
                 for i in range(nblip):
                     for lipidatoms in self.lipids[resname][i].atoms:
                         if lipidatoms[1] in heads:
-                            self.lipids[resname][i].hgndx = lipidatoms[3]
+                            self.lipids[resname][i].hgndx = lipidatoms[3] 
                     if self.lipids[resname][i].hgndx == "":
                         self.title = 'error'
         else:
@@ -287,14 +287,14 @@ def membraneanalysis(filename, ff, rand):
                                     outfile.write('ATOM  %5d %-4s %4s %4d    %s' % (ai, an, rn, ri, coord))
             for res in membrane.solvent:
                 ri += 1
-                if ri == 100000:
+                if extension == ".gro" and ri == 100000:
+                    ri = 0
+                elif extension == ".pdb" and ri == 10000:
                     ri = 0
                 for atom in res:
                     ai += 1
-                    if extension == ".gro" and ri == 100000:
+                    if ai == 100000:
                         ai = 0
-                    elif extension == ".pdb" and ri == 10000:
-                        ri = 0
                     rn = atom[0]
                     an = atom[1]
                     coord = atom[4]
@@ -335,13 +335,22 @@ def membrane_residues(filename):
     extension = os.path.splitext(filename)[1]
 
     reslist = []
+    residues = []
+    resatoms = []
+    headers = []
     lines = open(grofilepath).readlines()
     if extension == ".gro":
         if len(lines) > 3:
+            headers.append(lines[0])
+            headers.append(lines[1])
+            headers.append(lines[-1])
             resid = ''
             for line in lines[2:-1]:
                 atom = Atom(line, extension)
                 if atom[2] != resid:
+                    if resid != '':
+                        residues.append(resatoms)
+                    resatoms = []
                     resname = atom[0]
                     resid = atom[2]
                     if resname in lipids:
@@ -351,12 +360,17 @@ def membrane_residues(filename):
                     else:
                         restype = 'unknown'
                     reslist.append([resname, restype])
+                resatoms.append(atom)
+            residues.append(resatoms)
     elif extension == ".pdb":
         resid = ''
         for line in lines:
             if line.startswith("ATOM  "):
                 atom = Atom(line, extension)
                 if atom[2] != resid:
+                    if resid != '':
+                        residues.append(resatoms)
+                    resatoms = []
                     resname = atom[0]
                     resid = atom[2]
                     if resname in lipids:
@@ -366,6 +380,8 @@ def membrane_residues(filename):
                     else:
                         restype = 'unknown'
                     reslist.append([resname, restype])
+                resatoms.append(atom)
+        residues.append(resatoms)
     resnb = 0
     memresidues = []
     lipresidues = []
@@ -414,11 +430,11 @@ def membrane_residues(filename):
     else:
         memresidues.append([restype_prev, str(resnb), restype_prev])
 
-    return memresidues, lipresidues, othermol
+    return memresidues, lipresidues, othermol, residues, headers
 
 
 def compo_isvalid(filename, data):
-    memresidues, lipresidues, othermol = membrane_residues(filename)
+    memresidues, lipresidues, othermol, residues, headers = membrane_residues(filename)
     comporesidues = []
     Nb = data['form-TOTAL_FORMS']
     for i in range(int(Nb)):

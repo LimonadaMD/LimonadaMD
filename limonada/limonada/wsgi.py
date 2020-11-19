@@ -30,9 +30,13 @@ https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 
 # standard library
 import os
+from dotenv import load_dotenv
 
 # Django
 from django.core.wsgi import get_wsgi_application
+
+project_folder = os.path.expanduser('~/limonada')
+load_dotenv(os.path.join(project_folder, '.env'))
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'limonada.settings.dev')
 

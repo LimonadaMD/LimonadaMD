@@ -21,6 +21,7 @@
 
 # standard library
 import codecs
+import copy
 from functools import reduce
 import operator
 import os
@@ -29,7 +30,7 @@ import random
 import shutil
 import zipfile
 from contextlib import contextmanager
-from string import ascii_lowercase as abc
+from string import ascii_uppercase as abc
 from unidecode import unidecode
 
 # third-party
@@ -303,8 +304,10 @@ def MemCreate(request, formset_class, template):
         ffid = simplejson.loads(request.POST.get('forcefield', None))
         forcefield = Forcefield.objects.filter(id=ffid)
         softabb = forcefield[0].software.all()[0].abbreviation
-        if os.path.isfile(os.path.join(settings.MEDIA_ROOT, mempath)) and softabb[:2] != "AM":
-            merrors = compo_isvalid(mempath, request.POST)
+        if os.path.isfile(os.path.join(settings.MEDIA_ROOT, mempath)):
+            extension = os.path.splitext(mempath)[1]
+            if softabb[:2] != "AM":
+                merrors = compo_isvalid(mempath, request.POST)
         topform = MembraneTopolForm(request.POST, file_data)
         memform = MembraneForm(request.POST)
         formset = formset_class(request.POST)
@@ -352,11 +355,10 @@ def MemCreate(request, formset_class, template):
                 if lipid:
                     number = lip.cleaned_data.get('number')
                     side = lip.cleaned_data.get('side')
-                    nb = ('%7.4f' % (100*float(number)/nbsides[side])).rstrip('0').rstrip('.')
-                    if lipid.name in lipsidenames.keys():
-                        nbtemp = '%7.4f' % (100*(float(number)+float(lipsidenumbers[lipid.name]))/nbsides[side])
-                        nb = nbtemp.rstrip('0').rstrip('.')
-                    if side not in lipsidenames.keys():
+                    if side in lipsidenames.keys(): 
+                        if lipid.name in lipsidenames[side].keys():
+                            number += lipsidenumbers[side][lipid.name] 
+                    else:
                         lipsidenames[side] = {}
                         lipsidenumbers[side] = {}
                     s = "o"
@@ -364,13 +366,15 @@ def MemCreate(request, formset_class, template):
                         s = "u"
                     elif side[:2] == "LO":
                         s = "l"
-                    if s == "o":
-                        lipsidenames[side][lipid.name] = s + lipid.name + nb
-                    else:
-                        lipsidenames[side][lipid.name] = s + side[2:] + lipid.name + nb
-                    lipsidenumbers[side][lipid.name] = nb
+                    lipsidenames[side][lipid.name] = s + side[2:] + lipid.name
+                    lipsidenumbers[side][lipid.name] =  number
                     if lipid not in liptypes:
                         liptypes.append(lipid)
+            for side in lipsidenames.keys():
+                for lipid in lipsidenames[side].keys():
+                    nb = ('%7.4f' % (100*float(lipsidenumbers[side][lipid])/nbsides[side])).rstrip('0').rstrip('.') 
+                    lipsidenames[side][lipid] = lipsidenames[side][lipid] + nb 
+                    lipsidenumbers[side][lipid] = nb
             name = ''
             compodata = ''
             for leaflet in lipsidenames.keys():
@@ -388,14 +392,19 @@ def MemCreate(request, formset_class, template):
                     compodata += '[ not_in_leaflet ]\n'
                 else:
                     compodata += '[ membrane_%s_leaflet_%d ]\n' % (mi, li)
-                if mi == "0" or mi == "1":
+                if mi == "1":
                     for key in sorted(lipsidenumbers[leaflet], key=lipsidenumbers[leaflet].__getitem__, reverse=True):
                         name += '-' + lipsidenames[leaflet][key]
                         compodata += '%10s%10s\n' % (lipsidenames[leaflet][key][1:5], lipsidenames[leaflet][key][5:])
-                else:
+                elif mi == "0":
                     for key in sorted(lipsidenumbers[leaflet], key=lipsidenumbers[leaflet].__getitem__, reverse=True):
                         name += '-' + lipsidenames[leaflet][key]
                         compodata += '%10s%10s\n' % (lipsidenames[leaflet][key][2:6], lipsidenames[leaflet][key][6:])
+                else:
+                    ki = len(mi) + 1
+                    for key in sorted(lipsidenumbers[leaflet], key=lipsidenumbers[leaflet].__getitem__, reverse=True):
+                        name += '-' + lipsidenames[leaflet][key]
+                        compodata += '%10s%10s\n' % (lipsidenames[leaflet][key][ki:ki+4], lipsidenames[leaflet][key][ki+4:])
             # Create a new Membrane object if it doesn't exists
             if Membrane.objects.filter(name=name[1:]).exists():
                 m = Membrane.objects.get(name=name[1:])
@@ -431,8 +440,12 @@ def MemCreate(request, formset_class, template):
 
             rand = request.POST['rand']
             fname = request.POST['fname']
-            extension = request.POST['extension']
-            mempath = 'media/tmp/%s/%s_sorted%s' % (rand, fname, extension)
+            mempath = 'media/%s' % mempath
+            if rand:
+                if os.path.isfile(mempath):
+                    os.remove(mempath)
+                extension = request.POST['extension']
+                mempath = 'media/tmp/%s/%s_sorted%s' % (rand, fname, extension)
             memname = unidecode(mt.name).replace(' ', '_')
             if os.path.isfile(mempath):
                 newmempath = 'media/membranes/LIM{0}_{1}{2}'.format(mt.id, memname, extension)
@@ -512,14 +525,14 @@ def MemUpdate(request, pk=None):
         if request.method == 'POST' and 'add' in request.POST:
             file_data = {}
             mempath = ''
-            if mt.mem_file:
-                file_data, mempath = FileData(request, 'mem_file', 'mempath', file_data)
-                softabb = mt.forcefield.software.all()[0].abbreviation
+            file_data, mempath = FileData(request, 'mem_file', 'mempath', file_data)
+            softabb = mt.forcefield.software.all()[0].abbreviation
+            if os.path.isfile(os.path.join(settings.MEDIA_ROOT, mempath)):
+                extension = os.path.splitext(mempath)[1]
                 if softabb[:2] != "AM":
                     merrors = compo_isvalid(mempath, request.POST)
             otherpath = ''
-            if mt.other_file:
-                file_data, otherpath = FileData(request, 'other_file', 'otherpath', file_data)
+            file_data, otherpath = FileData(request, 'other_file', 'otherpath', file_data)
             topform = MembraneTopolForm(request.POST, file_data, instance=mt)
             memform = MembraneForm(request.POST, instance=mt.membrane)
             formset = MemFormSet(request.POST)
@@ -568,11 +581,10 @@ def MemUpdate(request, pk=None):
                     if lipid:
                         number = lip.cleaned_data.get('number')
                         side = lip.cleaned_data.get('side')
-                        nb = ('%7.4f' % (100*float(number)/nbsides[side])).rstrip('0').rstrip('.')
-                        if lipid.name in lipsidenames.keys():
-                            nbtemp = '%7.4f' % (100*(float(number)+float(lipsidenumbers[lipid.name]))/nbsides[side])
-                            nb = nbtemp.rstrip('0').rstrip('.')
-                        if side not in lipsidenames.keys():
+                        if side in lipsidenames.keys(): 
+                            if lipid.name in lipsidenames[side].keys():
+                                number += lipsidenumbers[side][lipid.name] 
+                        else:
                             lipsidenames[side] = {}
                             lipsidenumbers[side] = {}
                         s = "o"
@@ -580,10 +592,15 @@ def MemUpdate(request, pk=None):
                             s = "u"
                         elif side[:2] == "LO":
                             s = "l"
-                        lipsidenames[side][lipid.name] = s + side[2:] + lipid.name + nb
-                        lipsidenumbers[side][lipid.name] = nb
+                        lipsidenames[side][lipid.name] = s + side[2:] + lipid.name
+                        lipsidenumbers[side][lipid.name] =  number
                         if lipid not in liptypes:
                             liptypes.append(lipid)
+                for side in lipsidenames.keys():
+                    for lipid in lipsidenames[side].keys():
+                        nb = ('%7.4f' % (100*float(lipsidenumbers[side][lipid])/nbsides[side])).rstrip('0').rstrip('.') 
+                        lipsidenames[side][lipid] = lipsidenames[side][lipid] + nb 
+                        lipsidenumbers[side][lipid] = nb
                 name = ''
                 compodata = ''
                 for leaflet in lipsidenames.keys():
@@ -598,12 +615,22 @@ def MemUpdate(request, pk=None):
                     else:
                         li = 2
                     if mi == "0":
-                        compodata = '[ not in_leaflet ]\n'
+                        compodata += '[ not_in_leaflet ]\n'
                     else:
-                        compodata = '[ membrane_%s_leaflet_%d ]\n' % (mi, li)
-                    for key in sorted(lipsidenumbers[leaflet], key=lipsidenumbers[leaflet].__getitem__, reverse=True):
-                        name += '-' + lipsidenames[leaflet][key]
-                        compodata += '%10s%10s\n' % (lipsidenames[leaflet][key][1:5], lipsidenames[leaflet][key][5:])
+                        compodata += '[ membrane_%s_leaflet_%d ]\n' % (mi, li)
+                    if mi == "1":
+                        for key in sorted(lipsidenumbers[leaflet], key=lipsidenumbers[leaflet].__getitem__, reverse=True):
+                            name += '-' + lipsidenames[leaflet][key]
+                            compodata += '%10s%10s\n' % (lipsidenames[leaflet][key][1:5], lipsidenames[leaflet][key][5:])
+                    elif mi == "0":
+                        for key in sorted(lipsidenumbers[leaflet], key=lipsidenumbers[leaflet].__getitem__, reverse=True):
+                            name += '-' + lipsidenames[leaflet][key]
+                            compodata += '%10s%10s\n' % (lipsidenames[leaflet][key][2:6], lipsidenames[leaflet][key][6:])
+                    else:
+                        ki = len(mi) + 1
+                        for key in sorted(lipsidenumbers[leaflet], key=lipsidenumbers[leaflet].__getitem__, reverse=True):
+                            name += '-' + lipsidenames[leaflet][key]
+                            compodata += '%10s%10s\n' % (lipsidenames[leaflet][key][ki:ki+4], lipsidenames[leaflet][key][ki+4:])
 
                 # Create a new Membrane object if it changed and doesn't exists
                 if Membrane.objects.filter(name=name[1:]).exists():
@@ -641,8 +668,12 @@ def MemUpdate(request, pk=None):
 
                 rand = request.POST['rand']
                 fname = request.POST['fname']
-                extension = request.POST['extension']
-                mempath = 'media/tmp/%s/%s_sorted%s' % (rand, fname, extension)
+                mempath = 'media/%s' % mempath
+                if rand:
+                    if os.path.isfile(mempath):
+                        os.remove(mempath)
+                    extension = request.POST['extension']
+                    mempath = 'media/tmp/%s/%s_sorted%s' % (rand, fname, extension)
                 memname = unidecode(mt.name).replace(' ', '_')
                 if os.path.isfile(mempath):
                     newmempath = 'media/membranes/LIM{0}_{1}{2}'.format(mt.id, memname, extension)
@@ -802,9 +833,11 @@ def GetLipTops(request):
         if softabb[:2] == "NA":
             ff_list = Forcefield.objects.all().values_list('id', flat=True)
         else:
-            ff_list = Forcefield.objects.filter(software=Software.objects.filter(id=soft_id)).values_list('id',
+            ff_list = Forcefield.objects.filter(software=Software.objects.filter(id=soft_id)[0]).values_list('id',
                                                                                                           flat=True)
-        if int(ff_id) not in list(ff_list):
+        if not ff_id:
+            ff_id = ff_list[0]
+        elif int(ff_id) not in list(ff_list):
             ff_id = ff_list[0]
 
     topologies = []
@@ -858,9 +891,10 @@ def GetFiles(request):
 
                 memresidues = []
                 othermol = {}
+                residues = []
                 if mem.mem_file:
                     shutil.copy(mem.mem_file.url[1:], dirname)
-                    memresidues, lipresidues, othermol = membrane_residues(mem.mem_file.name)
+                    memresidues, lipresidues, othermol, residues, headers = membrane_residues(mem.mem_file.name)
                     extension = os.path.splitext(mem.mem_file.name)[1]
                 else:
                     grodir = os.path.join(dirname, 'lipids')
@@ -876,6 +910,7 @@ def GetFiles(request):
 
                 tops = {}
                 topolcompo = []
+                fifthdigit = False
                 for lip in mem.topolcomposition_set.all():
                     if lip.topology.id not in tops.keys():
                         lipname = lip.lipid.name
@@ -883,6 +918,7 @@ def GetFiles(request):
                         while lipname in tops.values():
                             lipname = '%s%s' % (lip.lipid.name, abc[i:i+1])
                             i += 1
+                            fifthdigit = True
                         tops[lip.topology.id] = lipname
                         if soft == "Gromacs":
                             topfile.write('#include "toppar/%s.itp"\n' % lipname)
@@ -914,6 +950,63 @@ def GetFiles(request):
                             outfile.write(newdata)
                             outfile.close()
 
+                # creation of the membrane file with the fifth digit 
+                memcompo = copy.deepcopy(topolcompo)
+                if mem.mem_file and fifthdigit == True:
+                    if soft == "Gromacs":
+                        memname2 = "%s_extended.gro" % os.path.splitext(os.path.basename(mem.mem_file.name))[0]
+                        memfile2 = codecs.open(os.path.join(dirname, memname2), 'w', encoding='utf-8')
+                        memfile2.write(headers[0])
+                        memfile2.write(headers[1])
+                        i = 0
+                        resrename = True
+                        while resrename == True and i < len(residues):
+                            lipname = residues[i][0][0]
+                            if lipname == memcompo[0][0][0:4]:
+                                lipname = memcompo[0][0]
+                                memcompo[0][1] -= 1
+                                if memcompo[0][1] == 0:
+                                   memcompo.pop(0)
+                                   if len(memcompo) == 0:
+                                       resrename = False
+                            for atom in residues[i]:
+                                memfile2.write('%5d%-5s%5s%5d%s' % (atom[2], lipname, atom[1], atom[3], atom[4]))
+                            i += 1
+                        while i < len(residues):
+                            for atom in residues[i]:
+                                memfile2.write('%5d%-5s%5s%5d%s' % (atom[2], atom[0], atom[1], atom[3], atom[4]))
+                            i += 1
+                        memfile2.write(headers[2])
+                        memfile2.close() 
+                    elif soft == "Charmm":
+                        memname2 = "%s_extended.crd" % os.path.splitext(os.path.basename(mem.mem_file.name))[0]
+                        memfile2 = codecs.open(os.path.join(dirname, memname2), 'w', encoding='utf-8')
+                        memfile2.write("%10d  EXT\n" % len(residues))
+                        i = 0
+                        resrename = True
+                        while resrename == True and i < len(residues):
+                            lipname = residues[i][0][0]
+                            if lipname == memcompo[0][0][0:4]:
+                                lipname = memcompo[0][0]
+                                memcompo[0][1] -= 1
+                                if memcompo[0][1] == 0:
+                                   memcompo.pop(0)
+                                   if len(memcompo) == 0:
+                                       resrename = False
+                            for atom in residues[i]:
+                                coord = atom[4].split()
+                                memfile2.write('%10d%10d  %-8s  %-8s%20.10f%20.10f%20.10f  MEMB      %-8s        0.0000000000\n'
+                                    % (atom[3], atom[2], lipname, atom[1], float(coord[0]), 
+                                    float(coord[2]), float(coord[2]), str(atom[2])))
+                            i += 1
+                        while i < len(residues):
+                            for atom in residues[i]:
+                                memfile2.write('%10d%10d  %-8s  %-8s%20.10f%20.10f%20.10f  MEMB      %-8s        0.0000000000\n'
+                                    % (atom[3], atom[2], atom[0], atom[1], float(coord[0]),
+                                    float(coord[2]), float(coord[2]), str(atom[2])))
+                            i += 1
+                        memfile2.close() 
+                    
                 if soft == "Gromacs":
                     if 'Water' in othermol.keys() and os.path.isfile(os.path.join(dirname, ffdir, 'watermodels.dat')):
                         water = ''
@@ -936,8 +1029,12 @@ def GetFiles(request):
                         if mol[2] != 'lipid':
                             topfile.write('%-6s%10s\n' % (mol[0], mol[1]))
                         else:
-                            mol = topolcompo.pop(0)
-                            topfile.write('%-6s%10s\n' % (mol[0], mol[1]))
+                            nbmol = int(mol[1])
+                            i = 0
+                            while i < nbmol:
+                                mol = topolcompo.pop(0)
+                                topfile.write('%-6s%10s\n' % (mol[0], mol[1]))
+                                i += mol[1]
                 else:
                     for mol in topolcompo:
                         topfile.write('%-6s%10s\n' % (mol[0], mol[1]))

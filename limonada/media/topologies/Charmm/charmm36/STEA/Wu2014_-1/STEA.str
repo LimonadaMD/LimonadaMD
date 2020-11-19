@@ -1,0 +1,164 @@
+
+set nat ?NATC
+set app
+!We're exploiting what is arguably a bug in the parser. On the left hand side,
+!the quotes have proirity, so NAT is correctly substituted. On the right hand
+!side, the ? has priority and NATC" (sic) is not a valid substitution...
+if "@NAT" ne "?NATC" if @nat ne 0 set app append
+
+read rtf card @app
+*
+36  1
+
+RESI STEA        -1.00 ! Stearic acid (18:0), unprotonated (STEA in PDB)
+GROUP	              !
+ATOM O1   OCL   -0.76 !       O2  O1 (-)
+ATOM O2   OCL   -0.76 !        \\ /
+ATOM C1   CL     0.62 !         C1
+ATOM C2   CTL2  -0.28 !          |
+ATOM H2R  HAL2   0.09 !   H2R---C2---H2S
+ATOM H2S  HAL2   0.09 !          |		
+GROUP                 !              
+ATOM C3   CTL2  -0.18 !          |   
+ATOM H3R  HAL2   0.09 !   H3R---C3---H3S
+ATOM H3S  HAL2   0.09 !          |   
+GROUP                 !
+ATOM C4   CTL2  -0.18 !          |
+ATOM H4R  HAL2   0.09 !   H4R---C4---H4S      
+ATOM H4S  HAL2   0.09 !          |
+GROUP                 !
+ATOM C5   CTL2  -0.18 !          |              
+ATOM H5R  HAL2   0.09 !   H5R---C5---H5S
+ATOM H5S  HAL2   0.09 !          |              
+GROUP                 !
+ATOM C6   CTL2  -0.18 !          |
+ATOM H6R  HAL2   0.09 !   H6R---C6---H6S      
+ATOM H6S  HAL2   0.09 !          |
+GROUP                 !
+ATOM C7   CTL2  -0.18 !          |              
+ATOM H7R  HAL2   0.09 !   H7R---C7---H7S
+ATOM H7S  HAL2   0.09 !          |              
+GROUP                 !
+ATOM C8   CTL2  -0.18 !          |
+ATOM H8R  HAL2   0.09 !   H8R---C8---H8S     
+ATOM H8S  HAL2   0.09 !          |
+GROUP                 !
+ATOM C9   CTL2  -0.18 !          |              
+ATOM H9R  HAL2   0.09 !   H9R---C9---H9S
+ATOM H9S  HAL2   0.09 !          |              
+GROUP                 !
+ATOM C10  CTL2  -0.18 !          |
+ATOM H10R HAL2   0.09 !   H10R---C10--H10S     
+ATOM H10S HAL2   0.09 !          |
+GROUP                 !
+ATOM C11  CTL2  -0.18 !          |              
+ATOM H11R HAL2   0.09 !   H11R---C11--H11S
+ATOM H11S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C12  CTL2  -0.18 !          |
+ATOM H12R HAL2   0.09 !   H12R---C12--H12S     
+ATOM H12S HAL2   0.09 !          |
+GROUP                 !
+ATOM C13  CTL2  -0.18 !          |              
+ATOM H13R HAL2   0.09 !   H13R---C13--H13S
+ATOM H13S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C14  CTL2  -0.18 !          |             
+ATOM H14R HAL2   0.09 !   H14R---C14--H14S
+ATOM H14S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C15  CTL2  -0.18 !          |              
+ATOM H15R HAL2   0.09 !   H15R---C15--H15S
+ATOM H15S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C16  CTL2  -0.18 !          |              
+ATOM H16R HAL2   0.09 !   H16R---C16--H16S
+ATOM H16S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C17  CTL2  -0.18 !          |              
+ATOM H17R HAL2   0.09 !   H17R---C17--H17S
+ATOM H17S HAL2   0.09 !          |              
+GROUP                 !
+ATOM C18  CTL3  -0.27 !          |
+ATOM H18R HAL3   0.09 !   H18R---C18--H18S     
+ATOM H18S HAL3   0.09 !          |
+ATOM H18T HAL3   0.09 !         H18T            
+
+BOND  O1  C1
+BOND  C1  C2
+DOUBLE C1  O2
+BOND  C2  H2R       C2  H2S       C2  C3
+BOND  C3  H3R       C3  H3S       C3  C4
+BOND  C4  H4R       C4  H4S       C4  C5
+BOND  C5  H5R       C5  H5S       C5  C6
+BOND  C6  H6R       C6  H6S       C6  C7
+BOND  C7  H7R       C7  H7S       C7  C8
+BOND  C8  H8R       C8  H8S       C8  C9
+BOND  C9  H9R       C9  H9S       C9  C10
+BOND  C10 H10R      C10 H10S      C10 C11
+BOND  C11 H11R      C11 H11S      C11 C12
+BOND  C12 H12R      C12 H12S      C12 C13
+BOND  C13 H13R      C13 H13S      C13 C14
+BOND  C14 H14R      C14 H14S      C14 C15
+BOND  C15 H15R      C15 H15S      C15 C16
+BOND  C16 H16R      C16 H16S      C16 C17
+BOND  C17 H17R      C17 H17S      C17 C18
+BOND  C18 H18R      C18 H18S      C18 H18T
+
+IMPR C1 O1 C2 O2
+
+!IC table from IC generate, minimized geometry
+IC C2    O1   *C1  O2     1.5271  108.98 -179.21  126.54   1.2165
+IC O1    C1   C2   C3     1.3198  108.98   69.17  112.12   1.5454
+IC C3    C1   *C2  H2R    1.5454  112.12 -120.86  107.49   1.1097
+IC H2R   C1   *C2  H2S    1.1097  107.49 -117.26  107.96   1.1085
+IC C1    C2   C3   C4     1.5271  112.12   69.99  112.82   1.5359
+IC C4    C2   *C3  H3R    1.5359  112.82  119.77  107.99   1.1130
+IC H3R   C2   *C3  H3S    1.1130  107.99  116.99  110.26   1.1137
+IC C2    C3   C4   C5     1.5454  112.82 -176.22  114.43   1.5405
+IC C5    C3   *C4  H4R    1.5405  114.43 -122.37  109.02   1.1132
+IC H4R   C3   *C4  H4S    1.1132  109.02 -116.84  108.99   1.1144
+IC C3    C4   C5   C6     1.5359  114.43  -62.74  114.59   1.5386
+IC C6    C4   *C5  H5R    1.5386  114.59 -119.80  107.07   1.1148
+IC H5R   C4   *C5  H5S    1.1148  107.07 -116.11  110.00   1.1120
+IC C4    C5   C6   C7     1.5405  114.59   95.68  113.38   1.5385
+IC C7    C5   *C6  H6R    1.5385  113.38 -124.77  109.24   1.1094
+IC H6R   C5   *C6  H6S    1.1094  109.24 -116.24  108.54   1.1145
+IC C5    C6   C7   C8     1.5386  113.38 -174.63  114.01   1.5386
+IC C8    C6   *C7  H7R    1.5386  114.01 -120.04  107.07   1.1147
+IC H7R   C6   *C7  H7S    1.1147  107.07 -116.29  110.97   1.1103
+IC C6    C7   C8   C9     1.5385  114.01   96.11  114.10   1.5403
+IC C9    C7   *C8  H8R    1.5403  114.10 -125.01  110.20   1.1112
+IC H8R   C7   *C8  H8S    1.1112  110.20 -116.63  107.50   1.1156
+IC C7    C8   C9   C10    1.5386  114.10  -70.59  114.34   1.5367
+IC C10   C8   *C9  H9R    1.5367  114.34  123.15  108.85   1.1111
+IC H9R   C8   *C9  H9S    1.1111  108.85  116.35  108.32   1.1138
+IC C8    C9   C10  C11    1.5403  114.34 -176.59  113.89   1.5391
+IC C11   C9   *C1  H10R   7.1231   20.94   42.49   14.87   5.5936
+IC H10R  C9   *C1  H10S   5.5936   14.87   10.84   17.04   7.3386
+IC C9    C10  C11  C12    1.5367  113.89  -98.43  114.36   1.5411
+IC C12   C10  *C1  H11R   6.2296   22.93   34.20   15.26   7.6660
+IC H11R  C10  *C1  H11S   7.6660   15.26  -53.30   13.69   7.9695
+IC C10   C11  C12  C13    1.5391  114.36   67.22  115.66   1.5396
+IC C13   C11  *C1  H12R   5.7976   20.12   51.93   17.64   6.9765
+IC H12R  C11  *C1  H12S   6.9765   17.64   28.99   12.82   5.4620
+IC C11   C12  C13  C14    1.5411  115.66   59.27  115.02   1.5394
+IC C14   C12  *C1  H13R   7.1149   21.13   35.81   19.89   5.4204
+IC H13R  C12  *C1  H13S   5.4204   19.89  -60.20   19.14   5.1386
+IC C12   C13  C14  C15    1.5396  115.02   55.26  113.95   1.5372
+IC C15   C13  *C1  H14R   8.2302    7.12  -58.84   15.96   7.0385
+IC H14R  C13  *C1  H14S   7.0385   15.96  -56.69   10.60   7.5967
+IC C13   C14  C15  C16    1.5394  113.95  168.57  113.50   1.5392
+IC C16   C14  *C1  H15R   9.4760    7.13   34.44   15.27   7.9557
+IC H15R  C14  *C1  H15S   7.9557   15.27   48.78   11.46   8.6265
+IC C14   C15  C16  C17    1.5372  113.50   58.84  114.80   1.5388
+IC C17   C15  *C1  H16R   10.1942  10.61   97.74    4.71  10.2620
+IC H16R  C15  *C1  H16S   10.2620   4.71  -36.58   12.30   9.3186
+IC C15   C16  C17  C18    1.5392  114.80   58.51  114.57   1.5326
+IC C18   C16  *C1  H17R   10.7326  12.86   60.03    7.85  11.1201
+IC H17R  C16  *C1  H17S   11.1201   7.85  -11.50   13.03   9.6379
+IC C16   C17  C18  H18R   1.5388  114.57  176.51  110.53   1.1110
+IC H18R  C17  *C1  H18S   11.4218   9.61  -56.04    9.75  11.3848
+IC H18R  C17  *C1  H18T   11.4218   9.61  -27.02   12.39   9.9809
+
+END

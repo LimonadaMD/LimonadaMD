@@ -1,5 +1,6 @@
 Gromacs Runs On Most of All Computer Systems
- 72601    1DOPC     N    1   2.867   1.775   2.696
+ 72601
+    1DOPC     N    1   2.867   1.775   2.696
     1DOPC   C12    2   2.899   1.914   2.723
     1DOPC  H12A    3   2.914   1.929   2.828
     1DOPC  H12B    4   2.815   1.976   2.694

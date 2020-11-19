@@ -1,5 +1,6 @@
 Gromacs Runs One Microsecond At Cannonball Speeds
- 74351    1DYPC     N    1   4.051   4.393   3.507
+ 74351
+    1DYPC     N    1   4.051   4.393   3.507
     1DYPC   C12    2   4.118   4.300   3.616
     1DYPC   C13    3   3.947   4.485   3.577
     1DYPC   C14    4   4.156   4.485   3.451

@@ -189,7 +189,7 @@ def gmxrun(lipname, ff_file, itp_file, gro_file, software):
     return error, rand
 
 
-def charmmrun(lipname, ff_file, rtf_file, pdb_file, software):
+def charmmrun(lipname, ff_file, str_file, pdb_file, software):
     """When lipid topologies are added to the database through the "Topologies" form, the files consistency is
        first checked by running a small minimisation simulation. If error occurs, a log file named "charmm.log" is
        created and the user has access to this file. The simulation is processed in a temporary directory. If an
@@ -198,10 +198,10 @@ def charmmrun(lipname, ff_file, rtf_file, pdb_file, software):
     Parameters
     ----------
     lipname: string
-        Lipid names (4 digits) have to be the same in the database and in the topology (rtf) and structure files (pdb).
+        Lipid names (4 digits) have to be the same in the database and in the topology (str) and structure files (pdb).
     ff_file: string
         Pathway to the zip file containing the forcefield directory
-    rtf_file: file
+    str_file: file
         File object uploaded by the user for the topology file
     pdb_file: file
         File object uploaded by the user for the structure file
@@ -235,18 +235,19 @@ def charmmrun(lipname, ff_file, rtf_file, pdb_file, software):
         ffzip.extractall(dirname)
 
         fs = FileSystemStorage(location=dirname)
-        fs.save('%s.rtf' % lipname, rtf_file)
+        fs.save('%s.str' % lipname, str_file)
         strext = os.path.splitext(pdb_file.name)[1]
         fs.save('%s%s' % (lipname, strext), pdb_file)
 
         with cd(dirname):
             setupfile = open('setup.inp', 'w')
-            setupfile.write('read rtf card name "%s.rtf"\n' % lipname)
-            for name in glob.glob('*.prm'):
-                setupfile.write('read param card name %s\n' % name)
+            setupfile.write('stream "toppar.str"\n')
+            setupfile.write('stream "%s.str"\n' % lipname)
             setupfile.write('open unit 1 card read name "%s.pdb"\n' % lipname)
             setupfile.write('read sequ pdb unit 1\n')
+            setupfile.write('bomlev -1\n')
             setupfile.write('generate "%s"\n' % lipname)
+            setupfile.write('bomlev 0\n')
             setupfile.write('rewind unit 1\n')
             setupfile.write('read coor pdb unit 1\n')
             setupfile.write('close unit 1\n')
@@ -256,9 +257,8 @@ def charmmrun(lipname, ff_file, rtf_file, pdb_file, software):
             setupfile.close()
 
             minfile = open('min.inp', 'w')
-            minfile.write('read rtf card name "%s.rtf"\n' % lipname)
-            for name in glob.glob('*.prm'):
-                minfile.write('read param card name %s\n' % name)
+            minfile.write('stream "toppar.str"\n')
+            minfile.write('stream "%s.str"\n' % lipname)
             minfile.write('read psf card name "%s.psf"\n' % lipname)
             minfile.write('read coor card name "%s.crd"\n' % lipname)
             minfile.write('shake bonh param sele all end\n')
@@ -452,7 +452,7 @@ def atnames(gro_file):
     return names
 
 
-def findresname(rtf_file, soft):
+def findresname(str_file, soft):
 
     mediadir = settings.MEDIA_ROOT
     rand = str(random.randrange(1000))
@@ -463,8 +463,8 @@ def findresname(rtf_file, soft):
     os.makedirs(dirname)
 
     fs = FileSystemStorage(location=dirname)
-    strext = os.path.splitext(rtf_file.name)[1]
-    fs.save('lipid%s' % strext, rtf_file)
+    strext = os.path.splitext(str_file.name)[1]
+    fs.save('lipid%s' % strext, str_file)
 
     resname = ""
     infile = open(os.path.join(dirname, 'lipid%s' % strext)).readlines()

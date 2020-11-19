@@ -172,10 +172,10 @@ class TopologyForm(forms.ModelForm):
                         self.add_error('itp_file', mark_safe(
                             'Topology file is not valid. See <a class="text-success" href="%s">gromacs.log</a>'
                             % logpath))
-                elif soft.name == "Charmm" and extension == ".rtf":
+                elif soft.name == "Charmm" and extension == ".str":
                     if findresname(itp_file, soft.name) != lipid.name:
                         self.add_error('itp_file', mark_safe(
-                            'The lipid name should be the same as the one specified in the .rtf file.'))
+                            'The lipid name should be the same as the one specified in the .str file.'))
                     if os.path.splitext(gro_file.name)[1] == ".pdb":
                         error, rand = charmmrun(lipid.name, ff.ff_file.url, itp_file, gro_file, soft.abbreviation)
                         if error:

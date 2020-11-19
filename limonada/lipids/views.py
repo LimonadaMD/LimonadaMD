@@ -164,27 +164,25 @@ def GetSoftVersionList(request):
 def GetFfList(request):
     software = simplejson.loads(request.POST.get('software', None))
     softlist = simplejson.loads(request.POST.get('version', None))
-    op = request.POST.get('operator', None)
-    softabb = ""
-    if type(softlist) is int:
-        softlist = [softlist]
+    if not softlist:
+        softlist = []
     elif type(softlist) is str:
-        if op == 'AND':
-            softabb = Software.objects.filter(id=softlist).values_list('abbreviation', flat=True)[0]
-            if softabb[:2] == "NA":
-                softlist = Software.objects.all().values_list('id', flat=True)
-    if software != "" and softlist == "":
-        softlist = Software.objects.filter(abbreviation__istartswith=software).values_list('id', flat=True)
+        softlist = softlist.split(",")
+    op = request.POST.get('operator', None)
     ff_list = Forcefield.objects.all()
-    if softabb[:2] == "NA" and op == 'AND':
-        querylist = []
-        for i in softlist:
-            querylist.append(Q(software=Software.objects.filter(id=i)[0]))
-        if querylist:
-            ff_list = ff_list.filter(reduce(operator.or_, querylist)).distinct()
-    elif op == 'AND':
-        for i in softlist:
-            ff_list = ff_list.filter(software=Software.objects.filter(id=i)[0])
+    if op == 'AND':
+        software = Software.objects.filter(id=softlist[0]).values_list('abbreviation', flat=True)[0][:2]
+    else:
+        if software == "NA":
+            softlist = Software.objects.all().values_list('id', flat=True)
+        elif software != "" and not softlist:
+            softlist = Software.objects.filter(abbreviation__istartswith=software).values_list('id', flat=True)
+    if op == 'AND':
+        if software == "NA":
+            ff_list = Forcefield.objects.all()
+        else:
+            for i in softlist:
+                ff_list = ff_list.filter(software=Software.objects.filter(id=i)[0])
     else:
         querylist = []
         for i in softlist:
@@ -334,31 +332,32 @@ def LipCreate(request):
                 os.remove('%s_rot.mol' % filename)
             if os.path.isfile('%s.mol' % filename):
                 os.remove('%s.mol' % filename)
-            if lm_data['pubchem_cid'] != '':
-                try:
-                    pubchem_response = requests.get(
-                        'https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/%s/JSON/'
-                        % lm_data['pubchem_cid'])
-                    pubchem_data_raw = pubchem_response.json()['Record']
-                    if pubchem_data_raw != []:
-                        for s1 in pubchem_data_raw['Section']:
-                            if s1['TOCHeading'] == 'Names and Identifiers':
-                                for s2 in s1['Section']:
-                                    if s2['TOCHeading'] == 'Computed Descriptors':
-                                        for s3 in s2['Section']:
-                                            if s3['TOCHeading'] == 'IUPAC Name':
-                                                lm_data['iupac_name'] = s3['Information'][0]['StringValue']
-                                    if s2['TOCHeading'] == 'Synonyms':
-                                        for s3 in s2['Section']:
-                                            if s3['TOCHeading'] == 'Depositor-Supplied Synonyms':
-                                                key1 = 'Information'
-                                                key2 = 'StringValueList'
-                                                nb = len(s3[key1][0][key2])
-                                                for i in range(nb):
-                                                    if len(s3[key1][0][key2][nb-1-i]) == 4:
-                                                        lm_data['name'] = s3[key1][0][key2][nb-1-i]
-                except KeyError:
-                    pass
+            if 'pubchem_cid' in lm_data.keys():
+                if lm_data['pubchem_cid'] != '':
+                    try:
+                        pubchem_response = requests.get(
+                            'https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/%s/JSON/'
+                            % lm_data['pubchem_cid'])
+                        pubchem_data_raw = pubchem_response.json()['Record']
+                        if pubchem_data_raw != []:
+                            for s1 in pubchem_data_raw['Section']:
+                                if s1['TOCHeading'] == 'Names and Identifiers':
+                                    for s2 in s1['Section']:
+                                        if s2['TOCHeading'] == 'Computed Descriptors':
+                                            for s3 in s2['Section']:
+                                                if s3['TOCHeading'] == 'IUPAC Name':
+                                                    lm_data['iupac_name'] = s3['Information'][0]['StringValue']
+                                        if s2['TOCHeading'] == 'Synonyms':
+                                            for s3 in s2['Section']:
+                                                if s3['TOCHeading'] == 'Depositor-Supplied Synonyms':
+                                                    key1 = 'Information'
+                                                    key2 = 'StringValueList'
+                                                    nb = len(s3[key1][0][key2])
+                                                    for i in range(nb):
+                                                        if len(s3[key1][0][key2][nb-1-i]) == 4:
+                                                            lm_data['name'] = s3[key1][0][key2][nb-1-i]
+                    except KeyError:
+                        pass
             form_add = LipidForm(lm_data, file_data)
             return render(request, 'lipids/lip_form.html', {
                 'form_search': form_search, 'form_add': form_add, 'lipids': True, 'search': True, 'imgpath': imgpath})
@@ -406,9 +405,7 @@ def LipUpdate(request, slug=None):
             return redirect('homepage')
         if request.method == 'POST':
             file_data = {}
-            imgpath = ''
-            if lipid.img:
-                file_data, imgpath = FileData(request, 'img', 'imgpath', file_data)
+            file_data, imgpath = FileData(request, 'img', 'imgpath', file_data)
             form_add = LipidForm(request.POST, file_data, instance=lipid)
             if form_add.is_valid():
                 lipid = form_add.save(commit=False)

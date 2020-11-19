@@ -1,51 +1,51 @@
 [ membrane_1_leaflet_1 ]
-      CHOL   28.3536
-      PIPC    8.7457
-      POPE    6.1625
-      POPC    5.9446
-      PAPE    5.6334
-      PAPS    4.9798
-      PIPE    4.1083
-      DAPE    3.5792
-      DPSM     3.019
-      POPS    2.1475
-      DOPE    2.0542
-      PUPE    2.0542
-      PUPS    1.9297
-      PNSM    1.8674
-      POPI    1.4628
-      PAPC    1.4006
-      PAPI    1.3072
-      XNSM    1.3072
-      PIPI    1.3072
-      DXSM    1.2138
-      DUPE    1.0271
-      PQPE    1.0271
-      BNSM    0.9337
-      PIPS    0.8403
-      DBSM    0.6536
-      PUPI    0.5291
-      DOPC    0.5291
-      POPA     0.498
-      POP3     0.498
-      POP2     0.498
-      POP1     0.498
-      PAPA    0.4046
-      PIPA    0.4046
-      PQPS    0.4046
-      PEPC    0.3424
-      PUPC    0.3424
-      PADG    0.2179
-      DUPS    0.2179
-      DAPS    0.2179
+      CHOL   28.3759
+      PIPC     8.743
+      POPE    6.1605
+      POPC    5.9428
+      PAPE    5.6316
+      PAPS    4.9782
+      PIPE     4.107
+      DAPE    3.5781
+      DPSM     3.018
+      POPS    2.1469
+      DOPE    2.0535
+      PUPE    2.0535
+      PUPS    1.9291
+      PNSM    1.8668
+      POPI    1.4624
+      PAPC    1.4001
+      PAPI    1.3068
+      XNSM    1.3068
+      PIPI    1.3068
+      DXSM    1.2134
+      DUPE    1.0268
+      PQPE    1.0268
+      BNSM    0.9334
+      PIPS    0.8401
+      DBSM    0.6534
+      PUPI    0.5289
+      DOPC    0.5289
+      POPA    0.4978
+      POI7    0.4978
+      POI6    0.4978
+      POI1    0.4978
+      PAPA    0.4045
+      PIPA    0.4045
+      PQPS    0.4045
+      PEPC    0.3423
+      PUPC    0.3423
+      PADG    0.2178
+      DUPS    0.2178
+      DAPS    0.2178
       POSM    0.1867
       PIDG    0.1867
       PGSM    0.1867
       PUPA    0.1867
       DAPC    0.1556
       DPCE    0.1556
-      PODG    0.0934
-      XNCE    0.0934
+      PODG    0.0933
+      XNCE    0.0933
       PUDG    0.0311
       PNCE    0.0311
       DXCE    0.0311
@@ -95,5 +95,3 @@
       XNCE    0.1449
       PUDG     0.087
       U0PC     0.058
-[ not_in_leaflet ]
-      CHOL       100

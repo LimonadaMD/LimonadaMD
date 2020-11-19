@@ -1,4 +1,4 @@
-django==2.2.12
+django==2.2.13
 netifaces
 django-autocomplete-light
 django-debug-toolbar
@@ -11,3 +11,4 @@ fatslim
 future
 Unidecode
 six
+python-dotenv
