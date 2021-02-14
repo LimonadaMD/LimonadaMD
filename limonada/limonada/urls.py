@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -56,6 +56,8 @@ urlpatterns = [
     url(r'^', include('lipids.urls')),
     url(r'^', include('forcefields.urls')),
     url(r'^', include('membranes.urls')),
+    url(r'^', include('properties.urls')),
+    url(r'^', include('documentation.urls')),
     url(r'^', include('users.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

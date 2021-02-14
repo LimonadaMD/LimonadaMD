@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -32,6 +32,7 @@ import zipfile
 from contextlib import contextmanager
 from string import ascii_uppercase as abc
 from unidecode import unidecode
+import zipfile
 
 # third-party
 import simplejson
@@ -56,13 +57,15 @@ from django.views.decorators.cache import never_cache
 
 # Django apps
 from forcefields.models import Forcefield, Software
-from limonada.functions import FileData
+from limonada.functions import FileData, review_notification
 from lipids.models import Lipid, Topology
+from properties.models import LI_Property
 
 # local Django
 from .forms import MemCommentForm, MembraneForm, MembraneTopolForm, MemFormSet, SelectMembraneForm
-from .functions import compo_isvalid, membrane_residues, membraneanalysis
-from .models import MemComment, Composition, Membrane, MembraneProt, MembraneTag, MembraneTopol, TopolComposition
+from .functions import compo_isvalid, membrane_residues, membraneanalysis, nb_lip_per_leaflet
+from .models import MemComment, Composition, Membrane, MembraneTopol, TopolComposition
+from .models import MembraneProt, MembraneDoi, MembraneTag
 
 
 def zipdir(path, ziph):
@@ -228,10 +231,10 @@ def formsetdata(mem_file, ff, mempath):
     compo, membrane, ndxdiff = membraneanalysis(mem_file.name, ff, rand)
     if membrane.prot:
         minfos.append('This membrane contains proteins.')
-    if len(membrane.unkres.keys()) > 0:
-        minfos.append('The following residues are not yet part of Limonada: %s.' % ', '.join(membrane.unkres.keys()))
+    if membrane.unkres:
+        minfos.append('If the following residues are lipids, their topologies are not yet part of Limonada: %s.' % ', '.join(membrane.unkres))
     if membrane.title == 'error':
-        merrors.append('The membrane file is invalid.')
+        merrors.append('The membrane file is not valid or one of the lipid is not available with the selected forcefield.')
     elif len(compo.keys()) == 1:
         merrors.append('fatslim returned en error.')
 
@@ -307,7 +310,7 @@ def MemCreate(request, formset_class, template):
         if os.path.isfile(os.path.join(settings.MEDIA_ROOT, mempath)):
             extension = os.path.splitext(mempath)[1]
             if softabb[:2] != "AM":
-                merrors = compo_isvalid(mempath, request.POST)
+                merrors = compo_isvalid(mempath, forcefield[0], request.POST)
         topform = MembraneTopolForm(request.POST, file_data)
         memform = MembraneForm(request.POST)
         formset = formset_class(request.POST)
@@ -344,6 +347,9 @@ def MemCreate(request, formset_class, template):
             prots = topform.cleaned_data['prot']
             for prot in prots:
                 mt.prot.add(prot)
+            dois = topform.cleaned_data['doi']
+            for doi in dois:
+                mt.doi.add(doi)
             mt.nb_lipids = nb_lipids
 
             # Build a unique name based on the lipid composition
@@ -457,11 +463,14 @@ def MemCreate(request, formset_class, template):
             compofile.close()
             mt.compo_file = 'membranes/LIM{0}_{1}.txt'.format(mt.id, memname)
 
+            mt.search_name = "LIM%d_%s" % (mt.id, memname)
+
             mt.membrane = m
             mt.save()
 
             if rand:
                 shutil.rmtree(os.path.join(settings.MEDIA_ROOT, 'tmp', rand), ignore_errors=True)
+            review_notification("creation", "membranes", mt.pk)
 
 #           Create the composition objects
             try:
@@ -527,10 +536,12 @@ def MemUpdate(request, pk=None):
             mempath = ''
             file_data, mempath = FileData(request, 'mem_file', 'mempath', file_data)
             softabb = mt.forcefield.software.all()[0].abbreviation
+            ffid = simplejson.loads(request.POST.get('forcefield', None))
+            forcefield = Forcefield.objects.filter(id=ffid)
             if os.path.isfile(os.path.join(settings.MEDIA_ROOT, mempath)):
                 extension = os.path.splitext(mempath)[1]
                 if softabb[:2] != "AM":
-                    merrors = compo_isvalid(mempath, request.POST)
+                    merrors = compo_isvalid(mempath, forcefield[0], request.POST)
             otherpath = ''
             file_data, otherpath = FileData(request, 'other_file', 'otherpath', file_data)
             topform = MembraneTopolForm(request.POST, file_data, instance=mt)
@@ -570,6 +581,9 @@ def MemUpdate(request, pk=None):
                 prots = topform.cleaned_data['prot']
                 for prot in prots:
                     mt.prot.add(prot)
+                dois = topform.cleaned_data['doi']
+                for doi in dois:
+                    mt.doi.add(doi)
                 mt.nb_lipids = nb_lipids
 
 #               Build a unique name based on the lipid composition
@@ -684,6 +698,8 @@ def MemUpdate(request, pk=None):
                 compofile.close()
                 mt.compo_file = 'membranes/LIM{0}_{1}.txt'.format(mt.id, memname)
 
+                mt.search_name = "LIM%d_%s" % (mt.id, memname)
+
                 mt.membrane = m
                 mt.save()
 
@@ -691,10 +707,11 @@ def MemUpdate(request, pk=None):
                     shutil.rmtree(os.path.join(settings.MEDIA_ROOT, 'tmp', rand), ignore_errors=True)
                 if mempath_init != mt.mem_file and os.path.isfile('media/' + mempath_init):
                     os.remove('media/' + mempath_init)
-                if otherpath_init != mt.other_file:
+                if otherpath_init != mt.other_file and otherpath_init:
                     os.remove('media/' + otherpath_init)
                 if compopath_init != mt.compo_file:
                     os.remove('media/' + compopath_init)
+                review_notification("update", "membranes", mt.pk)
 
                 # Create the composition objects
                 try:
@@ -719,7 +736,7 @@ def MemUpdate(request, pk=None):
             if 'forcefield' in topform.data:
                 ff = topform.data['forcefield']
                 merrors, minfos, data, file_data, rand, fname, extension, mempath, nbmemb = formsetdata(mem_file, ff,
-                                                                                                        mempath)
+                                                                                                         mempath)
                 if file_data != '':
                     topform = MembraneTopolForm(request.POST, file_data)
             formset = MemFormSet(data)
@@ -772,6 +789,20 @@ def MemDetail(request, pk=None):
         mem_file = ''
         if membrane.mem_file:
             mem_file = membrane.mem_file.url
+        other_file = ''
+        other_filelist = []
+        if membrane.other_file:
+            other_file = membrane.other_file.url
+            with zipfile.ZipFile(other_file[1:], 'r') as zipObj:
+                # Get list of files names in zip
+                other_filelist = zipObj.namelist()
+        nblip = nb_lip_per_leaflet(membrane)
+        prop = ''
+        nb = LI_Property.objects.filter(membranetopol=pk).count()
+        if nb >= 1:
+            prop = list(LI_Property.objects.filter(membranetopol=pk).values_list('id', flat=True))
+            prop = [str(i) for i in prop]
+            prop = ','.join(prop)
         if request.method == 'POST':
             form = MemCommentForm(request.POST)
             if form.is_valid():
@@ -792,8 +823,9 @@ def MemDetail(request, pk=None):
             form = MemCommentForm()
         comments = MemComment.objects.filter(membrane=membrane)
         return render(request, 'membranes/mem_detail.html',
-                      {'membranetopol': membrane, 'comments': comments, 'form': form,
-                       'mem_file': mem_file, 'rep': representation, 'membranes': True})
+                      {'membranetopol': membrane, 'comments': comments, 'form': form, 'mem_file': mem_file,
+                       'other_file': other_file, 'other_filelist': other_filelist, 'rep': representation,
+                       'nblip': nblip, 'prop': prop, 'membranes': True})
 
 
 @login_required
@@ -812,6 +844,15 @@ def MemDelete(request, pk=None):
                 obj.delete()
             return HttpResponseRedirect(reverse('memlist'))
         return render(request, 'membranes/mem_delete.html', {'membranes': True, 'mt': mt})
+
+
+class MembraneTopolAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        qs = MembraneTopol.objects.all()
+        if self.q:
+            qs = qs.filter(search_name__icontains=self.q)
+        return qs
 
 
 class MembraneAutocomplete(autocomplete.Select2QuerySetView):
@@ -894,7 +935,7 @@ def GetFiles(request):
                 residues = []
                 if mem.mem_file:
                     shutil.copy(mem.mem_file.url[1:], dirname)
-                    memresidues, lipresidues, othermol, residues, headers = membrane_residues(mem.mem_file.name)
+                    memresidues, lipresidues, othermol, residues, headers = membrane_residues(mem.mem_file.name, mem.forcefield)
                     extension = os.path.splitext(mem.mem_file.name)[1]
                 else:
                     grodir = os.path.join(dirname, 'lipids')
@@ -970,7 +1011,10 @@ def GetFiles(request):
                                    if len(memcompo) == 0:
                                        resrename = False
                             for atom in residues[i]:
-                                memfile2.write('%5d%-5s%5s%5d%s' % (atom[2], lipname, atom[1], atom[3], atom[4]))
+                                if lipname[0:4] == atom[0]:
+                                    memfile2.write('%5d%-5s%5s%5d%s' % (atom[2], lipname, atom[1], atom[3], atom[4]))
+                                else:
+                                    memfile2.write('%5d%-5s%5s%5d%s' % (atom[2], atom[0], atom[1], atom[3], atom[4]))
                             i += 1
                         while i < len(residues):
                             for atom in residues[i]:
@@ -1060,6 +1104,13 @@ class MembraneProtAutocomplete(autocomplete.Select2QuerySetView):
         qs = MembraneProt.objects.all().order_by('prot')
         if self.q:
             qs = qs.filter(prot__icontains=self.q)
+        return qs
+
+
+class MembraneDoiAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_queryset(self):
+        qs = MembraneDoi.objects.none()
         return qs
 
 

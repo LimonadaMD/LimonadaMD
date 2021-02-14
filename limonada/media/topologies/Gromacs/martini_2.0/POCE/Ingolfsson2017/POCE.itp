@@ -1,0 +1,65 @@
+;;;;;; Martini lipid topology for C(d18:1/18:1) CER (POCE), generated using:
+; The Martini lipid itp generator version 0.6  Args are: -o martini_v2.0_POCE_01.itp -alname POCE -alhead '' -allink 'A A' -altail 'TCC CDCC'
+; WARNING: Lipids topology was generated following the Martini 2.0 guidelines but this specific lipid type might
+;          not have been tested and should therefore be used with care. 
+;
+; Description:
+;   A general model ceramide (CER) lipid corresponding to atomistic e.g. C(d18:1/18:1) tails.
+; Parameterization:
+;   This topology follows the standard Martini 2.0 lipid definitions and building block rules.
+; Reference(s): 
+;   S.J. Marrink, A.H. de Vries, A.E. Mark. Coarse grained model for semi-quantitative lipid simulations. JPC-B, 108:750-760, 
+;   2004. doi:10.1021/jp036508g 
+;   S.J. Marrink, H.J. Risselada, S. Yefimov, D.P. Tieleman, A.H. de Vries. The MARTINI force field: coarse grained model for 
+;   biomolecular simulations. JPC-B, 111:7812-7824, 2007. doi:10.1021/jp071097f 
+;   T.A. Wassenaar, H.I. Ingolfsson, R.A. Bockmann, D.P. Tieleman, S.J. Marrink. Computational lipidomics with insane: a versatile 
+;   tool for generating custom membranes for molecular simulations. JCTC, 150410125128004, 2015. doi:10.1021/acs.jctc.5b00209
+; Created: 2016.09.27
+;
+;@INSANE alhead=, allink=A A, altail=TCC CDCC, alname=POCE, charge=0
+;@RESNTEST POC==POCE if: atoms[0]==AM1
+;@BEADS AM1 AM2 T1A C2A C3A C1B D2B C3B C4B 
+;@BONDS AM1-AM2 AM1-T1A T1A-C2A C2A-C3A AM2-C1B C1B-D2B D2B-C3B C3B-C4B 
+;
+
+[moleculetype]
+; molname      nrexcl
+  POCE          1
+
+[atoms]
+; id 	type 	resnr 	residu 	atom 	cgnr 	charge
+   1 	P1 	 1 	POCE 	AM1 	 1 	0 	
+   2 	P5 	 1 	POCE 	AM2 	 2 	0 	
+   3 	C3 	 1 	POCE 	T1A 	 3 	0 	
+   4 	C1 	 1 	POCE 	C2A 	 4 	0 	
+   5 	C1 	 1 	POCE 	C3A 	 5 	0 	
+   6 	C1 	 1 	POCE 	C1B 	 6 	0 	
+   7 	C3 	 1 	POCE 	D2B 	 7 	0 	
+   8 	C1 	 1 	POCE 	C3B 	 8 	0 	
+   9 	C1 	 1 	POCE 	C4B 	 9 	0 	
+
+[bonds]
+;  i  j 	funct 	length 	force.c.
+   1  2 	1 	0.37 	1250 	
+   1  3 	1 	0.47 	1250 	
+   3  4 	1 	0.47 	1250 	
+   4  5 	1 	0.47 	1250 	
+   2  6 	1 	0.47 	1250 	
+   6  7 	1 	0.47 	1250 	
+   7  8 	1 	0.47 	1250 	
+   8  9 	1 	0.47 	1250 	
+
+[angles]
+;  i  j  k 	funct 	angle 	force.c.
+   1  3  4 	2 	180.0 	45.0 	
+   3  4  5 	2 	180.0 	25.0 	
+   2  6  7 	2 	180.0 	25.0 	
+   6  7  8 	2 	120.0 	45.0 	
+   7  8  9 	2 	180.0 	25.0 	
+
+
+; Include Position restraint file
+#ifdef POSRES
+#include "POCE_posre.itp"
+#endif
+

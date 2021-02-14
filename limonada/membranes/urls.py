@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -24,8 +24,9 @@ from django.conf.urls import url
 
 # local Django
 from .forms import MemFormSet
-from .views import (GetFiles, GetLipTops, MembraneAutocomplete, MembraneProtAutocomplete, MembraneTagAutocomplete,
-                    MemCreate, MemDelete, MemDetail, MemList, MemUpdate)
+from .views import (GetFiles, GetLipTops, MembraneTopolAutocomplete, MembraneAutocomplete,
+                    MembraneProtAutocomplete, MembraneDoiAutocomplete,
+                    MembraneTagAutocomplete, MemCreate, MemDelete, MemDetail, MemList, MemUpdate)
 
 urlpatterns = [
     url(r'^membranes/$', MemList, name='memlist'),
@@ -34,11 +35,15 @@ urlpatterns = [
     url(r'^membranes/(?P<pk>\d+)/$', MemDetail, name='memdetail'),
     url(r'^membranes/(?P<pk>\d+)/update/$', MemUpdate, name='memupdate'),
     url(r'^membranes/(?P<pk>\d+)/delete/$', MemDelete, name='memdelete'),
+    url(r'^membranetopol-autocomplete/$', MembraneTopolAutocomplete.as_view(), name='membranetopol-autocomplete'),
     url(r'^membrane-autocomplete/$', MembraneAutocomplete.as_view(), name='membrane-autocomplete'),
     url(r'^tag-autocomplete/$', MembraneTagAutocomplete.as_view(), name='tag-autocomplete'),
     url(r'^prot-autocomplete/$', MembraneProtAutocomplete.as_view(), name='prot-autocomplete'),
+    url(r'^doi-autocomplete/$', MembraneDoiAutocomplete.as_view(), name='doi-autocomplete'),
     url(r'^membraneprot-autocomplete/$', MembraneProtAutocomplete.as_view(create_field='prot'),
         name='membraneprotautocomplete'),
+    url(r'^membranedoi-autocomplete/$', MembraneDoiAutocomplete.as_view(create_field='doi'),
+        name='membranedoiautocomplete'),
     url(r'^membranetag-autocomplete/$', MembraneTagAutocomplete.as_view(create_field='tag'),
         name='membranetagautocomplete'),
     url(r'^getliptops/$', GetLipTops, name='getliptops'),

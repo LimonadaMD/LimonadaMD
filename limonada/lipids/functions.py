@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -27,12 +27,28 @@ import re
 import shlex
 import shutil
 import subprocess
+import tempfile
 import zipfile
 from contextlib import contextmanager
 
 # Django
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+
+
+def Atom(a, extension, i):
+    if extension == ".gro":
+        try:
+            # ==>   res name,        atom name,        res id,     atom id,       coord   atom index
+            return (a[5:10].strip(), a[10:15].strip(), int(a[:5]), int(a[15:20]), a[20:], i)
+        except ValueError:
+            return 'error'
+    elif extension == ".pdb":
+        try:
+            # ==>   res name,         atom name,        res id,        atom id,      coord
+            return (a[17:21].strip(), a[11:16].strip(), int(a[22:26]), int(a[6:11]), a[30:], i)
+        except ValueError:
+            return 'error'
 
 
 @contextmanager
@@ -476,3 +492,62 @@ def findresname(str_file, soft):
     shutil.rmtree(dirname, ignore_errors=True)
 
     return resname
+
+
+def get_residues(structure_file):
+
+    mediadir = settings.MEDIA_ROOT
+    rand = str(random.randrange(1000))
+    while os.path.isdir(os.path.join(mediadir, 'tmp', rand)):
+        rand = str(random.randrange(1000))
+
+    dirname = os.path.join(mediadir, 'tmp', rand)
+    os.makedirs(dirname)
+
+    fs = FileSystemStorage(location=dirname)
+    ext = os.path.splitext(structure_file.name)[1]
+    fs.save('lipid%s' % ext, structure_file)
+
+    error = False
+    residues = []
+    lines = open(os.path.join(dirname, 'lipid%s' % ext)).readlines()
+    if ext == ".gro":
+        if len(lines) > 3:
+            title = lines[0]
+            box = lines[-1]
+            resi = -1
+            for line in lines[2:-1]:
+                atom = Atom(line, ext, 0)
+                if atom == 'error':
+                    error = True
+                if not residues:
+                    residues.append(atom[0])
+                    resi = atom[2]
+                if atom[2] != resi:
+                    resi = atom[2]
+                    residues.append(atom[0])
+        else:
+            error = True
+    elif extension == ".pdb":
+        for line in lines:
+            if line[:6] == "TITLE ":
+                title = line
+            elif line[:6] == "CRYST1":
+                box = line
+            elif line[:6] == "ATOM  ":
+                atom = Atom(line, ext, 0)
+                if atom == 'error':
+                    error = True
+                if not residues:
+                    residues.append(atom[0])
+                    resi = atom[2]
+                if atom[2] != resi:
+                    resi = atom[2]
+                    residues.append(atom[0])
+
+    if error == True:
+        residues = []
+
+    shutil.rmtree(dirname, ignore_errors=True)
+
+    return residues

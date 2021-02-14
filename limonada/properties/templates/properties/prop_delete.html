@@ -1,0 +1,18 @@
+{% extends "homepage/layout.html" %}
+
+{% block title %}Properties{% endblock %}
+
+{% block content %}
+
+  <h1>Properties</h1>
+  <br>
+
+  <form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to delete "{{ object }}"?</p>
+    <input type="submit" class="btn btn-primary btn-sm" value="Yes">
+    <a href="{% url 'memlist' %}" class="btn btn-primary btn-sm" role="button">No</a>
+  </form>
+  <br>
+
+{% endblock %}

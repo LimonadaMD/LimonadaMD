@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -33,6 +33,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.formats import localize
+from django.utils.text import slugify
 
 # Django apps
 from limonada.functions import delete_file
@@ -81,6 +82,8 @@ def directory_path(instance, filename):
 class MembraneTopol(models.Model):
 
     name = models.CharField(max_length=100)
+    search_name = models.CharField(max_length=100,
+                                   blank=True)
     membrane = models.ForeignKey('Membrane',
                                  null=True,
                                  on_delete=models.CASCADE)
@@ -115,6 +118,8 @@ class MembraneTopol(models.Model):
     date = models.DateField(auto_now=True)
     curator = models.ForeignKey(User,
                                 on_delete=models.CASCADE)
+    doi = models.ManyToManyField('membranes.MembraneDoi',  # This file is used to add doi link for Zenodo
+                                 blank=True)
     # salt []
 
     def __str__(self):
@@ -163,6 +168,15 @@ class MembraneProt(models.Model):
 
     def __str__(self):
         return self.prot
+
+
+@python_2_unicode_compatible
+class MembraneDoi(models.Model):
+
+    doi = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.doi
 
 
 @python_2_unicode_compatible

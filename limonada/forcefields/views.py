@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -41,14 +41,14 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 
+# Django apps
+from limonada.functions import FileData, review_notification
+from lipids.models import Topology
+from membranes.models import MembraneTopol
+
 # local Django
 from .forms import ForcefieldForm, SelectForcefieldForm, FfCommentForm
 from .models import Forcefield, Software, FfComment
-
-# Django apps
-from limonada.functions import FileData
-from lipids.models import Topology
-from membranes.models import MembraneTopol
 
 
 @never_cache
@@ -189,6 +189,7 @@ def FfCreate(request):
             for ref in refs:
                 ff.reference.add(ref)
             ff.save()
+            review_notification("creation", "forcefields", ff.pk)
             return HttpResponseRedirect(reverse('fflist'))
     else:
         form = ForcefieldForm()
@@ -209,8 +210,7 @@ def FfUpdate(request, pk=None):
             file_data = {}
             file_data, ffpath = FileData(request, 'ff_file', 'ffpath', file_data)
             mdppath = ''
-            if ff.mdp_file:
-                file_data, mdppath = FileData(request, 'mdp_file', 'mdppath', file_data)
+            file_data, mdppath = FileData(request, 'mdp_file', 'mdppath', file_data)
             form = ForcefieldForm(request.POST, file_data, instance=ff)
             if form.is_valid():
                 ff = form.save(commit=False)
@@ -230,6 +230,7 @@ def FfUpdate(request, pk=None):
                 if software_init != ff.software.all()[0].name:
                     if os.path.isdir(dir_init):
                         shutil.rmtree(dir_init, ignore_errors=True)
+                review_notification("update", "forcefields", ff.pk)
                 return HttpResponseRedirect(reverse('fflist'))
         else:
             ffpath = 'tmp/%s' % os.path.basename(ff.ff_file.name)

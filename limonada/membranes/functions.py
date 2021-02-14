@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -21,6 +21,7 @@
 
 # standard library
 import os
+from operator import itemgetter
 import shlex
 import subprocess
 
@@ -32,17 +33,17 @@ from lipids.functions import residuetypes
 from lipids.models import Lipid, Topology
 
 
-def Atom(a, extension):
+def Atom(a, extension, i):
     if extension == ".gro":
         try:
-            # ==>   res name,        atom name,        res id,     atom id,       coord
-            return (a[5:10].strip(), a[10:15].strip(), int(a[:5]), int(a[15:20]), a[20:])
+            # ==>   res name,        atom name,        res id,     atom id,       coord   atom index
+            return (a[5:10].strip(), a[10:15].strip(), int(a[:5]), int(a[15:20]), a[20:], i)
         except ValueError:
             return 'error'
     elif extension == ".pdb":
         try:
             # ==>   res name,         atom name,        res id,        atom id,      coord
-            return (a[17:21].strip(), a[11:16].strip(), int(a[22:26]), int(a[6:11]), a[30:])
+            return (a[17:21].strip(), a[11:16].strip(), int(a[22:26]), int(a[6:11]), a[30:], i)
         except ValueError:
             return 'error'
 
@@ -53,14 +54,15 @@ class Membrane:
         self.natoms = ''
         self.box = ''
         self.lipids = {}
-        self.prot = []
-        self.unkres = {}
-        self.solvent = []
+        self.other = []
+        self.prot = False
+        self.unkres = []
         self.nblf = 0
 
-        lipids = Lipid.objects.all().values_list('name', flat=True)
+        lipidresidues, lipfirstres = lipid_residues(ff)
         restypes = residuetypes()
 
+        i = 0
         atoms = []
         lines = open(filename).readlines()
         if extension == ".gro":
@@ -68,7 +70,8 @@ class Membrane:
                 self.title = lines[0]
                 self.box = lines[-1]
                 for line in lines[2:-1]:
-                    atoms.append(Atom(line, extension))
+                    i += 1
+                    atoms.append(Atom(line, extension, i))
             else:
                 atoms.append('error')
         elif extension == ".pdb":
@@ -78,63 +81,83 @@ class Membrane:
                 elif line[:6] == "CRYST1":
                     self.box = line
                 elif line[:6] == "ATOM  ":
-                    atoms.append(Atom(line, extension))
+                    i += 1
+                    atoms.append(Atom(line, extension, i))
         else:
             atoms.append('error')
         self.natoms = " %d\n" % len(atoms)
+
         if 'error' not in atoms:
-            resid = ''
-            resname = ''
-            restype = ''
+
+            residues = []
             resatoms = []
+            resid = ''
             for atom in atoms:
                 if atom[2] != resid:
-                    if restype == 'lipid':
-                        if resname not in self.lipids.keys():
-                            self.lipids[resname] = []
-                        self.lipids[resname].append(LipidRes(resatoms))
-                    elif restype == 'protein':
-                        self.prot.append(resatoms)
-                    elif restype == 'solvent':
-                        self.solvent.append(resatoms)
-                    elif resid != '':
-                        if resname not in self.unkres.keys():
-                            self.unkres[resname] = []
-                        self.unkres[resname].append(resatoms)
-                    resid = atom[2]
-                    resname = atom[0]
+                    if resid != '':
+                        residues.append(resatoms)
                     resatoms = []
-                    if resname in lipids:
-                        restype = 'lipid'
-                    elif resname in restypes:
-                        if restypes[resname] in ['Protein', 'DNA', 'RNA']:
-                            restype = 'protein'
-                        else:
-                            restype = 'solvent'
-                    else:
-                        restype = 'unknown'
+                    resid = atom[2]
                 resatoms.append(atom)
-            if restype == 'lipid':
-                if resname not in self.lipids.keys():
-                    self.lipids[resname] = []
-                self.lipids[resname].append(LipidRes(resatoms))
-            elif restype == 'protein':
-                self.prot.append(resatoms)
-            elif restype == 'solvent':
-                self.solvent.append(resatoms)
-            elif resid != '':
-                if resname not in self.unkres.keys():
-                    self.unkres[resname] = []
-                self.unkres[resname].append(resatoms)
+            residues.append(resatoms)
+
+            i = 0
+            while i < len(residues):
+                # There could be a problem if a lipid has in its lipreslist the first res of
+                # another lipid, notably at the last position ...
+                resname = residues[i][0][0]
+                lipmatch = []
+                lipid = False
+                if resname in lipfirstres.keys():
+                    match = []
+                    for lipname in lipfirstres[resname].keys():
+                        for lipreslist in lipfirstres[resname][lipname]:
+                            j = 0
+                            match_test = True
+                            for res in lipreslist:
+                                if res != residues[i+j][0][0]:
+                                   match_test = False
+                                j += 1
+                            if match_test == True:
+                                match.append([lipname, len(lipreslist)])
+                    if match:
+                        lipid = True
+                        lipmatch = sorted(match, key=itemgetter(1), reverse=True)[0]
+                if lipid == True:
+                    restype = 'lipid'
+                    resname = lipmatch[0] 
+                    if resname not in self.lipids.keys():
+                        self.lipids[resname] = []
+                    lipresidues = []
+                    for j in range(lipmatch[1]):
+                        lipresidues.append(LipidRes(residues[i+j]))
+                    self.lipids[resname].append(lipresidues)
+                    i += lipmatch[1] - 1
+                elif resname in restypes:
+                    if restypes[resname] == 'Protein':
+                        self.prot = True
+                    restype = 'other'
+                    self.other.append(residues[i])
+                else:
+                    restype = 'unknown'
+                    if resname not in self.unkres:
+                        self.unkres.append(resname)
+                    self.other.append(residues[i])
+                i += 1
+
             for resname in self.lipids.keys():
                 heads = list(Topology.objects.filter(lipid__name=resname,
                                                      forcefield__id=ff).values_list('head', flat=True))
                 nblip = len(self.lipids[resname])
                 for i in range(nblip):
-                    for lipidatoms in self.lipids[resname][i].atoms:
-                        if lipidatoms[1] in heads:
-                            self.lipids[resname][i].hgndx = lipidatoms[3] 
-                    if self.lipids[resname][i].hgndx == "":
+                    head_test = False
+                    for j in range(len(self.lipids[resname][i])):
+                        for lipidatoms in self.lipids[resname][i][j].atoms:
+                            if lipidatoms[1] in heads:
+                                # This atom name should not be shared between several residues of the same lipid
+                                self.lipids[resname][i][j].hgndx = lipidatoms[5]
+                                head_test = True
+                    if head_test == False:
                         self.title = 'error'
         else:
             self.title = 'error'
@@ -165,8 +188,10 @@ def membraneanalysis(filename, ff, rand):
     if membrane.title != 'error':
         ndx = {}
         for lipid in membrane.lipids.keys():
-            for res in membrane.lipids[lipid]:
-                ndx[res.hgndx] = "%d%s" % (res.atoms[0][2], lipid)
+            for i in range(len(membrane.lipids[lipid])):
+                for res in membrane.lipids[lipid][i]:
+                    if res.hgndx:
+                        ndx[res.hgndx] = "%d%s" % (res.atoms[0][2], lipid)
         ndxfile = open(ndxfilepath, 'w')
         ndxfile.write('[ headgroups ]\n')
         i = 0
@@ -222,8 +247,14 @@ def membraneanalysis(filename, ff, rand):
                 compo[leaflet] = {}
                 for lipid in membrane.lipids.keys():
                     for i in range(len(membrane.lipids[lipid])):
-                        if str(membrane.lipids[lipid][i].hgndx) in ndx[leaflet]:
-                            membrane.lipids[lipid][i].leaflet = leaflet
+                        leaflet_test = False
+                        for j in range(len(membrane.lipids[lipid][i])):
+                            if membrane.lipids[lipid][i][j].hgndx:
+                                if str(membrane.lipids[lipid][i][j].hgndx) in ndx[leaflet]:
+                                    leaflet_test = True
+                        if leaflet_test == True:
+                            for j in range(len(membrane.lipids[lipid][i])):
+                                membrane.lipids[lipid][i][j].leaflet = leaflet
             membrane.nblf = len(ndx.keys())
 
             compo['unk'] = {}
@@ -232,7 +263,7 @@ def membraneanalysis(filename, ff, rand):
                 for leaflet in list(compo.keys()):
                     nbres[leaflet] = 0
                 for res in membrane.lipids[lipid]:
-                    nbres[res.leaflet] += 1
+                    nbres[res[0].leaflet] += 1
                 for leaflet in list(compo.keys()):
                     if nbres[leaflet] > 0:
                         compo[leaflet][lipid] = nbres[leaflet]
@@ -248,44 +279,28 @@ def membraneanalysis(filename, ff, rand):
                     outfile.write(membrane.box)
             ri = 0
             ai = 0
-            for res in membrane.prot:
-                ri += 1
-                if extension == ".gro" and ri == 100000:
-                    ri = 0
-                elif extension == ".pdb" and ri == 10000:
-                    ri = 0
-                for atom in res:
-                    ai += 1
-                    if ai == 100000:
-                        ai = 0
-                    rn = atom[0]
-                    an = atom[1]
-                    coord = atom[4]
-                    if extension == ".gro":
-                        outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
-                    elif extension == ".pdb":
-                        outfile.write('ATOM  %5d %-4s %4s %4d    %s' % (ai, an, rn, ri, coord))
             for leaflet in list(compo.keys()):
                 for key in sorted(compo[leaflet], key=compo[leaflet].__getitem__, reverse=True):
                     for lipid in membrane.lipids[key]:
-                        if lipid.leaflet == leaflet:
-                            ri += 1
-                            if extension == ".gro" and ri == 100000:
-                                ri = 0
-                            elif extension == ".pdb" and ri == 10000:
-                                ri = 0
-                            rn = lipid.name
-                            for atom in lipid.atoms:
-                                ai += 1
-                                if ai == 100000:
-                                    ai = 0
-                                an = atom[1]
-                                coord = atom[4]
-                                if extension == ".gro":
-                                    outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
-                                elif extension == ".pdb":
-                                    outfile.write('ATOM  %5d %-4s %4s %4d    %s' % (ai, an, rn, ri, coord))
-            for res in membrane.solvent:
+                        if lipid[0].leaflet == leaflet:
+                            for res in lipid:
+                                ri += 1
+                                if extension == ".gro" and ri == 100000:
+                                    ri = 0
+                                elif extension == ".pdb" and ri == 10000:
+                                    ri = 0
+                                rn = res.name
+                                for atom in res.atoms:
+                                    ai += 1
+                                    if ai == 100000:
+                                        ai = 0
+                                    an = atom[1]
+                                    coord = atom[4]
+                                    if extension == ".gro":
+                                        outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
+                                    elif extension == ".pdb":
+                                        outfile.write('ATOM  %5d %-4s %4s %4d    %s' % (ai, an, rn, ri, coord))
+            for res in membrane.other:
                 ri += 1
                 if extension == ".gro" and ri == 100000:
                     ri = 0
@@ -302,24 +317,6 @@ def membraneanalysis(filename, ff, rand):
                         outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
                     elif extension == ".pdb":
                         outfile.write('ATOM  %5d %-4s %4s %4d    %s' % (ai, an, rn, ri, coord))
-            for resname in membrane.unkres.keys():
-                for res in membrane.unkres[resname]:
-                    ri += 1
-                    if extension == ".gro" and ri == 100000:
-                        ri = 0
-                    elif extension == ".pdb" and ri == 10000:
-                        ri = 0
-                    for atom in res:
-                        ai += 1
-                        if ai == 100000:
-                            ai = 0
-                        rn = atom[0]
-                        an = atom[1]
-                        coord = atom[4]
-                        if extension == ".gro":
-                            outfile.write('%5d%-5s%5s%5d%s' % (ri, rn, an, ai, coord))
-                        elif extension == ".pdb":
-                            outfile.write('ATOM  %5d %-4s %4s %4d    %s' % (ai, an, rn, ri, coord))
             if extension == ".gro":
                 outfile.write(membrane.box)
             outfile.close()
@@ -327,13 +324,49 @@ def membraneanalysis(filename, ff, rand):
     return compo, membrane, ndxin
 
 
-def membrane_residues(filename):
+def lipid_residues(forcefield):
+    lipidresidues = {}
+    lipidfirstres = {}
+    for top in Topology.objects.filter(forcefield=forcefield):
+        residues = list(top.residuelist_set.all().values_list('residue__name',flat=True))
+        resname = top.lipid.name
+        if resname not in lipidresidues.keys():
+            lipidresidues[resname] = []
+            lipidresidues[resname].append(residues)
+        else:
+            reslist_exist = False
+            for reslist in lipidresidues[resname]:
+                if "".join(residues) == "".join(reslist): 
+                    reslist_exist = True
+            if not reslist_exist:
+                lipidresidues[resname].append(residues)
+        if residues[0] not in lipidfirstres.keys():
+            lipidfirstres[residues[0]] = {}
+            lipidfirstres[residues[0]][resname] = []
+            lipidfirstres[residues[0]][resname].append(residues)
+        else:
+            if resname not in lipidfirstres[residues[0]].keys():
+                lipidfirstres[residues[0]][resname] = []
+                lipidfirstres[residues[0]][resname].append(residues)
+            else:
+                reslist_exist = False
+                for reslist in lipidfirstres[residues[0]][resname]:
+                    if "".join(residues) == "".join(reslist): 
+                        reslist_exist = True
+                if not reslist_exist:
+                    lipidfirstres[residues[0]][resname].append(residues)
+
+    return lipidresidues, lipidfirstres
+
+
+def membrane_residues(filename, forcefield):
     grofilepath = os.path.join(settings.MEDIA_ROOT, filename)
 
-    lipids = Lipid.objects.all().values_list('name', flat=True)
+    lipidresidues, lipfirstres = lipid_residues(forcefield)
     restypes = residuetypes()
     extension = os.path.splitext(filename)[1]
 
+    i = 0
     reslist = []
     residues = []
     resatoms = []
@@ -346,42 +379,62 @@ def membrane_residues(filename):
             headers.append(lines[-1])
             resid = ''
             for line in lines[2:-1]:
-                atom = Atom(line, extension)
+                i += 1
+                atom = Atom(line, extension, i)
                 if atom[2] != resid:
                     if resid != '':
                         residues.append(resatoms)
                     resatoms = []
-                    resname = atom[0]
                     resid = atom[2]
-                    if resname in lipids:
-                        restype = 'lipid'
-                    elif resname in restypes:
-                        restype = restypes[resname]
-                    else:
-                        restype = 'unknown'
-                    reslist.append([resname, restype])
                 resatoms.append(atom)
             residues.append(resatoms)
     elif extension == ".pdb":
         resid = ''
         for line in lines:
             if line.startswith("ATOM  "):
-                atom = Atom(line, extension)
+                i += 1
+                atom = Atom(line, extension, i)
                 if atom[2] != resid:
                     if resid != '':
                         residues.append(resatoms)
                     resatoms = []
-                    resname = atom[0]
                     resid = atom[2]
-                    if resname in lipids:
-                        restype = 'lipid'
-                    elif resname in restypes:
-                        restype = restypes[resname]
-                    else:
-                        restype = 'unknown'
-                    reslist.append([resname, restype])
                 resatoms.append(atom)
         residues.append(resatoms)
+
+    i = 0
+    while i < len(residues):
+        # There could be a problem if a lipid has in its lipreslist the first res of
+        # another lipid, notably at the last position ...
+        resname = residues[i][0][0]
+        lipid = False
+        if resname in lipfirstres.keys():
+            match = []
+            for lipname in lipfirstres[resname].keys():
+                for lipreslist in lipfirstres[resname][lipname]:
+                    j = 0
+                    match_test = True
+                    for res in lipreslist:
+                        if res != residues[i+j][0][0]:
+                           match_test = False
+                        j += 1
+                    if match_test == True:
+                        match.append([lipname, len(lipreslist)])
+            if match:
+                lipid = True
+                lipmatch = sorted(match, key=itemgetter(1), reverse=True)[0]
+                restype = 'lipid'
+                resname = lipmatch[0]
+                i += lipmatch[1] - 1
+        if lipid == True:
+            restype = 'lipid'
+        elif resname in restypes:
+            restype = restypes[resname]
+        else:
+            restype = 'unknown'
+        reslist.append([resname, restype])
+        i += 1
+
     resnb = 0
     memresidues = []
     lipresidues = []
@@ -433,8 +486,8 @@ def membrane_residues(filename):
     return memresidues, lipresidues, othermol, residues, headers
 
 
-def compo_isvalid(filename, data):
-    memresidues, lipresidues, othermol, residues, headers = membrane_residues(filename)
+def compo_isvalid(filename, forcefield, data):
+    memresidues, lipresidues, othermol, residues, headers = membrane_residues(filename, forcefield)
     comporesidues = []
     Nb = data['form-TOTAL_FORMS']
     for i in range(int(Nb)):
@@ -452,6 +505,7 @@ def compo_isvalid(filename, data):
                         comporesidues[-1][1] = str(int(comporesidues[-1][1])+int(number))
                     else:
                         comporesidues.append([lipid[0].name, number])
+
     compomatch = True
     if len(comporesidues) != len(lipresidues):
         compomatch = False
@@ -464,3 +518,14 @@ def compo_isvalid(filename, data):
         merrors = ['The lipid composition does not match with the membrane file.']
 
     return merrors
+
+
+def nb_lip_per_leaflet(membrane):
+    nblip = {}
+    for lip in membrane.topolcomposition_set.all():
+       if lip.side not in nblip.keys():
+           nblip[lip.side] = lip.number
+       else:
+           nblip[lip.side] += lip.number
+
+    return nblip

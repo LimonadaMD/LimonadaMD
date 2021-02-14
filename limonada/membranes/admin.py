@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -30,32 +30,44 @@ from .forms import (CompositionAdminForm, MembraneAdminForm, MembraneTopolAdminF
 
 
 class CompositionInline(admin.TabularInline):
+
+    """Customize the look of the auto-generated admin for Composition list (lipid with % and leaflet side)
+    of the Membrane model"""
     model = Composition
     form = CompositionAdminForm
     extra = 1
 
 
 class MembraneAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Membrane model"""
     form = MembraneAdminForm
     inlines = (CompositionInline,)
 
 
 class TopolCompositionInline(admin.TabularInline):
+
+    """Customize the look of the auto-generated admin for the Composition list (lipid with its topology, 
+    number and leaflet side) of the Membrane Topology model"""
     model = TopolComposition
     form = TopolCompositionAdminForm
     extra = 1
 
 
 class MembraneTopolAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Membrane model"""
     form = MembraneTopolAdminForm
     inlines = (TopolCompositionInline,)
 
 
 class MemCommentAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Membrane Comment model"""
     form = MemCommentAdminForm
 
 
-admin.site.register(Membrane, MembraneAdmin)
+admin.site.register(Membrane, MembraneAdmin) # Use the customized options
 admin.site.register(MembraneProt)
 admin.site.register(MembraneTag)
 admin.site.register(MembraneTopol, MembraneTopolAdmin)

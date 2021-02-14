@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -23,8 +23,10 @@
 import os
 
 # Django
+from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.mail import send_mail
 
 
 def FileData(request, key, hiddenkey, filedata):
@@ -55,3 +57,15 @@ def FileData(request, key, hiddenkey, filedata):
 def delete_file(path):
     if os.path.isfile(path):
         os.remove(path)
+
+def review_notification(status, db_table, entry_id):
+    if status == "creation":
+        subject = 'There is a new entry on Limonada'
+    else:
+        subject = 'An entry has been updated on Limonada'
+    if db_table == 'references':
+        url = 'https://limonada.univ-reims.fr/%s/?id=%s' % (db_table, entry_id)
+    else:
+        url = 'https://limonada.univ-reims.fr/%s/%s/' % (db_table, entry_id)
+    text = 'Please review the following %s entry:\n%s' % (db_table, url)
+    send_mail(subject, text, settings.DEFAULT_FROM_EMAIL, [settings.DEFAULT_FROM_EMAIL, ])

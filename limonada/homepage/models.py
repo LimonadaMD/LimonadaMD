@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -64,7 +64,7 @@ class Reference(models.Model):
     title = models.CharField(max_length=500)
     journal = models.CharField(max_length=200)
     volume = models.CharField(max_length=30,
-                              null=True)
+                              blank=True)
     year = models.PositiveSmallIntegerField(validators=[validate_year])
     doi = models.CharField(max_length=100,
                            validators=[validate_doi],

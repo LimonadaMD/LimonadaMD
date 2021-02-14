@@ -1,0 +1,73 @@
+{% extends "homepage/layout.html" %}
+
+{% load homepage_extras %}
+
+{% block title %}Properties{% endblock %}
+
+{% block content %}
+
+  <h1>Properties</h1>
+  <br>
+
+  <p class="font-italic m-0 pl-1"><span class="font-weight-bold">N.B.:</span> If you use the following files in your
+      work, please cite the primary source. (see Description field)</p>
+  <div class="row align-items-center bg-white border rounded border-success px-3 pt-3 mx-1">
+    <div class="col-12 table-responsive">
+      <table class="table table-sm">
+	    <tbody>
+	  	  <tr><td class="font-weight-bold">Name:</td><td>{{ li_property.search_name }}</td></tr>
+		  <tr><td class="font-weight-bold">Type:</td><td>{{ li_property.get_prop_display }}</td></tr>
+          <tr>
+            <td class="font-weight-bold">Membrane:</td>
+            <td>
+                <a href="{% url 'memdetail' li_property.membranetopol.pk %}" class="text-success" target="blank">
+                    {{ li_property.membranetopol }}</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="font-weight-bold">Files:</td>
+            <td>
+                <a href="{{ li_property.data_file.url }}" class="text-success" target="blank">
+                    {{ li_property.data_file.url|basename }}</a>
+            </td>
+          </tr>
+          <tr><td class="font-weight-bold">Software:</td><td>{{ li_property.software }}</td></tr>
+          <tr>
+            <td><strong>Description:</strong></td>
+            <td>{{ li_property.description|linebreaks }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>
+              {{ div|safe }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <br><br>
+      {% if user.is_authenticated %}
+        {% if user == li_property.curator %}
+          <a href="{% url 'ffupdate' li_property.pk %}"><i class="fas fa-edit text-success"></i></a>&nbsp
+          <a href="{% url 'ffdelete' li_property.pk %}"><i class="fas fa-trash text-success"></i></a>
+        {% else %}
+          <a href="{% url 'mail' %}?propid={{ li_property.pk }}"><i class="fas fa-edit text-success"></i></a>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="col-auto ml-auto">
+      <small>
+        <b>Curator:</b>
+        <a class="text-success" href="{% url 'userdetail' li_property.curator.pk %}">
+            {{ li_property.curator.get_full_name }}</a> on {{ li_property.date }}
+      </small>
+    </div>
+  </div>
+  <br>
+
+{% endblock %}
+
+{% block script %}
+  {{ script|safe }}
+{% endblock %}
+

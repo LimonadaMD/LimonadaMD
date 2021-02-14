@@ -390,19 +390,6 @@ IC	H18X	C317	*C318	H18Z	1.1110	112.39	130.01	114.10	1.1110
 
 end
 
-read para card flex append
-* Parameters
-*
-
-ANGLES
-
-CC3161  OC30P   PL        20.0     120.0    35.0    2.33   !CTL2 OSLP PL  ! phosphate, PIP
-OC30P   PL      O2L       98.9      111.6  ! OSLP PL   O2L  ! phosphate
-OC30P   PL      OSLP      80.0      104.3  ! OSLP PL   OSLP ! phosphate
-
-end
-
-
 return
 
 

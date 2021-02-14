@@ -22,6 +22,16 @@
                   {{ topology.lipid.name }} - {{ topology.lipid.com_name }}</a>
             </td>
           </tr>
+          {% if topology.residuelist_set.all.count > 1 %}
+            <tr>
+              <td class="font-weight-bold w-30">Residues:</td>
+              <td>
+                {% for res in topology.residuelist_set.all|dictsort:"position" %}
+                  {{ res.residue }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+              </td>
+            </tr>
+          {% endif %}
           <tr>
             <td class="font-weight-bold">Forcefield:</td>
             <td>
@@ -71,7 +81,7 @@
           <a href="{% url 'topupdate' topology.pk %}"><i class="fas fa-edit text-success"></i></a>&nbsp
           <a href="{% url 'topdelete' topology.pk %}"><i class="fas fa-trash text-success"></i></a>
         {% else %}
-          <a href="{% url 'mail' %}?lipid={{ topology.pk }}"><i class="fas fa-edit text-success"></i></a>
+          <a href="{% url 'mail' %}?topid={{ topology.pk }}"><i class="fas fa-edit text-success"></i></a>
         {% endif %}
       {% endif %}
     </div>

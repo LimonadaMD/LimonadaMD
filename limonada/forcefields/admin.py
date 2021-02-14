@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -28,13 +28,17 @@ from .forms import ForcefieldAdminForm, FfCommentAdminForm
 
 
 class ForcefieldAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Forcefield model"""
     form = ForcefieldAdminForm
 
 
 class FfCommentAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Forcefield Comment model"""
     form = FfCommentAdminForm
 
 
-admin.site.register(Forcefield, ForcefieldAdmin)
+admin.site.register(Forcefield, ForcefieldAdmin) # Use the customized options
 admin.site.register(Software)
 admin.site.register(FfComment, FfCommentAdmin)
