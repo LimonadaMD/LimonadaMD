@@ -1,20 +1,16 @@
 [ membrane_1_leaflet_1 ]
-      DIPC        22
+      DIPC        33
       SITO        21
       PIPE        13
       PIPC        12
       PIPI         9
-      DIPE         7
       STIG         7
       IWPE         5
-      DIPI         4
 [ membrane_1_leaflet_2 ]
-      DIPC        22
+      DIPC        33
       SITO        21
       PIPE        13
       PIPC        12
       PIPI         9
-      DIPE         7
       STIG         7
       IWPE         5
-      DIPI         4

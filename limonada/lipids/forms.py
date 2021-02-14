@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -34,7 +34,8 @@ from forcefields.models import Forcefield, Software
 
 # local Django
 from .functions import gmxrun, charmmrun, amberrun, atnames, findresname
-from .models import TopComment, Lipid, Topology, validate_file_extension, validate_lmid, validate_name
+from .models import TopComment, Lipid, Topology, ResidueList
+from .models import validate_file_extension, validate_lmid, validate_name
 
 
 class LipidAdminForm(forms.ModelForm):
@@ -57,8 +58,8 @@ class LipidForm(forms.ModelForm):
 
     name = forms.CharField(widget=TextInput(attrs={'placeholder': 'e.g., POPC',
                                                    'class': 'form-control'}),
-                           validators=[validate_name])
-    lmid = forms.CharField(validators=[validate_lmid])
+                           )#validators=[validate_name])
+    lmid = forms.CharField()#validators=[validate_lmid])
     core = forms.CharField(label='Category',
                            widget=TextInput(attrs={'readonly': 'readonly',
                                                    'class': 'form-control'}),
@@ -123,6 +124,13 @@ class TopologyAdminForm(forms.ModelForm):
                    'software': autocomplete.ModelSelect2Multiple(url='software-autocomplete'),
                    'reference': autocomplete.ModelSelect2Multiple(url='reference-autocomplete'),
                    'curator': autocomplete.ModelSelect2(url='user-autocomplete')}
+
+
+class ResidueListAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = ResidueList
+        fields = ('__all__')
 
 
 class TopologyForm(forms.ModelForm):
@@ -226,6 +234,10 @@ class SelectTopologyForm(forms.Form):
     lipid = forms.ModelMultipleChoiceField(queryset=Lipid.objects.all(),
                                            widget=autocomplete.ModelSelect2Multiple(url='lipid-autocomplete'),
                                            required=False)
+    altname = forms.CharField(widget=TextInput(attrs={'placeholder': 'e.g., CER160',
+                                                      'class': 'form-control'}),
+                              label='Alternative lipid name',
+                              required=False)
     category = forms.ChoiceField(label='Category',
                                  required=False)
     main_class = forms.ChoiceField(label='Main Class',

@@ -1,0 +1,168 @@
+{% extends "homepage/layout.html" %}
+
+{% load homepage_extras %}
+{% load properties_extras %}
+
+{% block title %}Properties{% endblock %}
+
+{% block description %}
+  membrane properties repository of limonada
+{% endblock %}
+
+{% block content %}
+
+  <!-- Title -->
+  <div class="row align-items-center justify-content-between">
+    <div class="col-auto"><h1>Properties</h1></div>
+    <div class="col-auto">
+      {% if user.is_authenticated %}
+        <a href="{% url 'propcreate' %}" class="btn btn-primary" role="button">Add</a>
+      {% endif %}
+    </div>
+  </div>
+  <br>
+
+  <!-- Search form -->
+  <p class="font-italic m-0 pl-1"><span class="font-weight-bold">N.B.:</span> If you use the following files in your
+      work, please cite the primary source. (see Description field)</p>
+  <div class="row justify-content-between bg-green rounded-top border border-bottom-0 border-success p-3 mx-1">
+    <div class="col-auto px-0">
+      {% include 'per_page.html' %}
+    </div>
+    <div id="collapseselect" class="col-12 col-md-auto order-last"
+         {% if not params.propid and not params.memid %}style="display: none"{% endif %}>
+      <div class="container">
+        <form id="select_form" method="get">
+          <div class="row pt-1">
+            {% for field in form_select %}
+              <div class="col-2 p-1">{{ field.label_tag }}</div>
+              {% if field.name == 'propid' %}<div class="col-7">{% else %}<div class="col-7">{% endif %}
+                {{ field }}
+                {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
+              </div>
+              {% if field.name == 'propid' %}<div class="col-3 pt-1"></div>{% endif %}
+            {% endfor %}
+            <div class="col-1 pt-1">
+              <a onclick="url_replace('propid','memid')" class="btn btn-primary btn-sm text-white">Select</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col-auto ml-auto order-md-last">
+      <h2 class="text-info" id="clickselect"><i id="iconselect" class="fas fa-plus"></i></h2>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="row align-items-center bg-white border border-top-0 border-bottom-0 border-success p-3 mx-1">
+    <div class="col-12 table-responsive">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th class="w-25">
+              {% if sort == "mem_search_name" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="mem_search_name" dir="des" %}">Membrane</a>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="mem_search_name" dir="asc" %}">Membrane</a>
+                {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="mem_search_name" dir="asc" %}">Membrane</a>
+              {% endif %}
+            </th>
+            <th class="w-25">Name</th>
+            <th class="w-20">
+              {% if sort == "prop" %}
+                {% if dir == "asc" %}
+                  <i class="fas fa-sort-up"></i>
+                  <a href="?{% url_replace sort="prop" dir="des" %}">Property</a>
+                {% else %}
+                  <i class="fas fa-sort-down"></i>
+                  <a href="?{% url_replace sort="prop" dir="asc" %}">Property</a>
+                {% endif %}
+              {% else %}
+                <a href="?{% url_replace sort="prop" dir="asc" %}">Property</a>
+              {% endif %}
+            </th>
+            <th class="w-20">Software</th>
+            {% if user.is_authenticated %}
+              <th class="w-10"></th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for prop in page_objects %}
+            <tr>
+              <td>
+                <a href="{% url 'memdetail' prop.membranetopol.pk %}" class="text-success" target="blank">
+                  {{ prop.membranetopol.search_name }}</a>
+              </td>
+              <td>
+                {% property_name prop.search_name as propname %}
+                <a class="text-info" data-toggle="collapse" href="#collapse{{ prop.search_name }}" aria-expanded="false"
+                    aria-controls="collapse{{ prop.search_name }}">{{ propname }}</a>
+              </td>
+              {% property_type prop.prop as proptype %}
+              <td>{{ proptype }}</td>
+              <td>{{ prop.software }}</td>
+              {% if user.is_authenticated %}
+                {% if user == prop.curator %}
+                  <td class="text-right">
+                    <a href="{% url 'propupdate' prop.pk %}"><i class="fas fa-edit text-success"></i></a>
+                    <a href="{% url 'propdelete' prop.pk %}"><i class="fas fa-trash text-success"></i></a>&nbsp
+                  </td>
+                {% else %}
+                  <td class="text-right">
+                    <a href="{% url 'mail' %}?propid={{ prop.pk }}"><i class="fas fa-edit text-success"></i></a>
+                  </td>
+                {% endif %}
+              {% endif %}
+            </tr>
+            <tr>
+              <td colspan="4" class="border-top-0">
+                <div id="{{ prop.search_name }}">
+                  <div id="collapse{{ prop.search_name }}" class="row collapse" data-parent="#{{ prop.search_name }}">
+                    <div class="col-5">
+                      <br>
+                      <span class="font-weight-bold">File:</span>
+                      <a href="{{ prop.data_file.url }}" class="text-success" target="blank">
+                        {{ prop.data_file.url|basename }}</a><br>
+                      <span class="font-weight-bold">Description:</span>
+                        {{ prop.description|linebreaks }}
+                    </div>
+                    <div class="col-7">
+                      {% get_bokeh_div bokeh_divs prop.id as div %}
+                      {{ div|safe }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row align-items-start justify-content-between bg-green rounded-bottom border border-top-0
+              border-success p-3 mx-1">
+    {% include 'paginator.html' %}
+  </div>
+
+{% endblock %}
+
+
+{% block script %}
+
+  <script>
+    $("#select_form").submit(function(){url_replace('propid')});
+  </script>
+  {% for script in bokeh_scripts %}
+    {{ script|safe }}
+  {% endfor %}
+  {{ form_select.media }}
+
+{% endblock %}

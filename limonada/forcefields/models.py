@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -79,7 +79,7 @@ def validate_mdp_size(value):
 
 def mdp_path(instance, filename):
     name = unidecode(instance.name).replace(' ', '_')
-    filepath = 'forcefields/{0}/{1}.mdp.zip'.format(instance.software.all()[0].name, name)
+    filepath = 'forcefields/{0}/{1}.par.zip'.format(instance.software.all()[0].name, name)
     if os.path.isfile(os.path.join(settings.MEDIA_ROOT, filepath)):
         os.remove(os.path.join(settings.MEDIA_ROOT, filepath))
     return filepath

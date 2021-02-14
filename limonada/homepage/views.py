@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -43,8 +43,10 @@ from django.views.generic import DeleteView
 
 # Django apps
 from forcefields.models import Forcefield
+from limonada.functions import review_notification
 from lipids.models import Lipid, Topology
 from membranes.models import MembraneTopol
+from properties.models import LI_Property
 
 # local Django
 from .forms import DoiForm, MailForm, ReferenceForm, AuthorsForm, SelectForm
@@ -70,7 +72,7 @@ def RefList(request):
     params = request.GET.copy()
 
     selectparams = {}
-    for param in ['author', 'year']:
+    for param in ['author', 'year', 'id']:
         if param in request.GET.keys():
             if request.GET[param] != '':
                 if param == 'author':
@@ -87,6 +89,8 @@ def RefList(request):
             ref_list = ref_list.filter(reduce(operator.and_, querylist))
         if 'year' in selectparams.keys():
             ref_list = ref_list.filter(year=selectparams['year'])
+        if 'id' in selectparams.keys():
+            ref_list = ref_list.filter(id=selectparams['id'])
     else:
         form_select = SelectForm()
 
@@ -194,6 +198,7 @@ def RefCreate(request):
                 AuthorsList.objects.filter(reference=ref).delete()
                 AuthorsList.objects.bulk_create(aulist)
             ref.save()
+            review_notification("creation", "references", ref.pk)
             return HttpResponseRedirect(reverse('reflist'))
     else:
         form_search = DoiForm()
@@ -228,6 +233,7 @@ def RefUpdate(request, pk=None):
                 aulist = []
                 authors = form_authors.cleaned_data['authors']
                 for author in authors.split(','):
+                    aupos += 1
                     fullname = author.strip()
                     familly = author.strip().split()[0].strip()
                     given = " ".join(author.strip().split()[1:]).strip()
@@ -241,6 +247,7 @@ def RefUpdate(request, pk=None):
                     AuthorsList.objects.filter(reference=ref).delete()
                     AuthorsList.objects.bulk_create(aulist)
                 ref.save()
+                review_notification("update", "references", ref.pk)
                 return HttpResponseRedirect(reverse('reflist'))
         else:
             form_authors = AuthorsForm(initial={'authors': text})
@@ -281,8 +288,9 @@ def mail(request):
     name = ''
     obj = ''
     objtype = ''
-    objnames = {'lipid': 'lipid', 'topid': 'topology', 'ffid': 'forcefield', 'memid': 'membrane', 'refid': 'reference'}
-    for param in ['lipid', 'topid', 'ffid', 'memid', 'refid']:
+    objnames = {'lipid': 'lipid', 'topid': 'topology', 'ffid': 'forcefield', 'memid': 'membrane',
+                'liproperty': 'propid', 'refid': 'reference'}
+    for param in ['lipid', 'topid', 'ffid', 'memid', 'propid', 'refid']:
         if param in request.GET.keys():
             if request.GET[param] != '':
                 objtype = objnames[param]
@@ -309,6 +317,11 @@ def mail(request):
                     if MembraneTopol.objects.filter(id=i).exists():
                         obj = MembraneTopol.objects.filter(id=i)
                         name = obj.values_list('name', flat=True)[0]
+                        url = '#'
+                elif param == 'propid':
+                    if LI_Property.objects.filter(id=i).exists():
+                        obj = LI_Property.objects.filter(id=i)
+                        name = obj.values_list('search_name', flat=True)[0]
                         url = '#'
                 elif param == 'refid':
                     if Reference.objects.filter(id=i).exists():
@@ -351,7 +364,7 @@ def mail(request):
             comment = form.cleaned_data['comment']
             if curation:
                 send_mail(subject, comment, settings.DEFAULT_FROM_EMAIL,
-                          [email, 'jean-marc.crowet@univ-reims.fr'])
+                          [email, settings.DEFAULT_FROM_EMAIL])
             else:
                 send_mail(subject, comment, settings.DEFAULT_FROM_EMAIL, [email, ])
             if 'lipid' in request.GET.keys():
@@ -361,6 +374,8 @@ def mail(request):
             if 'ffid' in request.GET.keys():
                 return redirect('fflist')
             if 'memid' in request.GET.keys():
+                return redirect('memlist')
+            if 'propid' in request.GET.keys():
                 return redirect('memlist')
             if 'refid' in request.GET.keys():
                 return redirect('reflist')

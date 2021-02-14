@@ -60,7 +60,7 @@
           <a href="{% url 'ffupdate' forcefield.pk %}"><i class="fas fa-edit text-success"></i></a>&nbsp
           <a href="{% url 'ffdelete' forcefield.pk %}"><i class="fas fa-trash text-success"></i></a>
         {% else %}
-          <a href="{% url 'mail' %}?lipid={{ forcefield.pk }}"><i class="fas fa-edit text-success"></i></a>
+          <a href="{% url 'mail' %}?ffid={{ forcefield.pk }}"><i class="fas fa-edit text-success"></i></a>
         {% endif %}
       {% endif %}
     </div>

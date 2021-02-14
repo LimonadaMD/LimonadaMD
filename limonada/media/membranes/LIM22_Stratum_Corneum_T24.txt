@@ -1,8 +1,8 @@
 [ membrane_1_leaflet_1 ]
       SXCE        34
-      LIGN        33
       CHOL        33
+      LIGN        33
 [ membrane_1_leaflet_2 ]
       SXCE        34
-      LIGN        33
       CHOL        33
+      LIGN        33

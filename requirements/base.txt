@@ -12,3 +12,4 @@ future
 Unidecode
 six
 python-dotenv
+bokeh

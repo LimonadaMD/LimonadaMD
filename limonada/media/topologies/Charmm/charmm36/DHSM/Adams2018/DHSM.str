@@ -1,0 +1,293 @@
+* Toppar stream for ceramides and spingomyelins; requires flex format files
+* top_all36_lipid.rtf and par_all36_lipid.prm
+*
+
+! REFERENCES
+!
+! PSM and SSM Lipids
+!
+! Venable, R.M., B. Rogaski, H. Rui, A.D. MacKerell, Jr., R.W. Pastor, & J.B. Klauda. 
+! An Experimentally Validated All-atom Force Field for Sphingomyelin. In prep. (2013).
+!
+! Ceramide                         
+!
+! Submited by Sam Tonddast-Navaei of U. Cincinnati. Advised by Russell Devane  
+!
+
+!set nat ?NATC
+!set app
+!We're exploiting what is arguably a bug in the parser. On the left hand side,
+!the quotes have proirity, so NAT is correctly substituted. On the right hand
+!side, the ? has priority and NATC" (sic) is not a valid substitution...
+!if "@NAT" ne "?NATC" if @nat ne 0 set app append
+
+!read rtf card @app
+read rtf card append
+* cer/sm residues
+*
+36  1
+
+! Ceramides
+
+!XZ: Add DHSM based on NSM 
+RESI DHSM          0.00 !   sphingomyelin d18:0/24:1 (w/nervonic acid)
+GROUP                  !
+ATOM N    NTL    -0.60 !                   H15B
+ATOM C15  CTL5   -0.35 !                   |
+ATOM H15A HL      0.25 !             H15A-C15-H15C
+ATOM H15B HL      0.25 !                   |
+ATOM H15C HL      0.25 !             H13C  |   H14C
+ATOM C14  CTL5   -0.35 !              |    |   |
+ATOM H14A HL      0.25 !        H13A-C13---N--C14-H14A   (+)
+ATOM H14B HL      0.25 !              |    |   |
+ATOM H14C HL      0.25 !             H13B  |   H14B
+ATOM C13  CTL5   -0.35 !                   |
+ATOM H13A HL      0.25 !                   |
+ATOM H13B HL      0.25 !                   |
+ATOM H13C HL      0.25 !              H12A-C12-H12B
+ATOM C12  CTL2   -0.10 !                   |
+ATOM H12A HL      0.25 !                   |
+ATOM H12B HL      0.25 !              H11A-C11-H11B
+GROUP                  !                   |
+ATOM C11  CTL2   -0.08 !                   |
+ATOM H11A HAL2    0.09 !                   |
+ATOM H11B HAL2    0.09 !         (-) O13  O12
+ATOM P    PL      1.50 !               \ /
+ATOM O13  O2L    -0.78 !                P  (+)
+ATOM O14  O2L    -0.78 !               / \
+ATOM O11  OSLP    -0.57 !         (-) O14  O11
+ATOM O12  OSLP    -0.57 !                  |
+ATOM C1S  CTL2   -0.08 !                   |
+ATOM H1S  HAL2    0.09 !             H1S---C1S---H1T
+ATOM H1T  HAL2    0.09 !                   |
+GROUP                  !             H2S---C2S-------------------------NF--HNF
+ATOM NF   NHL    -0.70 !                   |                           |
+ATOM HNF  H       0.35 !                   |                           |
+ATOM C2S  CTL1    0.30 !                   |                           |
+ATOM H2S  HAL1    0.05 !                   |                           |
+GROUP                  !                   |                           |
+ATOM C3S  CTO1    0.50 !                   |                           C1F=OF (FATTY ACID CHAIN)
+ATOM H3S  HAL1   -0.11 !                   |                           |
+ATOM O3   OHL    -0.69 !                   |                           |
+ATOM HO3  HOL     0.30 !                   |                   H2F----C2F---H2G
+GROUP                  !                   |                           |
+ATOM C4S  CTL2   -0.18 !                   |                        [(CH2)3F (C3F,C4F...C14F)
+ATOM H4S  HAL2    0.09 !                   |                           |
+ATOM H4T  HAL2    0.09 !                   |                           |
+GROUP                  !                   |                   H15F---C15F
+ATOM C5S  CTL2   -0.18 !                   |                           ||
+ATOM H5S  HAL2    0.09 !                   |                   H16F---C16F
+ATOM H5T  HAL2    0.09 !                   |                           |
+GROUP                  !            H3S----C3S--O3--HO3                |
+ATOM C6S  CTL2   -0.18 !                   |                        [(CH2)17F (C17F,C4F...C23F)
+ATOM H6S  HAL2    0.09 !             H4S---C4S---H4T                   |
+ATOM H6T  HAL2    0.09 !                   |                   H24F---C24F---H24H
+GROUP                  !             H5S---C5S---H5T                   |
+ATOM C7S  CTL2   -0.18 !                   |                          H24G
+ATOM H7S  HAL2    0.09 !                   |
+ATOM H7T  HAL2    0.09 !                [(CH)2]6 (C6S, C7S....C17S)
+GROUP                  !                   |
+ATOM C8S  CTL2   -0.18 !           H18S---C18S---H18U
+ATOM H8S  HAL2    0.09 !                   |
+ATOM H8T  HAL2    0.09 !                  H18T
+GROUP                  !
+ATOM C9S  CTL2   -0.18 !
+ATOM H9S  HAL2    0.09 !
+ATOM H9T  HAL2    0.09 !
+GROUP                  !
+ATOM C10S CTL2   -0.18 !
+ATOM H10S HAL2    0.09 !
+ATOM H10T HAL2    0.09 !
+GROUP
+ATOM C11S CTL2   -0.18 !
+ATOM H11S HAL2    0.09 !
+ATOM H11T HAL2    0.09 !
+GROUP
+ATOM C12S CTL2   -0.18 !
+ATOM H12S HAL2    0.09 !
+ATOM H12T HAL2    0.09 !
+GROUP
+ATOM C13S  CTL2  -0.18 !
+ATOM H13S  HAL2   0.09 !
+ATOM H13T  HAL2   0.09 !
+GROUP
+ATOM C14S  CTL2  -0.18 !
+ATOM H14S  HAL2   0.09 !
+ATOM H14T  HAL2   0.09 !
+GROUP
+ATOM C15S CTL2   -0.18 !
+ATOM H15S HAL2    0.09 !
+ATOM H15T HAL2    0.09 !
+GROUP
+ATOM C16S CTL2   -0.18 !
+ATOM H16S HAL2    0.09 !
+ATOM H16T HAL2    0.09 !
+GROUP
+ATOM C17S CTL2   -0.18 !
+ATOM H17S HAL2    0.09 !
+ATOM H17T HAL2    0.09 !
+GROUP                  !
+ATOM C18S CTL3   -0.27 !
+ATOM H18S HAL3    0.09 !
+ATOM H18T HAL3    0.09 !
+ATOM H18U HAL3    0.09 !
+GROUP                  !FATTY ACID CHAIN
+ATOM C1F  C       0.55 !
+ATOM OF   O      -0.60 !
+ATOM C2F  CTL2   -0.07 !
+ATOM H2F  HAL2    0.06 !
+ATOM H2G  HAL2    0.06 !
+GROUP                  !
+ATOM C3F  CTL2   -0.18 !
+ATOM H3F  HAL2    0.09 !
+ATOM H3G  HAL2    0.09 !
+GROUP                  !
+ATOM C4F  CTL2   -0.18 !
+ATOM H4F  HAL2    0.09 !
+ATOM H4G  HAL2    0.09 !
+GROUP                  !
+ATOM C5F  CTL2   -0.18 !
+ATOM H5F  HAL2    0.09 !
+ATOM H5G  HAL2    0.09 !
+GROUP                  !
+ATOM C6F  CTL2   -0.18 !
+ATOM H6F  HAL2    0.09 !
+ATOM H6G  HAL2    0.09 !
+GROUP                  !
+ATOM C7F  CTL2   -0.18 !
+ATOM H7F  HAL2    0.09 !
+ATOM H7G  HAL2    0.09 !
+GROUP                  !
+ATOM C8F  CTL2   -0.18 !
+ATOM H8F  HAL2    0.09 !
+ATOM H8G  HAL2    0.09 !
+GROUP                  !
+ATOM C9F  CTL2   -0.18 !
+ATOM H9F  HAL2    0.09 !
+ATOM H9G  HAL2    0.09 !
+GROUP                  !
+ATOM C10F CTL2   -0.18 !
+ATOM H10F HAL2    0.09 !
+ATOM H10G HAL2    0.09 !
+GROUP                  !
+ATOM C11F CTL2   -0.18 !
+ATOM H11F HAL2    0.09 !
+ATOM H11G HAL2    0.09 !
+GROUP                  !
+ATOM C12F CTL2   -0.18 !
+ATOM H12F HAL2    0.09 !
+ATOM H12G HAL2    0.09 !
+GROUP                  !
+ATOM C13F CTL2   -0.18 !
+ATOM H13F HAL2    0.09 !
+ATOM H13G HAL2    0.09 !
+GROUP                  !
+ATOM C14F CTL2   -0.18 !
+ATOM H14F HAL2    0.09 !
+ATOM H14G HAL2    0.09 !
+GROUP                  !
+ATOM C15F CEL1   -0.15 !
+ATOM H15F HEL1    0.15 !
+GROUP                  !
+ATOM C16F CEL1   -0.15 !
+ATOM H16F HEL1    0.15 !
+GROUP                  !
+ATOM C17F CTL2   -0.18 !
+ATOM H17F HAL2    0.09 !
+ATOM H17G HAL2    0.09 !
+GROUP                  !
+ATOM C18F CTL2   -0.18 !
+ATOM H18F HAL2    0.09 !
+ATOM H18G HAL2    0.09 !
+GROUP                  !
+ATOM C19F CTL2   -0.18 !
+ATOM H19F HAL2    0.09 !
+ATOM H19G HAL2    0.09 !
+GROUP                  !
+ATOM C20F CTL2   -0.18 !
+ATOM H20F HAL2    0.09 !
+ATOM H20G HAL2    0.09 !
+GROUP                  !
+ATOM C21F CTL2   -0.18 !
+ATOM H21F HAL2    0.09 !
+ATOM H21G HAL2    0.09 !
+GROUP                  !
+ATOM C22F CTL2   -0.18 !
+ATOM H22F HAL2    0.09 !
+ATOM H22G HAL2    0.09 !
+GROUP                  !
+ATOM C23F CTL2   -0.18 !
+ATOM H23F HAL2    0.09 !
+ATOM H23G HAL2    0.09 !
+GROUP                  !
+ATOM C24F CTL3   -0.27 !
+ATOM H24F HAL3    0.09 !
+ATOM H24G HAL3    0.09 !
+ATOM H24H HAL3    0.09 !
+
+!SPHINGOSINE CHAIN
+BOND  C18S H18S C18S H18T  C18S H18U
+BOND  C18S C17S C17S H17S  C17S H17T
+BOND  C17S C16S C16S H16S  C16S H16T
+BOND  C16S C15S C15S H15S  C15S H15T
+BOND  C15S C14S C14S H14S  C14S H14T
+BOND  C14S C13S C13S H13S  C13S H13T
+BOND  C13S C12S C12S H12S  C12S H12T
+BOND  C12S C11S C11S H11S  C11S H11T
+BOND  C11S C10S C10S H10S  C10S H10T
+BOND  C10S C9S  C9S  H9S   C9S  H9T
+BOND  C9S  C8S  C8S  H8S   C8S  H8T
+BOND  C8S  C7S  C7S  H7S   C7S  H7T
+BOND  C7S  C6S  C6S  H6S   C6S  H6T
+BOND  C6S  C5S  C5S  H5S   C5S  H5T
+BOND  C5S  C4S  C4S  H4S   C4S  H4T
+BOND  C4S  C3S  C3S  H3S   C3S  O3
+BOND  O3   HO3
+BOND  C3S  C2S  C2S  H2S
+BOND  C2S  C1S  C1S  H1S   C1S  H1T
+BOND  C1S  O11
+!PHOSLPHOCHOLINE
+BOND  O11  P    O12  P     O13  P     O14  P
+BOND  O12  C11  C11  H11A  C11  H11B
+BOND  C11  C12  C12  H12A  C12  H12B
+BOND  C12  N    N    C13   N    C14   N    C15
+BOND  C13  H13A C13  H13B  C13  H13C
+BOND  C14  H14A C14  H14B  C14  H14C
+BOND  C15  H15A C15  H15B  C15  H15C
+!FATTY ACID CHAIN
+BOND  C2S  NF   NF   HNF   NF   C1F
+BOND  C1F  C2F  C2F  H2F   C2F  H2G
+BOND  C2F  C3F  C3F  H3F   C3F  H3G
+BOND  C3F  C4F  C4F  H4F   C4F  H4G
+BOND  C4F  C5F  C5F  H5F   C5F  H5G
+BOND  C5F  C6F  C6F  H6F   C6F  H6G
+BOND  C6F  C7F  C7F  H7F   C7F  H7G
+BOND  C7F  C8F  C8F  H8F   C8F  H8G
+BOND  C8F  C9F  C9F  H9F   C9F  H9G
+BOND  C9F  C10F C10F H10F  C10F H10G
+BOND  C10F C11F C11F H11F  C11F H11G
+BOND  C11F C12F C12F H12F  C12F H12G
+BOND  C12F C13F C13F H13F  C13F H13G
+BOND  C13F C14F C14F H14F  C14F H14G
+BOND  C14F C15F C15F H15F
+BOND  C16F H16F
+BOND  C16F C17F C17F H17F  C17F H17G
+BOND  C17F C18F C18F H18F  C18F H18G
+BOND  C18F C19F C19F H19F  C19F H19G
+BOND  C19F C20F C20F H20F  C20F H20G
+BOND  C20F C21F C21F H21F  C21F H21G
+BOND  C21F C22F C22F H22F  C22F H22G
+BOND  C22F C23F C23F H23F  C23F H23G
+BOND  C23F C24F C24F H24F  C24F H24G
+BOND  C24F H24H
+
+DOUBLE C15F C16F
+DOUBLE C1F  OF
+IMPR   C1F C2F NF OF  NF C1F C2S HNF
+PATCH FIRST NONE LAST NONE
+
+end
+
+return
+
+

@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -28,19 +28,25 @@ from .forms import AuthorAdminForm, ReferenceAdminForm, AuthorsListAdminForm
 
 
 class AuthorAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Author model"""
     form = AuthorAdminForm
 
 
 class AuthorsListInline(admin.TabularInline):
+
+    """Customize the look of the auto-generated admin for the Author list of the Reference model"""
     model = AuthorsList
     form = AuthorsListAdminForm
     extra = 1
 
 
 class ReferenceAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Reference model"""
     form = ReferenceAdminForm
     inlines = (AuthorsListInline,)
 
 
-admin.site.register(Author, AuthorAdmin)
+admin.site.register(Author, AuthorAdmin) # Use the customized options
 admin.site.register(Reference, ReferenceAdmin)

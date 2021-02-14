@@ -17,13 +17,16 @@
     {% for field in topform %}
       <div class="row py-1 ml-5">
         <div class="col-3 col-lg-2 col-md-3 pt-1">
-          {% if field.name == "mem_file" or field.name == "other_file" or field.name == "description" or field.name == "prot" %}
+          {% if field.name == "mem_file" or field.name == "other_file" or field.name == "description" or field.name == "prot" or field.name == "doi" %}
               <br>
           {% endif %}
           {{ field.label_tag }}
           {% if field.name == "other_file" %}
-            <span data-toggle="popover" data-trigger="hover" title="Other files"
-                  data-content='This .zip can contain other files needed to run simulations like protein topologies.'>
+            <span data-toggle="popover" data-trigger="hover" title="Parameters files"
+                  data-content='Parameters files required to run a simulation with this membrane should be uploaded as a .zip file.
+                      If a mdp file is not provided, parameters like cutoff value, range (if a switching function), and type (force 
+                      vs. potential) should be described in a dedicated file or in the description field. If used, additional 
+                      topologies (i.e. for proteins) should also be provided.'>
                 <i class="fas fa-info-circle text-success"></i></span>
           {% endif %}
         </div>
@@ -86,7 +89,7 @@
           </div>
         {% else %}
           <div class="col-9 col-lg-4 col-md-7">
-            {% if field.name == "description" or field.name == "prot" %}
+            {% if field.name == "description" or field.name == "prot" or field.name == "doi" %}
               <small class="float-right text-secondary">optional</small>
             {% endif %}
             {{ field }}

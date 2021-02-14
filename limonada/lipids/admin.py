@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -23,23 +23,38 @@
 from django.contrib import admin
 
 # local Django
-from .models import Lipid, TopComment, Topology
-from .forms import LipidAdminForm, TopCommentAdminForm, TopologyAdminForm
+from .models import Lipid, TopComment, Topology, ResidueList
+from .forms import LipidAdminForm, TopCommentAdminForm, TopologyAdminForm, ResidueListAdminForm
 
 
 class LipidAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Lipid model"""
     form = LipidAdminForm
     prepopulated_fields = {'slug': ('lmid',)}
 
 
+class ResidueListInline(admin.TabularInline):
+
+    """Customize the look of the auto-generated admin for the Residue list of the Topology model"""
+    model = ResidueList
+    form = ResidueListAdminForm
+    extra = 1
+
+
 class TopologyAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Topology model"""
     form = TopologyAdminForm
+    inlines = (ResidueListInline,)
 
 
 class TopCommentAdmin(admin.ModelAdmin):
+
+    """Customize the look of the auto-generated admin for the Topology Comment model"""
     form = TopCommentAdminForm
 
 
-admin.site.register(Lipid, LipidAdmin)
+admin.site.register(Lipid, LipidAdmin) # Use the customized options
 admin.site.register(Topology, TopologyAdmin)
 admin.site.register(TopComment, TopCommentAdmin)

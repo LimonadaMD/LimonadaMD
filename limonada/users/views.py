@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -35,6 +35,9 @@ from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views.generic import DetailView
 
+# Django apps
+from limonada.functions import review_notification
+
 # local Django
 from .forms import SignUpForm, UpdateForm
 from .functions import account_activation_token
@@ -53,6 +56,7 @@ def signup(request):
             user.profile.miscellaneous = form.cleaned_data.get('miscellaneous')
             user.is_active = False
             user.save()
+            review_notification("creation", "users", user.pk)
             current_site = get_current_site(request)
             email = form.cleaned_data.get('email')
             subject = 'Activate your LimonadaMD account.'
@@ -98,6 +102,7 @@ def update(request):
             user.profile.address = form.cleaned_data.get('address')
             user.profile.miscellaneous = form.cleaned_data.get('miscellaneous')
             user.save()
+            review_notification("update", "users", user.pk)
             return redirect('homepage')
     elif request.user.is_authenticated:
         instance = request.user

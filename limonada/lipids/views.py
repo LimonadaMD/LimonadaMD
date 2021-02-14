@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -41,6 +41,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail import send_mail
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.urls import reverse
+from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Substr
 from django.http import HttpResponse, HttpResponseRedirect
@@ -51,13 +52,13 @@ from django.views.generic import DetailView
 
 # Django apps
 from forcefields.models import Forcefield, Software
-from limonada.functions import FileData
+from limonada.functions import FileData, review_notification
 from membranes.models import Membrane, MembraneTopol
 
 # local Django
 from .forms import TopCommentForm, LipidForm, LmidForm, SelectLipidForm, SelectTopologyForm, TopologyForm
-from .functions import findcgbonds
-from .models import TopComment, Lipid, Topology
+from .functions import findcgbonds, get_residues
+from .models import TopComment, Lipid, Topology, TopologyResidue, ResidueList
 
 
 def molsize(filename):
@@ -346,16 +347,18 @@ def LipCreate(request):
                                         if s2['TOCHeading'] == 'Computed Descriptors':
                                             for s3 in s2['Section']:
                                                 if s3['TOCHeading'] == 'IUPAC Name':
-                                                    lm_data['iupac_name'] = s3['Information'][0]['StringValue']
+                                                    lm_data['iupac_name'] = s3['Information'][0]['Value']['StringWithMarkup'][0]['String']
                                         if s2['TOCHeading'] == 'Synonyms':
                                             for s3 in s2['Section']:
                                                 if s3['TOCHeading'] == 'Depositor-Supplied Synonyms':
                                                     key1 = 'Information'
-                                                    key2 = 'StringValueList'
-                                                    nb = len(s3[key1][0][key2])
+                                                    key2 = 'Value'
+                                                    key3 = 'StringWithMarkup'
+                                                    key4 = 'String'
+                                                    nb = len(s3[key1][0][key2][key3])
                                                     for i in range(nb):
-                                                        if len(s3[key1][0][key2][nb-1-i]) == 4:
-                                                            lm_data['name'] = s3[key1][0][key2][nb-1-i]
+                                                        if len(s3[key1][0][key2][key3][nb-1-i][key4]) == 4:
+                                                            lm_data['name'] = s3[key1][0][key2][key3][nb-1-i][key4]
                     except KeyError:
                         pass
             form_add = LipidForm(lm_data, file_data)
@@ -388,6 +391,7 @@ def LipCreate(request):
             lipid.save()
             if os.path.isfile("media/" + imgpath):
                 os.remove("media/" + imgpath)
+            review_notification("creation", "lipids", lipid.slug)
             return HttpResponseRedirect(reverse('liplist'))
     else:
         form_search = LmidForm()
@@ -417,6 +421,7 @@ def LipUpdate(request, slug=None):
                 lipid.save()
                 if imgpath != '' and os.path.isfile("media/" + imgpath):
                     os.remove("media/" + imgpath)
+                review_notification("update", "lipids", lipid.slug)
                 return HttpResponseRedirect(reverse('liplist'))
         else:
             imgpath = ''
@@ -494,7 +499,7 @@ def TopList(request):
 
     selectparams = {}
     selectclass = {}
-    for param in ['software', 'softversion', 'forcefield', 'lipid', 'category', 'main_class', 'sub_class', 'l4_class']:
+    for param in ['software', 'softversion', 'forcefield', 'lipid', 'altname', 'category', 'main_class', 'sub_class', 'l4_class']:
         if param in request.GET.keys():
             if request.GET[param] != '':
                 if param == 'lipid':
@@ -505,6 +510,8 @@ def TopList(request):
                 elif param == 'softversion':
                     selectparams[param] = request.GET[param]
                 elif param == 'forcefield':
+                    selectparams[param] = request.GET[param]
+                elif param == 'altname':
                     selectparams[param] = request.GET[param]
                 else:
                     selectclass[param] = request.GET[param]
@@ -537,6 +544,8 @@ def TopList(request):
             for i in liplist:
                 querylist.append(Q(lipid=Lipid.objects.filter(id=i)[0]))
             top_list = top_list.filter(reduce(operator.or_, querylist))
+        if 'altname' in selectparams.keys():
+            top_list = top_list.filter(description__icontains=selectparams['altname'])
 
     if 'topid' in request.GET.keys():
         try:
@@ -634,6 +643,7 @@ def TopDetail(request, pk=None):
 
 
 @login_required
+@transaction.atomic
 @never_cache
 def TopCreate(request):
     itppath = ''
@@ -650,6 +660,19 @@ def TopCreate(request):
             softwares = form.cleaned_data['software']
             for soft in softwares:
                 top.software.add(soft)
+            residues = get_residues(top.gro_file)
+            respos = 0
+            reslist = []
+            for resname in residues:
+                respos += 1
+                if not TopologyResidue.objects.filter(name=resname).count():
+                    res = TopologyResidue.objects.create(name=resname)
+                else:
+                    res = TopologyResidue.objects.filter(name=resname)[0]
+                reslist.append(ResidueList(topology=top, residue=res, position=respos))
+            with transaction.atomic():
+                ResidueList.objects.filter(topology=top).delete()
+                ResidueList.objects.bulk_create(reslist)
             refs = form.cleaned_data['reference']
             for ref in refs:
                 top.reference.add(ref)
@@ -658,6 +681,7 @@ def TopCreate(request):
                 os.remove('media/' + itppath)
             if os.path.isfile('media/' + gropath):
                 os.remove('media/' + gropath)
+            review_notification('creation', 'topologies', top.pk)
             return HttpResponseRedirect(reverse('toplist'))
     else:
         form = TopologyForm()
@@ -666,6 +690,7 @@ def TopCreate(request):
 
 
 @login_required
+@transaction.atomic
 @never_cache
 def TopUpdate(request, pk=None):
     if Topology.objects.filter(pk=pk).exists():
@@ -688,6 +713,19 @@ def TopUpdate(request, pk=None):
                 softwares = form.cleaned_data['software']
                 for soft in softwares:
                     top.software.add(soft)
+                residues = get_residues(top.gro_file)
+                respos = 0
+                reslist = []
+                for resname in residues:
+                    respos += 1
+                    if not TopologyResidue.objects.filter(name=resname).count():
+                        res = TopologyResidue.objects.create(name=resname)
+                    else:
+                        res = TopologyResidue.objects.filter(name=resname)[0]
+                    reslist.append(ResidueList(topology=top, residue=res, position=respos))
+                with transaction.atomic():
+                    ResidueList.objects.filter(topology=top).delete()
+                    ResidueList.objects.bulk_create(reslist)
                 top.reference.clear()
                 refs = form.cleaned_data['reference']
                 for ref in refs:
@@ -700,6 +738,7 @@ def TopUpdate(request, pk=None):
                 if version_init != top.version or software_init != top.software.all()[0].name or forcefield_init != top.forcefield:
                     if os.path.isdir(dir_init):
                         shutil.rmtree(dir_init, ignore_errors=True)
+                review_notification('update', 'topologies', top.pk)
                 return HttpResponseRedirect(reverse('toplist'))
         else:
             itppath = 'tmp/%s' % os.path.basename(top.itp_file.name)

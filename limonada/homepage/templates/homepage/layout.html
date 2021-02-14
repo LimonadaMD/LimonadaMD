@@ -20,7 +20,11 @@
   <link rel="icon" href="{% static 'img/favicon.ico' %}">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
         integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-2.2.3.min.css" type="text/css">
+  <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-2.2.3.min.css" type="text/css">
   <link rel="stylesheet" href="{% static 'css/limonada.css' %}"/>
+  <script src="http://cdn.pydata.org/bokeh/release/bokeh-2.2.3.min.js"></script>
+  <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-2.2.3.min.js"></script>
 </head>
 
 <body class="container bg-light">
@@ -68,6 +72,11 @@
           <a class="nav-link text-light" href="{% url 'reflist' %}">References</a>
         </li>
       {% endif %}
+      <!--
+      <li class="nav-item {% if documentation %}bg-success rounded{% endif %}">
+        <a class="nav-link text-light" href="{% url 'documentation' %}">Documentation</a>
+      </li>
+      -->
       <li class="nav-item {% if links %}bg-success rounded{% endif %}">
         <a class="nav-link text-light" href="{% url 'links' %}">Links</a>
       </li>
@@ -90,7 +99,7 @@
         <br>
         <h2>Contributors</h2>
         <ul>
-          <li><a href="http://www.gembloux.ulg.ac.be/biophysique-moleculaire-aux-interfaces/team/jean-marc-crowet/"
+          <li><a href="https://jmcrowet.github.io/"
                  class="text-warning">Dr. Jean-Marc Crowet</a></li>
           <li><a href="https://seb-buch.github.io/" class="text-warning">Dr. Sébastien Buchoux</a></li>
         </ul>

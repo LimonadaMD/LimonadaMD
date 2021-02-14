@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -29,6 +29,8 @@ from .models import Profile
 
 
 class ProfileInline(admin.StackedInline):
+
+    """Customize the look of the auto-generated admin for the User model to include the Profile model"""
     model = Profile
     can_delete = False
     verbose_name_plural = 'Profile'
@@ -36,6 +38,8 @@ class ProfileInline(admin.StackedInline):
 
 
 class CustomUserAdmin(UserAdmin):
+
+    """Customize the look of the auto-generated admin for the User model"""
     inlines = (ProfileInline,)
 
     def get_inline_instances(self, request, obj=None):
@@ -44,5 +48,5 @@ class CustomUserAdmin(UserAdmin):
         return super(CustomUserAdmin, self).get_inline_instances(request, obj)
 
 
-admin.site.unregister(User)
+admin.site.unregister(User) # Use the customized options
 admin.site.register(User, CustomUserAdmin)

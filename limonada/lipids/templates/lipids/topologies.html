@@ -31,7 +31,7 @@
         {% include 'per_page.html' %}
     </div>
     <div id="collapseselect" class="col-12 col-xl-9 col-lg-8 order-last"
-         {% if not params.software and not params.category and not params.lipid %}style="display: none"{% endif %}>
+         {% if not params.software and not params.category and not params.lipid and not params.altname %}style="display: none"{% endif %}>
       <div class="container">
         <form id="select_form" method="get">
           {% csrf_token %}
@@ -92,7 +92,21 @@
                   {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
                   {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
                 </div>
-              {% elif field.name != 'software' and field.name != 'softversion' and field.name != 'forcefield' %}
+              {% elif field.name == 'altname' %}
+                <div class="col-4 col-lg-4 col-md-4 col-sm-4 pt-1">{{ field.label_tag }}
+                    <span data-toggle="popover" data-trigger="hover" title="Alternative lipid name"
+                          data-content="Some lipids have been renamed in LIMONADA. This is because their names in the original
+                              forcefield is not 4 character long or because they are defined by different names accross forcfefields.
+                              When a lipid has been renamed, its original name should be specified in the description and this
+                              field enables to search for these names.">
+                        <i class="fas fa-info-circle text-success"></i></span>
+                </div>
+                <div class="col-6 col-xl-6 col-lg-6 col-md-6 col-sm-6 pb-1">
+                  {{ field }}
+                  {% if field.help_text %}<small class="text-secondary">{{ field.help_text }}<br></small>{% endif %}
+                  {% for error in field.errors %}<span class="text-danger">{{ error }}<br></span>{% endfor %}
+                </div>
+              {% elif field.name != 'software' and field.name != 'softversion' and field.name != 'forcefield' and field.name != 'altname' %}
                 <div class="col-4 col-lg-2 col-md-2 col-sm-3 pt-1">
                   {% if field.name == 'main_class' %}
                     <label id="{{ field.id_for_label }}_label" for="{{ field.id_for_label }}"
@@ -194,7 +208,7 @@
               {% endif %}
             </div>
           {% endfor %}
-          <a onclick="url_replace('software', 'softversion','forcefield','lipid','category','main_class','sub_class','l4_class')"
+          <a onclick="url_replace('software', 'softversion','forcefield','lipid','altname','category','main_class','sub_class','l4_class')"
              class="btn btn-primary btn-sm text-white">Select</a>
         </form>
       </div>

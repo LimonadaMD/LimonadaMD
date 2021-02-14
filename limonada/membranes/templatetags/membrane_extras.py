@@ -1,7 +1,7 @@
 # -*- coding: utf-8; Mode: python; tab-width: 4; indent-tabs-mode:nil; -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
-#    Limonada is accessible at https://www.limonadamd.eu/
+#    Limonada is accessible at https://limonada.univ-reims.fr/
 #    Copyright (C) 2016-2020 - The Limonada Team (see the AUTHORS file)
 #
 #    This file is part of Limonada.
@@ -70,3 +70,15 @@ def boolean(val=None):
         val = 0
 
     return val
+
+
+@register.filter(name='hash')
+def hash(h, key):
+    return h[key]
+
+
+@register.simple_tag()
+def get_percent(nb_lip_per_leaflet, leaflet, nb):
+    percent = "%5.1f" % (100 * float(nb) / float(nb_lip_per_leaflet[leaflet]))
+
+    return percent

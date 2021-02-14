@@ -28,7 +28,7 @@ SECRET_KEY = 'l8aqdipf^nyb9@w+fye8wikf8^muj8qxxkv$n30(hv$%$z4+wg'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'www.limonadamd.eu']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'limonada.univ-reims.fr']
 
 # Application definition
 PREREQ_APPS = [
@@ -50,6 +50,8 @@ PROJECT_APPS = [
     'forcefields',
     'lipids',
     'membranes',
+    'properties',
+    'documentation',
 ]
 
 INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS
@@ -180,7 +182,7 @@ MEDIA_URL = '/media/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-DEFAULT_FROM_EMAIL = 'Limonada Team <contact@limonadamd.eu>'
+DEFAULT_FROM_EMAIL = 'Limonada Team <limonada-contact@univ-reims.fr>'
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)

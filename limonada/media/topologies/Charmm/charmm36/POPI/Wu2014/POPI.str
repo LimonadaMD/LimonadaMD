@@ -386,19 +386,6 @@ IC H16X   C315   *C316  H16Z       1.1113  110.46 -120.07  110.61   1.1113
 
 end
 
-read para card flex append
-* Parameters
-*
-
-ANGLES
-
-CC3161  OC30P   PL        20.0     120.0    35.0    2.33   !CTL2 OSLP PL  ! phosphate, PIP
-OC30P   PL      O2L       98.9      111.6  ! OSLP PL   O2L  ! phosphate
-OC30P   PL      OSLP      80.0      104.3  ! OSLP PL   OSLP ! phosphate
-
-end
-
-
 return
 
 
